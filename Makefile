@@ -3,7 +3,7 @@
 # ============================
 PROJECT_NAME=django-app
 
-COMPOSE=docker-compose
+COMPOSE=docker compose
 DEV_COMPOSE=-f docker-compose.yml -f docker-compose.dev.yml
 PROD_COMPOSE=-f docker-compose.yml -f docker-compose.prod.yml
 
