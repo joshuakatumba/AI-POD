@@ -39,7 +39,7 @@ class CreateOrganisationAPITests(APITestCase):
         )
 
         # ---------- URL ----------
-        self.create_org_url = reverse("organisations:create")
+        self.create_org_url = reverse("organizations:create")
 
     # ---------- AUTH HELPER ----------
     def authenticate(self, user):

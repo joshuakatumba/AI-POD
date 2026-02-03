@@ -1,12 +1,17 @@
 from django.urls import path
-from .views import OrganizationCreateView
+from .views import OrganizationCreateView, OrganizationMembersView
 
-app_name = "organisations"
+app_name = "organizations"
 
 urlpatterns = [
     path(
         "create/",
         OrganizationCreateView.as_view(),
-        name="create",
+        name="create"
+    ),
+    path(
+        "<uuid:organization_id>/members/",
+        OrganizationMembersView.as_view(),
+        name="add-members",
     ),
 ]
