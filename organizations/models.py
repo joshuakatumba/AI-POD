@@ -1,6 +1,8 @@
 import uuid
+
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 
 from core.models.base import CommonField
 from core.models.constants import LANGUAGE_CHOICES, ROLE_CHOICES
@@ -20,7 +22,8 @@ class Organization(CommonField):
     )
 
     name = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, editable=False)
+
     type = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
@@ -32,10 +35,35 @@ class Organization(CommonField):
                 prefix="ORG",
                 entity_uuid=self.id,
             )
+
+        if not self.slug:
+            base_slug = slugify(self.name)
+            existing_slugs = (
+                Organization.objects
+                .filter(slug__startswith=base_slug)
+                .values_list("slug", flat=True)
+            )
+
+            if base_slug not in existing_slugs:
+                self.slug = base_slug
+            else:
+                counters = []
+                for slug in existing_slugs:
+                    if slug == base_slug:
+                        counters.append(0)
+                    elif slug.startswith(f"{base_slug}-"):
+                        try:
+                            counters.append(int(slug.split("-")[-1]))
+                        except ValueError:
+                            pass
+
+                next_counter = max(counters) + 1
+                self.slug = f"{base_slug}-{next_counter}"
+
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} ({self.reference})"
+        return f"{self.name} ({self.country})"
 
 
 class Membership(CommonField):
@@ -58,6 +86,7 @@ class Membership(CommonField):
         on_delete=models.CASCADE,
         related_name="memberships",
     )
+
     role = models.CharField(
         max_length=10,
         choices=ROLE_CHOICES,
