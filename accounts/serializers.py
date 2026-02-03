@@ -23,16 +23,62 @@ class UserSignUpSerializer(serializers.ModelSerializer):
         return user
 
 
-class TenantSelectSerializer(serializers.Serializer):
-    tenant_id = serializers.UUIDField()
+class OrganisationSelectSerializer(serializers.Serializer):
+    organisation_id = serializers.UUIDField()
 
-    def validate_tenant_id(self, value):
+    def validate_organisation_id(self, value):
         user = self.context["request"].user
         if not Membership.objects.filter(user=user, organization_id=value, is_active=True).exists():
-            raise serializers.ValidationError("You are not a member of this tenant.")
+            raise serializers.ValidationError("You are not a member of this organisation.")
         return value
 
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+
+
+class TokenSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
+class MembershipInfoSerializer(serializers.Serializer):
+    organization_id = serializers.CharField()
+    organization_name = serializers.CharField()
+    role = serializers.CharField()
+    is_current = serializers.BooleanField()
+    joined_at = serializers.DateTimeField()
+    last_accessed_at = serializers.DateTimeField(allow_null=True)
+
+
+class LoginResponseSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    email = serializers.EmailField()
+    organisation = serializers.CharField()
+    role = serializers.CharField()
+    tokens = TokenSerializer()
+    memberships = MembershipInfoSerializer(many=True)
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+
+class OrganisationSelectResponseSerializer(serializers.Serializer):
+    organisation = serializers.CharField()
+    role = serializers.CharField()
+    tokens = TokenSerializer()
+
+
+class UserInfoSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    email = serializers.EmailField()
+    super_user = serializers.BooleanField()
+    organisation = serializers.CharField()
+    role = serializers.CharField()
+
+class MeResponseSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    email = serializers.EmailField()
+    memberships = MembershipInfoSerializer(many=True)

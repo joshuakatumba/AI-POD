@@ -112,6 +112,29 @@ make superuser
 
 ---
 
+### Run Django tests (pytest)
+
+```bash
+make test
+```
+
+---
+
+### Run Django tests (verbose)
+
+```bash
+make test-verbose
+```
+
+---
+
+### Run Django tests with coverage
+
+```bash
+make test-coverage
+```
+
+---
 ## Common Make Commands
 
 ```bash
@@ -120,6 +143,10 @@ make up                # Start dev stack
 make down              # Stop dev stack
 make restart           # Restart dev stack
 make logs              # Tail app logs
+
+make test              # Run tests using pytest
+make test-verbose      # Run tests using pytest (verbose)
+make test-coverage     # Run tests with coverage
 
 make migrate           # Run migrations
 make makemigrations    # Create migrations

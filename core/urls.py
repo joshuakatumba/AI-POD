@@ -22,6 +22,7 @@ from drf_yasg import openapi
 
 from core.views import healthz
 
+# Swagger Schema View Configuration
 schema_view = get_schema_view(
    openapi.Info(
       title="Daily Report System - API",

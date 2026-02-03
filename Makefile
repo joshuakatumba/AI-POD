@@ -22,6 +22,10 @@ help:
 	@echo "  make build           Build images"
 	@echo "  make logs            Tail app logs"
 	@echo ""
+	@echo "  make test            Run tests using pytest"
+	@echo "  make test-verbose    Run tests using pytest (verbose)"
+	@echo "  make test-coverage   Run tests with coverage"
+	@echo ""
 	@echo "  make migrate         Run Django migrations"
 	@echo "  make makemigrations  Create migrations"
 	@echo "  make collectstatic   Collect static files"
@@ -52,6 +56,19 @@ build:
 
 logs:
 	$(COMPOSE) $(DEV_COMPOSE) logs -f $(APP_SERVICE)
+
+# ============================
+# Django tests with pytest
+# ============================
+.PHONY: test test-verbose test-coverage
+test:
+	$(COMPOSE) $(DEV_COMPOSE) exec $(APP_SERVICE) pytest
+
+test-verbose:
+	$(COMPOSE) $(DEV_COMPOSE) exec $(APP_SERVICE) pytest -v
+
+test-coverage:
+	$(COMPOSE) $(DEV_COMPOSE) exec $(APP_SERVICE) pytest --cov=.
 
 # ============================
 # Django management
