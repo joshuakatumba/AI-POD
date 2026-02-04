@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 
-from organizations.models import Organization
-from organizations.serializers import OrganizationCreateSerializer, AddUserToOrganizationSerializer
+from organizations.models import Membership, Organization
+from organizations.serializers import OrganizationCreateSerializer, AddUserToOrganizationSerializer, OrganizationMembershipSerializer
 from organizations.permissions import CanCreateOrganization
 
 
@@ -45,3 +45,13 @@ class OrganizationMembersView(generics.GenericAPIView):
             {"message": "User added successfully", "user": membership.user.email, "role": membership.role},
             status=status.HTTP_201_CREATED
         )
+    
+    def get(self, request, organization_id):
+        organization = get_object_or_404(Organization, id=organization_id)
+
+        memberships = Membership.objects.filter(
+            organization=organization
+        ).select_related("user")
+
+        serializer = OrganizationMembershipSerializer(memberships, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

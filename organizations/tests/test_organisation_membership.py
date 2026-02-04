@@ -34,7 +34,7 @@ class TestAddUserToOrganizationView:
         )
 
         self.url = reverse(
-            "organizations:add-members",
+            "organizations:organization-members",
             args=[self.org.id]
         )
 

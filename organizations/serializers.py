@@ -89,3 +89,31 @@ class AddUserToOrganizationSerializer(serializers.Serializer):
             role="member",  # default role
             created_by=request.user,
         )
+
+# ---------- Organisation Membership Serializer ----------
+class OrganizationMembershipSerializer(serializers.ModelSerializer):
+    user_id = serializers.UUIDField(source="user.id", read_only=True)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
+    user_name = serializers.CharField(source="user.get_full_name", read_only=True)
+
+    organization_id = serializers.UUIDField(source="organization.id", read_only=True)
+    organization_name = serializers.CharField(source="organization.name", read_only=True)
+
+    class Meta:
+        model = Membership
+        fields = [
+            "id",
+            "reference",
+            "user_id",
+            "user_email",
+            "user_name",
+            "organization_id",
+            "organization_name",
+            "role",
+            "preferred_language",
+            "display_name",
+            "joined_at",
+            "last_accessed_at",
+            "metadata",
+        ]
+        read_only_fields = fields

@@ -12,6 +12,6 @@ urlpatterns = [
     path(
         "<uuid:organization_id>/members/",
         OrganizationMembersView.as_view(),
-        name="add-members",
+        name="organization-members",
     ),
 ]
