@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from pathlib import Path
 # import environ
@@ -185,4 +186,6 @@ SWAGGER_SETTINGS = {
 
 SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=24),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=24),  # optional, you can change this
 }
