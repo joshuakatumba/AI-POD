@@ -59,11 +59,11 @@ class TestGetOrganizationMembers(APITestCase):
             is_active=True
         )
 
-        self.url_org1 = reverse("organizations:organization-members", kwargs={
+        self.url_org1 = reverse("organizations:members", kwargs={
             "organization_id": self.org1.id
         })
 
-        self.url_org2 = reverse("organizations:organization-members", kwargs={
+        self.url_org2 = reverse("organizations:members", kwargs={
             "organization_id": self.org2.id
         })
 
@@ -106,7 +106,7 @@ class TestGetOrganizationMembers(APITestCase):
 
         fake_id = "11111111-1111-1111-1111-111111111111"
 
-        url = reverse("organizations:organization-members", kwargs={
+        url = reverse("organizations:members", kwargs={
             "organization_id": fake_id
         })
 
