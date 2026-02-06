@@ -69,6 +69,9 @@ class OrganisationSelectResponseSerializer(serializers.Serializer):
     organisation = serializers.CharField()
     role = serializers.CharField()
     tokens = TokenSerializer()
+    user_id = serializers.CharField()
+    email = serializers.EmailField()
+    memberships = MembershipInfoSerializer(many=True)
 
 
 class UserInfoSerializer(serializers.Serializer):

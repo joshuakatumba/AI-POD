@@ -226,15 +226,38 @@ class SwitchOrganizationView(APIView):
         serializer.is_valid(raise_exception=True)
         organisation_id = serializer.validated_data["organisation_id"]
 
-        membership = Membership.objects.get(user=request.user, organization_id=organisation_id)
+        current_membership = Membership.objects.get(user=request.user, organization_id=organisation_id)
 
-        membership.last_accessed_at = now()
-        membership.save(update_fields=["last_accessed_at"])
+        current_membership.last_accessed_at = now()
+        current_membership.save(update_fields=["last_accessed_at"])
 
-        token = get_jwt_for_membership(request.user, membership)
+        token = get_jwt_for_membership(request.user, current_membership)
+
+        memberships_qs = (
+            Membership.objects
+            .filter(user=request.user, is_active=True)
+            .order_by(
+                F("last_accessed_at").desc(nulls_last=True),
+                "joined_at"
+            )
+        )
+
+        memberships_data = []
+        for m in memberships_qs:
+            memberships_data.append({
+                "organization_id": str(m.organization_id),
+                "organization_name": m.organization.name,
+                "role": m.role,
+                "is_current": m.id == current_membership.id,
+                "joined_at": m.joined_at,
+                "last_accessed_at": m.last_accessed_at,
+            })
 
         return Response({
-            "organisation": str(membership.organization_id),
-            "role": membership.role,
-            "tokens": token
+            "user_id": str(request.user.id),
+            "email": request.user.email,
+            "organisation": str(current_membership.organization_id),
+            "role": current_membership.role,
+            "tokens": token,
+            "memberships": memberships_data
         })
