@@ -184,3 +184,93 @@ class RemoveUserFromOrganizationSerializer(serializers.Serializer):
         membership.save()
 
         return membership
+
+# ---------- Change Member Role and Display Name Serializer ----------
+class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=["admin", "member"],
+        required=False,
+        help_text="New role for the member. Must be 'admin' or 'member'. Only admins can change roles."
+    )
+    
+    display_name = serializers.CharField(
+        max_length=255,
+        required=False,
+        allow_blank=True,
+        help_text="Display name for the member in this organization. Users can only update their own display name."
+    )
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        organization = self.context["organization"]
+        membership = self.context["membership"]
+
+        # Get current user and check if they're the target user
+        current_user = request.user
+        is_target_user = (membership.user == current_user)
+        
+        # Check role changes
+        if "role" in attrs:
+            # Only admins or superusers can change roles
+            if not request.user.is_superuser:
+                is_admin = Membership.objects.filter(
+                    user=request.user,
+                    organization=organization,
+                    role="admin",
+                    is_active=True,
+                    is_deleted=False,
+                ).exists()
+
+                if not is_admin:
+                    raise PermissionDenied(
+                        "You do not have permission to change roles in this organization."
+                    )
+            
+            # Check if role is actually changing
+            if attrs["role"] == membership.role:
+                raise ValidationError(
+                    f"User already has the role '{membership.role}'. No change needed."
+                )
+
+            # Prevent demoting the last admin
+            if membership.role == "admin" and attrs["role"] == "member":
+                admin_count = Membership.objects.filter(
+                    organization=organization,
+                    role="admin",
+                    is_active=True,
+                    is_deleted=False,
+                ).count()
+                
+                if admin_count <= 1:
+                    raise ValidationError(
+                        "Cannot demote the last admin of the organization. "
+                        "Please assign another admin first."
+                    )
+        
+        # Check display name changes - STRICT: Only the user themselves can update
+        if "display_name" in attrs:
+            if not is_target_user:
+                raise PermissionDenied(
+                    "You can only update your own display name."
+                )
+        
+        # At least one field should be provided
+        if not attrs:
+            raise ValidationError(
+                "At least one of 'role' or 'display_name' must be provided."
+            )
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        # Update role if provided
+        if "role" in validated_data:
+            instance.role = validated_data["role"]
+        
+        # Update display name if provided
+        if "display_name" in validated_data:
+            instance.display_name = validated_data["display_name"]
+        
+        instance.save()
+        
+        return instance

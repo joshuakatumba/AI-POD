@@ -13,6 +13,7 @@ from organizations.serializers import (
     AddUserToOrganizationSerializer,
     OrganizationMembershipSerializer,
     RemoveUserFromOrganizationSerializer,
+    ChangeMemberRoleAndNameSerializer
 )
 from organizations.permissions import CanCreateOrganization
 from organizations.utils import get_membership 
@@ -165,15 +166,101 @@ class OrganizationMembersView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# ---------- Organisation Member (Delete + Update individual Membership) ----------
+# ---------- Organisation Member (Delete + Change individual Membership) ----------
 class OrganizationMemberView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.request.method == "DELETE":
             return RemoveUserFromOrganizationSerializer
+        elif self.request.method == "PATCH":
+            return ChangeMemberRoleAndNameSerializer
         return None
     
+    
+    @swagger_auto_schema(
+        operation_description="Change member details. Users can change their own display name. Only organization admins or superusers can change roles. Cannot demote the last admin.",
+        request_body=ChangeMemberRoleAndNameSerializer,
+        responses={
+            200: openapi.Response(
+                description="Member updated successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "message": openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
+                        "data": openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description="Updated membership data",
+                            properties={
+                                "id": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_UUID),
+                                "user_email": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL),
+                                "role": openapi.Schema(type=openapi.TYPE_STRING),
+                                "display_name": openapi.Schema(type=openapi.TYPE_STRING),
+                                "joined_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+                            }
+                        )
+                    }
+                )
+            ),
+            400: openapi.Response(description="Bad request - validation error"),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Permission denied"),
+            404: openapi.Response(description="Organization or membership not found"),
+        },
+        manual_parameters=[
+            openapi.Parameter(
+                'organization_id',
+                openapi.IN_PATH,
+                description="Organization UUID",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_UUID,
+                required=True
+            ),
+            openapi.Parameter(
+                'membership_id',
+                openapi.IN_PATH,
+                description="Membership UUID",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_UUID,
+                required=True
+            ),
+        ],
+        tags=["Organizations"],
+    )
+    def patch(self, request, organization_id, membership_id):
+        """Update member details (role or display name)"""
+        organization, membership = get_membership(organization_id, membership_id)
+
+        serializer = self.get_serializer(
+            data=request.data,
+            context={
+                "request": request,
+                "organization": organization,
+                "membership": membership
+            }
+        )
+        
+        serializer.is_valid(raise_exception=True)
+        updated_membership = serializer.update(membership, serializer.validated_data)
+
+        # Create appropriate success message
+        message_parts = []
+        if "role" in serializer.validated_data:
+            message_parts.append(f"role updated to '{updated_membership.role}'")
+        if "display_name" in serializer.validated_data:
+            message_parts.append("display name updated")
+        
+        message = "Member " + " and ".join(message_parts) + " successfully"
+
+        # Return the updated membership data
+        response_serializer = OrganizationMembershipSerializer(updated_membership)
+        return Response(
+            {
+                "message": message,
+                "data": response_serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @swagger_auto_schema(
         operation_description="Remove a user from an organization (soft delete). Only organization admins or superusers can remove members. Users cannot remove themselves. Cannot remove the last admin of an organization.",
