@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
-from rest_framework.exceptions import PermissionDenied
 
 from organizations.models import Membership, Organization
 from organizations.serializers import (
@@ -13,10 +12,10 @@ from organizations.serializers import (
     AddUserToOrganizationSerializer,
     OrganizationMembershipSerializer,
     RemoveUserFromOrganizationSerializer,
-    ChangeMemberRoleAndNameSerializer
+    ChangeMemberRoleAndNameSerializer,
 )
 from organizations.permissions import CanCreateOrganization
-from organizations.utils import get_membership 
+from organizations.utils import get_membership
 
 
 # ---------- Create Organisation ----------
@@ -25,33 +24,17 @@ class OrganizationCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated, CanCreateOrganization]
 
     @swagger_auto_schema(
-        operation_description="Create a new organization. The creator automatically becomes an admin of the organization.",
+        operation_description=(
+            "Create a new organization. "
+            "The authenticated user becomes an admin automatically. "
+            "Optional `invited_members` allows inviting existing users by email."
+        ),
         request_body=OrganizationCreateSerializer,
         responses={
-            201: openapi.Response(
-                description="Organization created successfully",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "message": openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
-                        "data": openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            description="Created organization data",
-                            properties={
-                                "id": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_UUID),
-                                "name": openapi.Schema(type=openapi.TYPE_STRING),
-                                "type": openapi.Schema(type=openapi.TYPE_STRING),
-                                "description": openapi.Schema(type=openapi.TYPE_STRING),
-                                "email": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL),
-                                "country": openapi.Schema(type=openapi.TYPE_STRING),
-                            }
-                        )
-                    }
-                )
-            ),
-            400: openapi.Response(description="Bad request - validation error"),
-            401: openapi.Response(description="Authentication required"),
-            403: openapi.Response(description="Permission denied - user cannot create organizations"),
+            201: openapi.Response(description="Organization created successfully"),
+            400: "Validation error",
+            401: "Authentication required",
+            403: "Permission denied",
         },
         tags=["Organizations"],
     )
@@ -61,15 +44,31 @@ class OrganizationCreateView(CreateAPIView):
             context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        organization, invited_data = serializer.save()
 
-        return Response(
-            {
-                "message": "organization.create_success",
-                "data": serializer.data,
+        response_data = {
+            "message": "organization.create_success",
+            "data": {
+                "id": str(organization.id),
+                "name": organization.name,
+                "type": organization.type,
+                "description": organization.description,
+                "email": organization.email,
+                "country": organization.country,
             },
-            status=status.HTTP_201_CREATED,
-        )
+        }
+
+        if invited_data.get("invited_members_added"):
+            response_data["data"]["invited_members_added"] = invited_data[
+                "invited_members_added"
+            ]
+
+        if invited_data.get("invited_members_failed"):
+            response_data["data"]["invited_members_failed"] = invited_data[
+                "invited_members_failed"
+            ]
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 # ---------- Organisation Members (Add + Get Memberships) ----------
@@ -82,39 +81,31 @@ class OrganizationMembersView(generics.GenericAPIView):
         return None
 
     @swagger_auto_schema(
-        operation_description="Add a user to an organization by email. Only organization admins or superusers can add members.",
+        operation_description=(
+            "Add a user to an organization by email. "
+            "Only organization admins or superusers can add members."
+        ),
         request_body=AddUserToOrganizationSerializer,
         responses={
-            201: openapi.Response(
-                description="User added successfully",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "message": openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
-                        "user": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL, description="Email of added user"),
-                        "role": openapi.Schema(type=openapi.TYPE_STRING, description="Role assigned to user"),
-                    }
-                )
-            ),
-            400: openapi.Response(description="Bad request - validation error"),
-            401: openapi.Response(description="Authentication required"),
-            403: openapi.Response(description="Permission denied - user is not admin of organization"),
-            404: openapi.Response(description="Organization not found"),
+            201: openapi.Response(description="User added successfully"),
+            400: "Validation error",
+            401: "Authentication required",
+            403: "Permission denied",
+            404: "Organization not found",
         },
         manual_parameters=[
             openapi.Parameter(
-                'organization_id',
+                "organization_id",
                 openapi.IN_PATH,
                 description="Organization UUID",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_UUID,
-                required=True
+                required=True,
             ),
         ],
         tags=["Organizations"],
     )
     def post(self, request, organization_id):
-        """Add user to organization"""
         organization = get_object_or_404(Organization, id=organization_id)
 
         serializer = self.get_serializer(
@@ -128,29 +119,26 @@ class OrganizationMembersView(generics.GenericAPIView):
             {
                 "message": "User added successfully",
                 "user": membership.user.email,
-                "role": membership.role
-             },
-            status=status.HTTP_201_CREATED
+                "role": membership.role,
+            },
+            status=status.HTTP_201_CREATED,
         )
-    
+
     @swagger_auto_schema(
-        operation_description="Get all members of an organization.",
+        operation_description="Retrieve all active members of an organization.",
         responses={
-            200: openapi.Response(
-                description="List of organization members",
-                schema=OrganizationMembershipSerializer(many=True)
-            ),
-            401: openapi.Response(description="Authentication required"),
-            404: openapi.Response(description="Organization not found"),
+            200: OrganizationMembershipSerializer(many=True),
+            401: "Authentication required",
+            404: "Organization not found",
         },
         manual_parameters=[
             openapi.Parameter(
-                'organization_id',
+                "organization_id",
                 openapi.IN_PATH,
                 description="Organization UUID",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_UUID,
-                required=True
+                required=True,
             ),
         ],
         tags=["Organizations"],
@@ -158,9 +146,10 @@ class OrganizationMembersView(generics.GenericAPIView):
     def get(self, request, organization_id):
         organization = get_object_or_404(Organization, id=organization_id)
 
-        memberships = Membership.objects.filter(
-            organization=organization
-        ).select_related("user")
+        memberships = (
+            Membership.objects.filter(organization=organization)
+            .select_related("user")
+        )
 
         serializer = OrganizationMembershipSerializer(memberships, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -176,84 +165,73 @@ class OrganizationMemberView(generics.GenericAPIView):
         elif self.request.method == "PATCH":
             return ChangeMemberRoleAndNameSerializer
         return None
-    
-    
+
     @swagger_auto_schema(
-        operation_description="Change member details. Users can change their own display name. Only organization admins or superusers can change roles. Cannot demote the last admin.",
+        operation_description=(
+            "Update a member's role or display name. "
+            "Users may update their own display name. "
+            "Only admins can change roles. "
+            "The last admin cannot be demoted."
+        ),
         request_body=ChangeMemberRoleAndNameSerializer,
         responses={
-            200: openapi.Response(
-                description="Member updated successfully",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "message": openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
-                        "data": openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            description="Updated membership data",
-                            properties={
-                                "id": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_UUID),
-                                "user_email": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_EMAIL),
-                                "role": openapi.Schema(type=openapi.TYPE_STRING),
-                                "display_name": openapi.Schema(type=openapi.TYPE_STRING),
-                                "joined_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
-                            }
-                        )
-                    }
-                )
-            ),
-            400: openapi.Response(description="Bad request - validation error"),
-            401: openapi.Response(description="Authentication required"),
-            403: openapi.Response(description="Permission denied"),
-            404: openapi.Response(description="Organization or membership not found"),
+            200: OrganizationMembershipSerializer,
+            400: "Validation error",
+            401: "Authentication required",
+            403: "Permission denied",
+            404: "Organization or membership not found",
         },
         manual_parameters=[
             openapi.Parameter(
-                'organization_id',
+                "organization_id",
                 openapi.IN_PATH,
                 description="Organization UUID",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_UUID,
-                required=True
+                required=True,
             ),
             openapi.Parameter(
-                'membership_id',
+                "membership_id",
                 openapi.IN_PATH,
                 description="Membership UUID",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_UUID,
-                required=True
+                required=True,
             ),
         ],
         tags=["Organizations"],
     )
     def patch(self, request, organization_id, membership_id):
-        """Update member details (role or display name)"""
-        organization, membership = get_membership(organization_id, membership_id)
+        organization, membership = get_membership(
+            organization_id, membership_id
+        )
 
         serializer = self.get_serializer(
             data=request.data,
             context={
                 "request": request,
                 "organization": organization,
-                "membership": membership
-            }
+                "membership": membership,
+            },
         )
-        
-        serializer.is_valid(raise_exception=True)
-        updated_membership = serializer.update(membership, serializer.validated_data)
 
-        # Create appropriate success message
+        serializer.is_valid(raise_exception=True)
+        updated_membership = serializer.update(
+            membership, serializer.validated_data
+        )
+
         message_parts = []
         if "role" in serializer.validated_data:
             message_parts.append(f"role updated to '{updated_membership.role}'")
         if "display_name" in serializer.validated_data:
             message_parts.append("display name updated")
-        
+
         message = "Member " + " and ".join(message_parts) + " successfully"
 
-        # Return the updated membership data
-        response_serializer = OrganizationMembershipSerializer(updated_membership)
+        response_serializer = OrganizationMembershipSerializer(
+            updated_membership
+        )
+
         return Response(
             {
                 "message": message,
@@ -263,62 +241,62 @@ class OrganizationMemberView(generics.GenericAPIView):
         )
 
     @swagger_auto_schema(
-        operation_description="Remove a user from an organization (soft delete). Only organization admins or superusers can remove members. Users cannot remove themselves. Cannot remove the last admin of an organization.",
+        operation_description=(
+            "Remove a member from an organization (soft delete). "
+            "Only admins or superusers can remove members. "
+            "Users cannot remove themselves. "
+            "The last admin cannot be removed."
+        ),
         responses={
-            200: openapi.Response(
-                description="User removed successfully",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "message": openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
-                        "membership_id": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_UUID, description="ID of the deleted membership"),
-                    }
-                )
-            ),
-            400: openapi.Response(description="Bad request - validation error (e.g., trying to remove yourself, trying to remove last admin)"),
-            401: openapi.Response(description="Authentication required"),
-            403: openapi.Response(description="Permission denied - user is not admin of organization"),
-            404: openapi.Response(description="Organization or membership not found"),
+            200: openapi.Response(description="User removed successfully"),
+            400: "Validation error",
+            401: "Authentication required",
+            403: "Permission denied",
+            404: "Organization or membership not found",
         },
         manual_parameters=[
             openapi.Parameter(
-                'organization_id',
+                "organization_id",
                 openapi.IN_PATH,
                 description="Organization UUID",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_UUID,
-                required=True
+                required=True,
             ),
             openapi.Parameter(
-                'membership_id',
+                "membership_id",
                 openapi.IN_PATH,
                 description="Membership UUID",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_UUID,
-                required=True
+                required=True,
             ),
         ],
         tags=["Organizations"],
     )
     def delete(self, request, organization_id, membership_id):
-        """Remove user from organization using serializer"""
-        organization, membership = get_membership(organization_id, membership_id)
+        organization, membership = get_membership(
+            organization_id, membership_id
+        )
 
         serializer = RemoveUserFromOrganizationSerializer(
             data={},
             context={
                 "request": request,
                 "organization": organization,
-                "membership": membership
-            }
+                "membership": membership,
+            },
         )
-        
+
         serializer.is_valid(raise_exception=True)
         deleted_membership = serializer.delete()
 
         return Response(
             {
-                "message": f"User {deleted_membership.user.email} has been removed from organization {organization.name}.",
+                "message": (
+                    f"User {deleted_membership.user.email} has been removed "
+                    f"from organization {organization.name}."
+                ),
                 "membership_id": str(deleted_membership.id),
             },
             status=status.HTTP_200_OK,

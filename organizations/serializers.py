@@ -10,6 +10,14 @@ User = get_user_model()
 
 # ---------- Create Organisation Serializer ----------
 class OrganizationCreateSerializer(serializers.ModelSerializer):
+
+    invited_members = serializers.ListField(
+        child=serializers.EmailField(),
+        required=False,
+        write_only=True,
+        help_text="List of email addresses to invite as members (role='member')"
+    )
+
     class Meta:
         model = Organization
         fields = [
@@ -19,19 +27,22 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
             "description",
             "email",
             "country",
+            "invited_members",
         ]
         read_only_fields = ["id"]
 
     @transaction.atomic
     def create(self, validated_data):
-        request = self.context["request"]
-        user = request.user
+        invited_emails = validated_data.pop("invited_members", None)
+        user = self.context["request"].user
 
+        # Create organization
         organization = Organization.objects.create(
             **validated_data,
             created_by=user,
         )
 
+        # Creator becomes admin
         Membership.objects.create(
             user=user,
             organization=organization,
@@ -39,7 +50,71 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
             created_by=user,
         )
 
-        return organization
+        # If field not provided OR empty → do nothing (tests expect no keys)
+        if not invited_emails:
+            return organization, {}
+        
+        # Remove duplicates
+        invited_emails = set(invited_emails)
+        added = []
+        failed = []
+
+        # Fetch all users once
+        users = User.objects.filter(email__in=invited_emails)
+        users_by_email = {u.email: u for u in users}
+
+        # Track memberships created during THIS request
+        created_user_ids = set()
+
+        for email in invited_emails:
+
+            invited_user = users_by_email.get(email)
+
+            if not invited_user:
+                failed.append({
+                    "email": email,
+                    "error": "User with this email does not exist."
+                })
+                continue
+
+            # Already member in THIS org?
+            already_member = Membership.objects.filter(
+                organization=organization,
+                user=invited_user,
+                is_active=True
+            ).exists()
+
+            # Or already created earlier in this same request?
+            if already_member or invited_user.id in created_user_ids:
+                failed.append({
+                    "email": email,
+                    "error": "User is already a member of this organization."
+                })
+                continue
+
+            membership = Membership.objects.create(
+                user=invited_user,
+                organization=organization,
+                role="member",
+                created_by=user,
+            )
+
+            created_user_ids.add(invited_user.id)
+
+            added.append({
+                "email": email,
+                "membership_id": str(membership.id)
+            })
+
+        response_data = {}
+
+        if added:
+            response_data["invited_members_added"] = added
+
+        if failed:
+            response_data["invited_members_failed"] = failed
+
+        return organization, response_data
 
 # ---------- Add User to Organisation Serializer ----------
 class AddUserToOrganizationSerializer(serializers.Serializer):
@@ -178,7 +253,7 @@ class RemoveUserFromOrganizationSerializer(serializers.Serializer):
         membership.is_active = False
         membership.is_deleted = True
         membership.is_deleted_at = timezone.now()
-        membership.is_deleted_by_email = request.user.email  # Correct field name!
+        membership.is_deleted_by_email = request.user.email
         membership.is_deleted_reason = "Removed by admin"
         
         membership.save()
