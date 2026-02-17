@@ -64,12 +64,13 @@ class TestCreateProject(MockAuthMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("You must be an admin", response.data['detail'])
 
-    def test_create_success_as_superuser(self):
+    def test_create_failure_as_superuser(self):
         """Superuser flow: Should bypass role check but still use token for IDs."""
         self.client.force_authenticate(self.superuser)
         with self.mock_auth(self.admin_auth):
             response = self.client.post(self.url, self.valid_data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["membership"][0], "Invalid membership.")
 
     # --- TOKEN INTEGRITY TESTS ---
 

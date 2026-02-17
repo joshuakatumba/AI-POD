@@ -7,7 +7,6 @@ from projects.models import Project
 
 User = get_user_model()
 
-
 class ProjectCreateSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.SerializerMethodField()
@@ -53,6 +52,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
             raise ValidationError("Request context is required.")
 
         auth = request.auth or {}
+        user = request.user
         organisation_id = auth.get("organisation_id")
         membership_id = auth.get("membership_id")
 
@@ -68,7 +68,11 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
             raise ValidationError({"organisation": "Invalid organisation."})
 
         try:
-            membership = Membership.objects.get(id=membership_id)
+            membership = Membership.objects.get(
+                id=membership_id,
+                organization_id=organisation_id,
+                user=user
+            )
         except Membership.DoesNotExist:
             raise ValidationError({"membership": "Invalid membership."})
 
@@ -84,3 +88,27 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         Project membership creation can be added later.
         """
         return super().create(validated_data)
+
+
+class ProjectReadSerializer(serializers.ModelSerializer):
+    owner_id = serializers.UUIDField(source="owner.id", read_only=True)
+    owner_name = serializers.CharField(source="owner.display_name", read_only=True)
+    owner_email = serializers.EmailField(source="owner.user.email", read_only=True)
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "reference",
+            "name",
+            "description",
+            "status",
+            "start_date",
+            "end_date",
+            "is_active",
+            "is_deleted",
+            "visibility",
+            "owner_id",
+            "owner_name",
+            "owner_email",
+        ]
