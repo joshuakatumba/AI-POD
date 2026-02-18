@@ -13,13 +13,14 @@ from organizations.serializers import (
     OrganizationMembershipSerializer,
     RemoveUserFromOrganizationSerializer,
     ChangeMemberRoleAndNameSerializer,
+    OrganizationDeleteSerializer
 )
 from organizations.permissions import CanCreateOrganization
 from organizations.utils import get_membership
 
 
-# ---------- Create Organisation ----------
-class OrganizationCreateView(CreateAPIView):
+# ----------- organisations (Create) ----------
+class OrganisationsView(CreateAPIView):
     serializer_class = OrganizationCreateSerializer
     permission_classes = [IsAuthenticated, CanCreateOrganization]
 
@@ -69,6 +70,77 @@ class OrganizationCreateView(CreateAPIView):
             ]
 
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+# ----------- Organisation (Delete) ----------
+class OrganisationView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrganizationDeleteSerializer
+
+    @swagger_auto_schema(
+    operation_summary="Delete organization",
+    operation_description="Soft delete an organization (admin or superuser only).",
+    request_body=OrganizationDeleteSerializer,
+    responses={
+        200: "Organization deleted successfully",
+        400: "Already deleted or invalid request",
+        401: "Authentication required",
+        403: "Permission denied",
+        404: "Organization not found",
+    },
+    tags=["Organizations"],
+)
+    def delete(self, request, organization_id):
+        """Soft delete an organization"""
+        # Get the organization
+        organization = get_object_or_404(Organization, id=organization_id)
+        
+        # FIRST: Check if organization is already deleted
+        # This needs to happen before any permission checks because
+        # membership records might be inactive/deleted
+        if organization.is_deleted:
+            return Response(
+                {
+                    "message": "This organization has already been deleted.",
+                    "organization_id": str(organization.id),
+                    "is_deleted_at": organization.is_deleted_at,
+                    "deleted_by": organization.is_deleted_by_email if hasattr(organization, 'is_deleted_by_email') else None,
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Initialize and validate serializer
+        serializer = self.get_serializer(
+            data=request.data,
+            context={
+                "request": request,
+                "organization": organization
+            }
+        )
+        
+        serializer.is_valid(raise_exception=True)
+        
+        # Perform the soft delete
+        deleted_organization = serializer.delete()
+        
+        # Count how many memberships were affected
+        memberships_deleted = Membership.objects.filter(
+            organization=organization,
+            is_deleted=True,
+            is_deleted_at=deleted_organization.is_deleted_at
+        ).count()
+
+        return Response(
+            {
+                "message": "organization.delete_success",
+                "organization_id": str(deleted_organization.id),
+                "organization_name": deleted_organization.name,
+                "is_deleted_at": deleted_organization.is_deleted_at,
+                "deleted_by": request.user.email,
+                "memberships_deleted": memberships_deleted,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # ---------- Organisation Members (Add + Get Memberships) ----------

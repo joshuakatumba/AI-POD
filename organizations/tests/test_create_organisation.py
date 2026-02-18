@@ -68,7 +68,7 @@ class CreateOrganisationAPITests(APITestCase):
         )
 
         # ---------- URL ----------
-        self.create_org_url = reverse("organizations:create")
+        self.create_org_url = reverse("organizations:organisations")
 
     # ---------- AUTH HELPER ----------
     def authenticate(self, user):
@@ -282,16 +282,14 @@ class CreateOrganisationAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
-        # Should process both but second will fail due to already being a member
+        # With deduplication, duplicates are removed before processing
+        # So only one entry is processed and added successfully
         self.assertIn("invited_members_added", response.data["data"])
-        self.assertIn("invited_members_failed", response.data["data"])
+        self.assertNotIn("invited_members_failed", response.data["data"])  # Changed from assertIn
         
         added_members = response.data["data"]["invited_members_added"]
         self.assertEqual(len(added_members), 1)
-        
-        failed_members = response.data["data"]["invited_members_failed"]
-        self.assertEqual(len(failed_members), 1)
-        self.assertIn("already a member", failed_members[0]["error"].lower())
+        self.assertEqual(added_members[0]["email"], "invited1@example.com")
 
         # Verify only one membership was created
         organisation = Organization.objects.get(name="Duplicate Invite Org")
@@ -301,7 +299,7 @@ class CreateOrganisationAPITests(APITestCase):
                 user=self.invited_user1,
             ).count(),
             1
-        )
+    )
 
     def test_create_organisation_with_empty_invited_members_list(self):
         """Test creating organisation with empty invited_members list"""

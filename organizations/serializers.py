@@ -349,3 +349,75 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
         instance.save()
         
         return instance
+    
+# ---------- Delete Organisation Serializer (Soft Delete) ----------
+class OrganizationDeleteSerializer(serializers.Serializer):
+    deletion_reason = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=500,
+        help_text="Optional reason for deleting the organization"
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        organization = self.context["organization"]
+
+        # Only superusers or organization admins can delete the organization
+        if not request.user.is_superuser:
+            is_admin = Membership.objects.filter(
+                user=request.user,
+                organization=organization,
+                role="admin",
+                is_active=True,
+                is_deleted=False,
+            ).exists()
+
+            if not is_admin:
+                raise PermissionDenied(
+                    "You do not have permission to delete this organization. "
+                    "Only superusers or organization admins can delete an organization."
+                )
+
+        # Check if organization is already deleted
+        if organization.is_deleted:
+            raise ValidationError(
+                "This organization has already been deleted."
+            )
+
+        # Store the organization in attrs for use in delete method
+        attrs["organization"] = organization
+        return attrs
+
+    @transaction.atomic
+    def delete(self):
+        """Perform soft delete of the organization"""
+        organization = self.validated_data["organization"]
+        request = self.context["request"]
+        deletion_reason = self.validated_data.get("deletion_reason", "")
+
+        # Soft delete the organization
+        organization.is_active = False
+        organization.is_deleted = True
+        organization.is_deleted_at = timezone.now()
+        organization.is_deleted_by = request.user  # FK to User
+        organization.is_deleted_reason = deletion_reason
+        
+        organization.save()
+
+        # Soft delete all active memberships
+        Membership.objects.filter(
+            organization=organization,
+            is_deleted=False
+        ).update(
+            is_active=False,
+            is_deleted=True,
+            is_deleted_at=timezone.now(),
+            is_deleted_by_email=request.user.email,  # Membership uses email field
+            is_deleted_reason=f"Organization deleted: {deletion_reason or 'No reason provided'}"
+        )
+
+        return organization
