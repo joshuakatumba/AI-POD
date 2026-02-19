@@ -19,7 +19,7 @@ class ProjectMember(CommonField):
     #Member details
     membership = models.ForeignKey("organizations.Membership", on_delete=models.CASCADE, related_name="project_memberships")
     role = models.CharField(max_length=20, choices=PROJECT_MEMBER_ROLE_CHOICES, default="contributor")
-    status = models.CharField(max_length=20, choices=PROJECT_MEMBER_STATUS_CHOICES, default="pending")
+    status = models.CharField(max_length=20, choices=PROJECT_MEMBER_STATUS_CHOICES, default="active")
 
     class Meta:
         db_table = "project_members"

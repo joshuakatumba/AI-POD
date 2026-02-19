@@ -1,8 +1,10 @@
+from django.db import transaction
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from organizations.models import Organization, Membership
+from projectMembers.models import ProjectMember
 from projects.models import Project
 
 User = get_user_model()
@@ -82,18 +84,53 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    @transaction.atomic
     def create(self, validated_data):
         """
         Automatically sets the owner and organisation.
         Project membership creation can be added later.
         """
-        return super().create(validated_data)
+        # Create project
+        project = Project.objects.create(**validated_data)
 
+        # Create admins project membership
+        ProjectMember.objects.create(
+            project=project,
+            organisation=project.organization,
+            membership=project.owner,
+            role="admin",
+            created_by=project.created_by,
+        )
+
+        return project
+
+class ProjectMemberReadSerializer(serializers.ModelSerializer):
+    user_id = serializers.UUIDField(source="user.id", read_only=True)
+    display_name = serializers.CharField(source="membership.display_name", read_only=True)
+    user_email = serializers.EmailField(source="membership.user.email", read_only=True)
+
+    class Meta:
+        model = ProjectMember
+        fields = [
+            "id",
+            "user_id",
+            "display_name",
+            "user_email",
+            "role",
+            "status",
+            "is_active",
+            "is_deleted",
+        ]
 
 class ProjectReadSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.CharField(source="owner.display_name", read_only=True)
     owner_email = serializers.EmailField(source="owner.user.email", read_only=True)
+
+    members = ProjectMemberReadSerializer(
+        many=True,
+        read_only=True,
+    )
 
     class Meta:
         model = Project
@@ -102,6 +139,7 @@ class ProjectReadSerializer(serializers.ModelSerializer):
             "reference",
             "name",
             "description",
+            "members",
             "status",
             "start_date",
             "end_date",

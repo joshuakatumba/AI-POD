@@ -2,6 +2,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from core.tests.utils import MockAuthMixin
+from projectMembers.models import ProjectMember
 from projects.models import Project
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -52,6 +53,7 @@ class TestCreateProject(MockAuthMixin, APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Project.objects.count(), 1)
+        self.assertEqual(ProjectMember.objects.count(), 1)
         # Verify serializer logic: check if owner was set correctly from membership_id
         self.assertEqual(response.data['owner_id'], str(self.admin_membership.id))
 
