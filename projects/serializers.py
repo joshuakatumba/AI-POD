@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from organizations.models import Organization, Membership
 from projectMembers.models import ProjectMember
 from projects.models import Project
+from projectMembers.serializers import ProjectMemberReadSerializer
 
 User = get_user_model()
 
@@ -103,24 +104,6 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         )
 
         return project
-
-class ProjectMemberReadSerializer(serializers.ModelSerializer):
-    user_id = serializers.UUIDField(source="user.id", read_only=True)
-    display_name = serializers.CharField(source="membership.display_name", read_only=True)
-    user_email = serializers.EmailField(source="membership.user.email", read_only=True)
-
-    class Meta:
-        model = ProjectMember
-        fields = [
-            "id",
-            "user_id",
-            "display_name",
-            "user_email",
-            "role",
-            "status",
-            "is_active",
-            "is_deleted",
-        ]
 
 class ProjectReadSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)

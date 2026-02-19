@@ -102,3 +102,22 @@ class ProjectMemberCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop("email", None)
         return super().create(validated_data)
+    
+class ProjectMemberReadSerializer(serializers.ModelSerializer):
+    member_id = serializers.UUIDField(source="membership.id", read_only=True)
+    member_name = serializers.CharField(source="membership.display_name", read_only=True)
+    member_email = serializers.EmailField(source="membership.user.email", read_only=True)
+
+    class Meta:
+        model = ProjectMember
+        fields = [
+            "id",
+            "reference",
+            "member_id",
+            "member_name",
+            "member_email",
+            "role",
+            "status",
+            "is_active",
+            "is_deleted",
+        ]

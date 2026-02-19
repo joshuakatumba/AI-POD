@@ -25,3 +25,26 @@ class CanCreateProjectMember(BasePermission):
             user=user,
             role="admin"
         ).exists()
+    
+class CanViewProjectMembers(BasePermission):
+    message = "You must be a member of this organization to view project members."
+
+    def has_permission(self, request, view):
+        user = request.user
+        auth = getattr(request, "auth", {}) or {}
+        organisation_id = auth.get("organisation_id")
+
+        if not user or not user.is_authenticated:
+            return False
+
+        if user.is_superuser:
+            return True
+
+        if not organisation_id:
+            return False
+
+        # Check if user is a member of this organization
+        return Membership.objects.filter(
+            organization_id=organisation_id,
+            user=user
+        ).exists()
