@@ -20,3 +20,14 @@ PROJECT_VISIBILITY_CHOICES = [
     ("team", _("Team")),
     ("organisation", _("Organisation")),
 ]
+
+PROJECT_MEMBER_ROLE_CHOICES = [
+    ("contributor", _("Contributor")),
+    ("admin", _("Admin")),
+]
+
+PROJECT_MEMBER_STATUS_CHOICES = [
+    ("active", _("Active")),
+    ("pending", _("Pending")),
+    ("inactive", _("Inactive")),
+]

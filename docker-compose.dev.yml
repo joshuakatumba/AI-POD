@@ -8,5 +8,9 @@ services:
       --reload
     volumes:
       - ./:/usr/src/app
+      - static_volume:/usr/src/app/staticfiles
     environment:
       - DEBUG=1
+
+volumes:
+  static_volume:
