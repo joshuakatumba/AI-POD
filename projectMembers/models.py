@@ -31,4 +31,4 @@ class ProjectMember(CommonField):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.member.display_name} ({self.member.user.email}) - {self.get_role_display()} - {self.get_status_display()}"
+        return f"{self.membership.display_name} ({self.membership.user.email}) - {self.get_role_display()} - {self.get_status_display()}"
