@@ -5,6 +5,7 @@ from drf_yasg import openapi
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
+from django.utils import timezone
 
 from projectMembers.models import ProjectMember
 from projectMembers.serializers import ProjectMemberCreateSerializer, ProjectMemberReadSerializer, ProjectMemberUpdateSerializer
@@ -96,7 +97,7 @@ class ProjectMemberDetailApiView(generics.GenericAPIView):
         return ProjectMemberUpdateSerializer
 
     def get_permissions(self):
-        if self.request.method == "PATCH":
+        if self.request.method in ["PATCH", "DELETE"]:
             return [IsAuthenticated(), CanCreateProjectMember()]  # Only admins can update
         return [IsAuthenticated()]
 
@@ -141,3 +142,44 @@ class ProjectMemberDetailApiView(generics.GenericAPIView):
         # Return full details using read serializer
         response_serializer = ProjectMemberReadSerializer(project_member)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        operation_description="Remove a member from a project (soft delete).",
+        responses={
+            200: openapi.Response(
+                description="Member removed successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "message": openapi.Schema(type=openapi.TYPE_STRING),
+                        "member_id": openapi.Schema(type=openapi.TYPE_STRING),
+                        "removed_by": openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            ),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Permission denied - user cannot remove members"),
+            404: openapi.Response(description="Project member not found"),
+        },
+        tags=["Project Members"],
+    )
+    def delete(self, request, project_id, member_id):
+        """Remove member from project (soft delete)"""
+        project_member = self.get_object()
+        
+        # Soft delete
+        project_member.is_active = False
+        project_member.is_deleted = True
+        project_member.is_deleted_at = timezone.now()
+        project_member.is_deleted_by_email = request.user.email
+        project_member.is_deleted_reason = "Removed by admin"
+        project_member.save()
+        
+        return Response(
+            {
+                "message": f"Member successfully removed from project.",
+                "member_id": str(project_member.id),
+                "removed_by": request.user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
