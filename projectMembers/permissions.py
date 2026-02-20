@@ -48,3 +48,27 @@ class CanViewProjectMembers(BasePermission):
             organization_id=organisation_id,
             user=user
         ).exists()
+    
+class CanUpdateProjectMember(BasePermission):
+    message = "You must be an admin of this organization to update project members."
+
+    def has_permission(self, request, view):
+        user = request.user
+        auth = getattr(request, "auth", {}) or {}
+        organisation_id = auth.get("organisation_id")
+
+        if not user or not user.is_authenticated:
+            return False
+
+        if user.is_superuser:  #Superusers can update
+            return True
+
+        if not organisation_id:
+            return False
+
+        #Only org admins can update
+        return Membership.objects.filter(
+            organization_id=organisation_id,
+            user=user,
+            role="admin"  
+        ).exists()

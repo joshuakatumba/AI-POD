@@ -3,10 +3,11 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from drf_yasg import openapi
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 
 from projectMembers.models import ProjectMember
-from projectMembers.serializers import ProjectMemberCreateSerializer, ProjectMemberReadSerializer
+from projectMembers.serializers import ProjectMemberCreateSerializer, ProjectMemberReadSerializer, ProjectMemberUpdateSerializer
 from projectMembers.permissions import CanCreateProjectMember, CanViewProjectMembers
 
 class ProjectMembersApiView(generics.GenericAPIView):
@@ -83,3 +84,60 @@ class ProjectMembersApiView(generics.GenericAPIView):
         serializer = ProjectMemberReadSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+class ProjectMemberDetailApiView(generics.GenericAPIView):
+    """
+    API view for individual project member operations.
+    Currently supports: PATCH (update role/status)
+    Future: GET (retrieve), DELETE (remove member)
+    """
+    lookup_field = "id"
+
+    def get_serializer_class(self):
+        return ProjectMemberUpdateSerializer
+
+    def get_permissions(self):
+        if self.request.method == "PATCH":
+            return [IsAuthenticated(), CanCreateProjectMember()]  # Only admins can update
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        """Return project members for the given project"""
+        auth = self.request.auth or {}
+        organisation_id = auth.get("organisation_id")
+        project_id = self.kwargs.get("project_id")
+
+        return ProjectMember.objects.filter(
+            project_id=project_id,
+            organisation_id=organisation_id,
+            is_deleted=False,
+        ).select_related("membership", "membership__user")
+
+    def get_object(self):
+        """Get project member or 404"""
+        from django.shortcuts import get_object_or_404
+        queryset = self.get_queryset()
+        member_id = self.kwargs.get("member_id")
+        return get_object_or_404(queryset, id=member_id)
+
+    @swagger_auto_schema(
+        operation_description="Update a project member's role and/or status.",
+        request_body=ProjectMemberUpdateSerializer,
+        responses={
+            200: ProjectMemberReadSerializer(),
+            400: openapi.Response(description="Bad request - validation error"),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Permission denied - user cannot update members"),
+            404: openapi.Response(description="Project member not found"),
+        },
+        tags=["Project Members"],
+    )
+    def patch(self, request, project_id, member_id):
+        """Update project member role and/or status"""
+        project_member = self.get_object()
+        serializer = self.get_serializer(project_member, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # Return full details using read serializer
+        response_serializer = ProjectMemberReadSerializer(project_member)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
