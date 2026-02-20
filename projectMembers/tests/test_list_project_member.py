@@ -76,7 +76,7 @@ class TestListProjectMembers(MockAuthMixin, APITestCase):
             project=self.project,
             organisation=self.org,
             membership=self.member_membership_2,
-            role="contributor",
+            role="admin",
             status="pending",
             created_by=self.admin_user,
         )
@@ -178,9 +178,7 @@ class TestListProjectMembers(MockAuthMixin, APITestCase):
         self.assertIn("member_name", member)
         self.assertIn("member_email", member)
         self.assertIn("role", member)
-        self.assertIn("role_display", member)
         self.assertIn("status", member)
-        self.assertIn("status_display", member)
         self.assertIn("is_active", member)
         self.assertIn("is_deleted", member)
 

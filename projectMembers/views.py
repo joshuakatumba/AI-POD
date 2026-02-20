@@ -134,13 +134,13 @@ class ProjectMemberDetailApiView(generics.GenericAPIView):
     )
     def patch(self, request, project_id, member_id):
         """Update project member role and/or status"""
-        project_member = self.get_object()
-        serializer = self.get_serializer(project_member, data=request.data, partial=True)
+        updated_project_member = self.get_object()
+        serializer = self.get_serializer(updated_project_member, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         # Return full details using read serializer
-        response_serializer = ProjectMemberReadSerializer(project_member)
+        response_serializer = ProjectMemberReadSerializer(updated_project_member)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
     
     @swagger_auto_schema(
