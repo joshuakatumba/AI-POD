@@ -153,6 +153,7 @@ class ProjectDetailApiView(generics.GenericAPIView):
         self.check_object_permissions(request, project)
         
         # Soft delete
+        project.status = "cancelled"
         project.is_active = False
         project.is_deleted = True
         project.is_deleted_at = timezone.now()

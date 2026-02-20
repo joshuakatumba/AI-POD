@@ -20,6 +20,8 @@ class TestDeleteProject(ProjectBaseTestCase):
 
         self.project.refresh_from_db()
         self.assertTrue(self.project.is_deleted)
+        self.assertFalse(self.project.is_active)
+        self.assertEqual(self.project.status, "cancelled")
         self.assertEqual(self.project.is_deleted_by_email, self.admin_user.email)
 
     def test_delete_forbidden_as_non_owner_admin(self):

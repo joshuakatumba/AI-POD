@@ -37,7 +37,7 @@ class Project(CommonField):
     status = models.CharField(
         max_length=20,
         choices=PROJECT_STATUS_CHOICES,
-        default="active",
+        default="pending",
         help_text="Current lifecycle state of the project (e.g. active, archived, completed)."
     )
 

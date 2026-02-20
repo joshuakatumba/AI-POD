@@ -11,9 +11,12 @@ ROLE_CHOICES = [
 ]
 
 PROJECT_STATUS_CHOICES = [
+    ("pending", _("Pending")),
+    ("inactive", _("Inactive")),
     ("active", _("Active")),
     ("paused", _("Paused")),
     ("completed", _("Completed")),
+    ("cancelled", _("Cancelled")),
 ]
 
 PROJECT_VISIBILITY_CHOICES = [
