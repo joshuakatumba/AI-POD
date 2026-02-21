@@ -34,3 +34,15 @@ PROJECT_MEMBER_STATUS_CHOICES = [
     ("pending", _("Pending")),
     ("inactive", _("Inactive")),
 ]
+
+TASK_STATUS_CHOICES = [
+    ("backlog", _("Backlog")),
+    ("ready", _("Ready")),
+    ("in_progress", _("In Progress")),
+    ("blocked", _("Blocked")),
+    ("review", _("Review")),
+    ("testing", _("Testing")),
+    ("done", _("Done")),
+    ("deployed", _("Deployed")),
+    ("cancelled", _("Cancelled")),
+]
