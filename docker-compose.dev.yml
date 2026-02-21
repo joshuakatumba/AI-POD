@@ -11,6 +11,7 @@ services:
       - static_volume:/usr/src/app/staticfiles
     environment:
       - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=core.settings.development
 
 volumes:
   static_volume:
