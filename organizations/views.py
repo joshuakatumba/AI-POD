@@ -188,11 +188,7 @@ class OrganizationMembersView(generics.GenericAPIView):
         membership = serializer.save()
 
         return Response(
-            {
-                "message": "User added successfully",
-                "user": membership.user.email,
-                "role": membership.role,
-            },
+            OrganizationMembershipSerializer(membership).data,
             status=status.HTTP_201_CREATED,
         )
 

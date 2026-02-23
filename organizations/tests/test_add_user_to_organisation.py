@@ -28,8 +28,15 @@ class TestAddUserToOrganisation(APITestCase):
         response = self.client.post(self.url_members, payload)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["message"], "User added successfully")
         self.assertEqual(response.data["role"], "member")
+
+    def test_add_member_with_role_admin_success(self):
+        member_user = User.objects.create_user(email="member@example.com", password="password123")
+        payload = {"email": member_user.email, "role": "admin"}
+        response = self.client.post(self.url_members, payload)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["role"], "admin")
 
     def test_add_member_user_not_found(self):
         payload = {"email": "nonexistent@example.com"}

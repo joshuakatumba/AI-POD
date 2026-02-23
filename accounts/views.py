@@ -93,8 +93,10 @@ class LoginView(APIView):
         memberships_data = []
         for m in memberships_qs:
             memberships_data.append({
+                "id": str(m.id),
                 "organization_id": str(m.organization_id),
                 "organization_name": m.organization.name,
+                "display_name": m.display_name,
                 "role": m.role,
                 "is_current": m.id == current_membership.id,
                 "joined_at": m.joined_at,
@@ -114,6 +116,7 @@ class LoginView(APIView):
             "user_id": str(user.id),
             "email": user.email,
             "organisation": str(current_membership.organization_id),
+            "membership": str(current_membership.id),
             "role": current_membership.role,
             "tokens": token,
             "memberships": memberships_data
@@ -188,8 +191,10 @@ class CurrentUserView(APIView):
         memberships_data = []
         for m in memberships_qs:
             memberships_data.append({
+                "id": str(m.id),
                 "organization_id": str(m.organization_id),
                 "organization_name": m.organization.name,
+                "display_name": m.display_name,
                 "role": m.role,
                 "is_current": m.id == current_membership.id,
                 "joined_at": m.joined_at,
@@ -245,8 +250,10 @@ class SwitchOrganizationView(APIView):
         memberships_data = []
         for m in memberships_qs:
             memberships_data.append({
+                "id": str(m.id),
                 "organization_id": str(m.organization_id),
                 "organization_name": m.organization.name,
+                "display_name": m.display_name,
                 "role": m.role,
                 "is_current": m.id == current_membership.id,
                 "joined_at": m.joined_at,
@@ -257,6 +264,7 @@ class SwitchOrganizationView(APIView):
             "user_id": str(request.user.id),
             "email": request.user.email,
             "organisation": str(current_membership.organization_id),
+            "membership": str(current_membership.id),
             "role": current_membership.role,
             "tokens": token,
             "memberships": memberships_data

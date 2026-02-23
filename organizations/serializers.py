@@ -119,6 +119,11 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
 # ---------- Add User to Organisation Serializer ----------
 class AddUserToOrganizationSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    role = serializers.ChoiceField(
+        choices=["member", "admin"],
+        required=False,
+        default="member"
+    )
 
     def validate(self, attrs):
         request = self.context["request"]
@@ -166,7 +171,7 @@ class AddUserToOrganizationSerializer(serializers.Serializer):
         return Membership.objects.create(
             user=validated_data["user"],
             organization=organization,
-            role="member",
+            role=validated_data["role"],
             created_by=request.user,
         )
 
