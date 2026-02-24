@@ -7,6 +7,10 @@ from .models import Task
 
 
 class TaskReadSerializer(serializers.ModelSerializer):
+    project = serializers.SerializerMethodField()
+    assigned_to = serializers.SerializerMethodField()
+    reported_by = serializers.SerializerMethodField()
+
     class Meta:
         model = Task
         fields = [
@@ -26,6 +30,31 @@ class TaskReadSerializer(serializers.ModelSerializer):
             "closed_at",
         ]
 
+    def get_project(self, obj):
+        if obj.project:
+            return {
+                "id": obj.project.id,
+                "name": obj.project.name,
+                "description": getattr(obj.project, "description", None),
+            }
+        return None
+
+    def get_assigned_to(self, obj):
+        # Returns membership display_name if assigned
+        if obj.assigned_to and getattr(obj.assigned_to, "membership", None):
+            return {
+                "id": obj.assigned_to.id,
+                "name": obj.assigned_to.membership.display_name
+            }
+        return None
+
+    def get_reported_by(self, obj):
+        if obj.reported_by and getattr(obj.reported_by, "membership", None):
+            return {
+                "id": obj.reported_by.id,
+                "name": obj.reported_by.membership.display_name
+            }
+        return None
 
 class TaskCreateSerializer(serializers.ModelSerializer):
     assigned_to = serializers.PrimaryKeyRelatedField(

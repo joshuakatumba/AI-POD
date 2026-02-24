@@ -8,6 +8,7 @@ from rest_framework.exceptions import PermissionDenied, NotFound
 from projects.models import Project
 from projectMembers.models import ProjectMember
 from .serializers import TaskCreateSerializer, TaskReadSerializer
+from .models import Task
 
 
 class TasksView(generics.GenericAPIView):
@@ -24,7 +25,56 @@ class TasksView(generics.GenericAPIView):
         try:
             return ProjectMember.objects.get(membership__user=user, project=project)
         except ProjectMember.DoesNotExist:
-            raise PermissionDenied("You must be a member of this project to create tasks.")
+            raise PermissionDenied("You must be a member of this project to view or create tasks.")
+
+    @swagger_auto_schema(
+        operation_description="Get all tasks in a project. Only project members can view tasks.",
+        manual_parameters=[
+            openapi.Parameter(
+                "status",
+                openapi.IN_QUERY,
+                description="Filter tasks by status (e.g. backlog, in_progress, closed)",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+            openapi.Parameter(
+                "assigned_to",
+                openapi.IN_QUERY,
+                description="Filter tasks by assigned ProjectMember ID (UUID)",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+        ],
+        responses={
+            200: TaskReadSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member"),
+            404: openapi.Response(description="Project not found"),
+        },
+        tags=["Tasks"],
+    )
+    def get(self, request, project_id, *args, **kwargs):
+        project = self.get_project(project_id)
+        self.get_requester_membership(request.user, project)
+
+        tasks = Task.objects.filter(project=project).select_related(
+            "organisation",
+            "project",
+            "reported_by",
+            "assigned_to",
+            "created_by",
+        )
+
+        status_filter = request.query_params.get("status")
+        if status_filter:
+            tasks = tasks.filter(status=status_filter)
+
+        assigned_to_filter = request.query_params.get("assigned_to")
+        if assigned_to_filter:
+            tasks = tasks.filter(assigned_to__id=assigned_to_filter)
+
+        serializer = TaskReadSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Create a new task in a project. Only project members can create tasks.",
@@ -40,7 +90,7 @@ class TasksView(generics.GenericAPIView):
     )
     def post(self, request, project_id, *args, **kwargs):
         project = self.get_project(project_id)
-        self.get_requester_membership(request.user, project)  # enforces membership
+        self.get_requester_membership(request.user, project)
 
         serializer = TaskCreateSerializer(
             data=request.data,
