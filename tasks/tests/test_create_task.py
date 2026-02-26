@@ -103,7 +103,6 @@ class TaskCreateAPITests(APITestCase):
         self.url = reverse("tasks:tasks", kwargs={"project_id": self.project.id})
 
         # ---------- VALID PAYLOAD ----------
-        # reported_by is now auto-set from request.user — not required in payload
         self.valid_payload = {
             "name": "Implement login feature",
             "description": "Build JWT-based login",
@@ -183,6 +182,7 @@ class TaskCreateAPITests(APITestCase):
         self.assertTrue(task.reference.startswith("TSK"))
 
     def test_create_task_default_status_is_backlog(self):
+        """When no status is provided, it should default to backlog."""
         self.authenticate(self.creator_user)
 
         response = self.client.post(self.url, self.valid_payload, format="json")
@@ -354,19 +354,64 @@ class TaskCreateAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     # ==========================================================================
-    # IMMUTABLE FIELDS — client cannot override server-set values
+    # FIELD VALIDATION — status
     # ==========================================================================
 
-    def test_create_task_client_cannot_set_status(self):
-        """status is read-only; client-supplied value should be ignored."""
+    def test_create_task_with_valid_status(self):
+        """Client can supply a valid status and it should be persisted."""
         self.authenticate(self.creator_user)
 
-        payload = {**self.valid_payload, "status": "closed"}
+        payload = {**self.valid_payload, "status": "in_progress"}
+        response = self.client.post(self.url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        task = Task.objects.get(id=response.data["id"])
+        self.assertEqual(task.status, "in_progress")
+
+    def test_create_task_with_invalid_status_rejected(self):
+        """An unrecognised status value should return a 400."""
+        self.authenticate(self.creator_user)
+
+        payload = {**self.valid_payload, "status": "flying"}
+        response = self.client.post(self.url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("status", response.data)
+
+    def test_create_task_all_valid_statuses_accepted(self):
+        """Every status in TASK_STATUS_CHOICES should be accepted."""
+        self.authenticate(self.creator_user)
+
+        valid_statuses = [
+            "backlog", "ready", "in_progress", "blocked",
+            "review", "testing", "done", "deployed", "cancelled",
+        ]
+        for task_status in valid_statuses:
+            payload = {**self.valid_payload, "status": task_status}
+            response = self.client.post(self.url, payload, format="json")
+
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_201_CREATED,
+                msg=f"Expected 201 for status '{task_status}', got {response.status_code}",
+            )
+            task = Task.objects.get(id=response.data["id"])
+            self.assertEqual(task.status, task_status)
+
+    def test_create_task_status_omitted_defaults_to_backlog(self):
+        """Omitting status entirely should still produce a backlog task."""
+        self.authenticate(self.creator_user)
+
+        payload = {k: v for k, v in self.valid_payload.items() if k != "status"}
         response = self.client.post(self.url, payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         task = Task.objects.get(id=response.data["id"])
         self.assertEqual(task.status, "backlog")
+
+    # ==========================================================================
+    # IMMUTABLE FIELDS — client cannot override server-set values
+    # ==========================================================================
 
     def test_create_task_client_cannot_override_created_by(self):
         """created_by must always be the authenticated User from CommonField."""

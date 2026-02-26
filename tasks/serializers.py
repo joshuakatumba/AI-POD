@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from django.utils import timezone
 
+from core.models.constants import TASK_STATUS_CHOICES
 from projectMembers.models import ProjectMember
 from .models import Task
 
@@ -40,7 +41,6 @@ class TaskReadSerializer(serializers.ModelSerializer):
         return None
 
     def get_assigned_to(self, obj):
-        # Returns membership display_name if assigned
         if obj.assigned_to and getattr(obj.assigned_to, "membership", None):
             return {
                 "id": obj.assigned_to.id,
@@ -56,17 +56,24 @@ class TaskReadSerializer(serializers.ModelSerializer):
             }
         return None
 
+
 class TaskCreateSerializer(serializers.ModelSerializer):
     assigned_to = serializers.PrimaryKeyRelatedField(
         queryset=ProjectMember.objects.all(),
         required=False,
         allow_null=True,
     )
+    status = serializers.ChoiceField(
+        choices=TASK_STATUS_CHOICES,
+        required=False,
+        default="backlog",
+    )
 
     class Meta:
         model = Task
         fields = [
             "name",
+            "status",
             "description",
             "due_date",
             "expected_hours",
