@@ -17,6 +17,7 @@ PROJECT_STATUS_CHOICES = [
     ("paused", _("Paused")),
     ("completed", _("Completed")),
     ("cancelled", _("Cancelled")),
+    ("closed", _("Closed")),
 ]
 
 PROJECT_VISIBILITY_CHOICES = [
@@ -45,4 +46,5 @@ TASK_STATUS_CHOICES = [
     ("done", _("Done")),
     ("deployed", _("Deployed")),
     ("cancelled", _("Cancelled")),
+    ("closed", _("Closed")),
 ]
