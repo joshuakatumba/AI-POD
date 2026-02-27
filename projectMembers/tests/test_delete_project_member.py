@@ -92,3 +92,4 @@ class TestDeleteProjectMember(MockAuthMixin, APITestCase):
         self.project_member.refresh_from_db()
         self.assertTrue(self.project_member.is_deleted)
         self.assertFalse(self.project_member.is_active)
+        self.assertEqual(self.project_member.status, "Inactive")          

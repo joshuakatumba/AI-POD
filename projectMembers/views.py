@@ -168,6 +168,7 @@ class ProjectMemberDetailApiView(generics.GenericAPIView):
         project_member = self.get_object()
         
         # Soft delete
+        project_member.status = "Inactive"
         project_member.is_active = False
         project_member.is_deleted = True
         project_member.is_deleted_at = timezone.now()
