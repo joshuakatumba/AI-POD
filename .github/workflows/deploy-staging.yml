@@ -106,7 +106,7 @@ jobs:
 
             # Switch nginx upstream
             echo "🔁 Switching nginx to $NEW_COLOR"
-            sudo sed -i "s/app_$OLD_COLOR/app_$NEW_COLOR/" /etc/nginx/conf.d/backend_upstream.conf
+            sudo sed -i "s/127.0.0.1:$OLD_PORT/127.0.0.1:$NEW_PORT/" /etc/nginx/conf.d/backend_upstream.conf
             sudo nginx -s reload
 
             # Run migrations & collect static
