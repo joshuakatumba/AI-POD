@@ -9,7 +9,9 @@ DEBUG = False  # default to False in base
 ALLOWED_HOSTS = []
 
 # CORS
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = [
+    origin.strip() for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if origin.strip()
+]
 
 # Custom auth
 AUTH_USER_MODEL = "accounts.User"

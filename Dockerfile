@@ -20,9 +20,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Ownership
-RUN chown -R django:django /usr/src/app
+# Create writable directories for Django
+RUN mkdir -p /usr/src/app/core/staticfiles \
+    && mkdir -p /usr/src/app/core/media \
+    && chown -R django:django /usr/src/app
 
+# Switch to non-root user
 USER django
 
 ENTRYPOINT ["./entrypoint.sh"]

@@ -1,0 +1,132 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
+            echo "ENV=develop" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "ENV=production" >> $GITHUB_ENV
+          else
+            echo "Not a deploy branch. Exiting."
+            exit 1
+          fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            ENV=${{ env.ENV }}
+            echo "Deploying to $ENV"
+
+            cd /home/ubuntu/backend
+
+            echo "Pull latest code..."
+            git fetch --all
+            git checkout $ENV
+            git pull origin $ENV
+
+            echo "🧪 Writing .env file..."
+            cat > .env <<EOF
+            DJANGO_SETTINGS_MODULE=core.settings.staging
+            DEBUG=0
+            SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
+            ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
+            CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+            POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_HOST }}:5432/${{ secrets.POSTGRES_DB }}
+            EOF
+
+            # Determine active container from nginx
+            if [ -f /etc/nginx/conf.d/backend_upstream.conf ]; then
+                ACTIVE=$(grep "server" /etc/nginx/conf.d/backend_upstream.conf | awk '{print $2}' || echo "")
+            else
+                ACTIVE=""
+            fi
+
+            if [ "$ACTIVE" = "127.0.0.1:8001;" ]; then
+                NEW_COLOR=green
+                OLD_COLOR=blue
+                NEW_PORT=8002
+                OLD_PORT=8001
+            else
+                NEW_COLOR=blue
+                OLD_COLOR=green
+                NEW_PORT=8001
+                OLD_PORT=8002
+            fi
+
+            echo "🚀 Deploying new container: $NEW_COLOR on port $NEW_PORT"
+
+            # Build & start new container
+            docker compose -f docker-compose.yml -f docker-compose.staging.yml build app_$NEW_COLOR
+            docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d app_$NEW_COLOR
+
+            # Wait for health check with timeout
+            echo "⏱ Waiting for health..."
+            MAX_RETRIES=36  # 3 minutes max
+            COUNT=0
+            until curl -fs --max-time 2 http://127.0.0.1:$NEW_PORT/healthz/; do
+                COUNT=$((COUNT+1))
+                if [ $COUNT -ge $MAX_RETRIES ]; then
+                    echo "❌ Health check failed for $NEW_COLOR!"
+                    # rollback if old container exists
+                    if docker compose ps | grep -q "app_$OLD_COLOR"; then
+                        echo "🛑 Rolling back to old container: $OLD_COLOR"
+                        docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d app_$OLD_COLOR
+                        sed -i "s/app_$NEW_COLOR/app_$OLD_COLOR/" /etc/nginx/conf.d/backend_upstream.conf
+                        sudo nginx -s reload
+                    fi
+                    exit 1
+                fi
+                sleep 5
+            done
+            echo "✅ Health check passed"
+
+            # Switch nginx upstream
+            echo "🔁 Switching nginx to $NEW_COLOR"
+            sudo sed -i "s/app_$OLD_COLOR/app_$NEW_COLOR/" /etc/nginx/conf.d/backend_upstream.conf
+            sudo nginx -s reload
+
+            # Run migrations & collect static
+            echo "🧩 Running migrations..."
+            docker compose -f docker-compose.yml -f docker-compose.staging.yml exec app_$NEW_COLOR python manage.py migrate
+
+            echo "🧹 Collecting static files..."
+            docker compose -f docker-compose.yml -f docker-compose.staging.yml exec app_$NEW_COLOR python manage.py collectstatic --noinput
+
+            # Stop old container if exists
+            if docker compose ps | grep -q "app_$OLD_COLOR"; then
+                echo "🛑 Stopping old container: $OLD_COLOR"
+                docker compose -f docker-compose.yml -f docker-compose.staging.yml stop app_$OLD_COLOR
+                docker compose -f docker-compose.yml -f docker-compose.staging.yml rm -f app_$OLD_COLOR
+            else
+                echo "ℹ️ No old container to stop — first deployment"
+            fi
+
+            # Clean up old images
+            echo "🧹 Pruning old Docker images..."
+            docker image prune -f
+
+            echo "🎉 Deployment complete!"

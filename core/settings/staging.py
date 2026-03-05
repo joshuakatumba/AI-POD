@@ -1,7 +1,8 @@
 from .base import *
 
 DEBUG = False
-ALLOWED_HOSTS = ["ai-daily-report.akademia.co.jp"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1","ai-daily-report.akademia.co.jp"]
+CORS_ALLOWED_ORIGINS = ["https://ai-daily-report.akademia.co.jp"]
 
 DATABASES = {
     "default": {
