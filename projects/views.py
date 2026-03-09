@@ -13,7 +13,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from organizations.models import Membership, Organization
 from projects.permissions import CanCreateProject, CanDeleteProject, CanUpdateProject
-from projects.serializers import ProjectCreateSerializer, ProjectReadSerializer, ProjectUpdateSerializer
+from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer
 
 
 class ProjectsApiView(generics.GenericAPIView):
@@ -120,12 +120,12 @@ class ProjectDetailApiView(generics.GenericAPIView):
 
     @swagger_auto_schema(
         operation_description="Retrieve a single project",
-        responses={200: ProjectReadSerializer()},
+        responses={200: ProjectDetailsSerializer()},
         tags=["Projects"],
     )
     def get(self, request, project_id):
         project = self.get_object()
-        serializer = ProjectReadSerializer(project)
+        serializer = ProjectDetailsSerializer(project)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(

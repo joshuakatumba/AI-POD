@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -133,6 +134,25 @@ class ProjectReadSerializer(serializers.ModelSerializer):
             "owner_name",
             "owner_email",
         ]
+
+
+class ProjectDetailsSerializer(ProjectReadSerializer):
+    progress_data = serializers.SerializerMethodField()
+
+    class Meta(ProjectReadSerializer.Meta):
+        # Include all existing fields + progressdata
+        fields = ProjectReadSerializer.Meta.fields + ["progress_data"]
+
+    def get_progress_data(self, obj):
+        """
+        Returns a dictionary of task counts grouped by status
+        """
+        # 'tasks' is the related_name on Task model pointing to Project
+        task_counts = (
+            obj.tasks.values("status")
+            .annotate(count=Count("id"))
+        )
+        return {item["status"]: item["count"] for item in task_counts}
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):

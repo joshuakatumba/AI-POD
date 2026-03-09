@@ -1,8 +1,36 @@
+from projects.models import Project
 from projects.tests import ProjectBaseTestCase
-from rest_framework import status
+from rest_framework import reverse, status
+
+from tasks.models import Task
 
 
 class TestRetrieveProject(ProjectBaseTestCase):
+    def test_project_details_includes_progress_data(self):
+        # Tasks
+        Task.objects.create(project=self.project, status="todo", expected_hours=2, created_by=self.admin_user, organisation=self.project.organization, reported_by=self.member_project_membership)
+        Task.objects.create(project=self.project, status="todo", expected_hours=2, created_by=self.admin_user, organisation=self.project.organization, reported_by=self.member_project_membership)
+        Task.objects.create(project=self.project, status="in_progress", expected_hours=2, created_by=self.admin_user, organisation=self.project.organization, reported_by=self.member_project_membership)
+        Task.objects.create(project=self.project, status="done", expected_hours=2, created_by=self.admin_user, organisation=self.project.organization, reported_by=self.member_project_membership)
+        Task.objects.create(project=self.project, status="done", expected_hours=2, created_by=self.admin_user, organisation=self.project.organization, reported_by=self.member_project_membership)
+
+        self.client.force_authenticate(self.admin_user)
+        with self.mock_auth(self.admin_payload):
+            response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check main fields exist
+        self.assertIn("id", response.data)
+        self.assertIn("name", response.data)
+        self.assertIn("description", response.data)
+
+        # Check progress_data
+        self.assertIn("progress_data", response.data)
+        self.assertEqual(response.data["progress_data"]["todo"], 2)
+        self.assertEqual(response.data["progress_data"]["in_progress"], 1)
+        self.assertEqual(response.data["progress_data"]["done"], 2)
+
     def test_get_project_success(self):
         self.client.force_authenticate(self.admin_user)
         with self.mock_auth(self.admin_payload):

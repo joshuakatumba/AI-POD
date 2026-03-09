@@ -3,6 +3,7 @@ from django.urls import reverse
 from uuid import uuid4
 from core.tests.utils import MockAuthMixin
 from rest_framework.test import APITestCase
+from projectMembers.models import ProjectMember
 from projects.models import Project
 from organizations.models import Organization, Membership
 from django.contrib.auth import get_user_model
@@ -38,6 +39,15 @@ class ProjectBaseTestCase(MockAuthMixin, APITestCase):
             created_by=self.admin_user,
             is_active=True,
             is_deleted=False
+        )
+
+        # project membership 
+        self.member_project_membership = ProjectMember.objects.create(
+            project=self.project,
+            organisation=self.project.organization,
+            membership=self.member_membership,
+            role="admin",
+            created_by=self.project.created_by,
         )
         
         self.url = reverse("projects:project", kwargs={"project_id": self.project.id})
