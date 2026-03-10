@@ -150,3 +150,38 @@ class SysAdminUserSerializer(serializers.ModelSerializer):
             }
             for m in memberships
         ]
+
+
+class SysAdminUserUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = [
+            "is_active",
+            "is_staff",
+            "is_superuser",
+        ]
+
+    def update(self, instance, validated_data):
+        request_user = self.context["request"].user
+
+        # Prevent self-lockout
+        if instance == request_user:
+            if "is_active" in validated_data:
+                raise serializers.ValidationError("You cannot deactivate your own account.")
+            if "is_staff" in validated_data:
+                raise serializers.ValidationError("You cannot remove your own admin privileges.")
+            if "is_superuser" in validated_data:
+                raise serializers.ValidationError("You cannot remove your own superuser privileges.")
+
+        # Prevent accidentally removing superuser from other users (optional)
+        if instance.is_superuser and "is_superuser" in validated_data and not validated_data["is_superuser"]:
+            raise serializers.ValidationError("You cannot remove superuser status from this user.")
+
+        # Update allowed fields
+        for field in ["is_active", "is_staff", "is_superuser"]:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+
+        instance.save()
+        return instance

@@ -1,10 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
+from drf_yasg import openapi
 from django.db.models import Prefetch, Count, F
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from organizations.models import Membership, Organization
-from sysadmin.serializers import AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer
+from sysadmin.serializers import AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from sysadmin.permissions import IsSystemAdmin
@@ -158,3 +159,45 @@ class SysAdminUsersView(generics.GenericAPIView):
 
         serializer = self.get_serializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class SysAdminUsersDetailsView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsSystemAdmin]
+    serializer_class = SysAdminUserSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == "PATCH":
+            return SysAdminUserUpdateSerializer
+        return None
+
+    @swagger_auto_schema(
+        operation_description="Update a user's active status or admin role.",
+        request_body=SysAdminUserUpdateSerializer,
+        responses={
+            200: SysAdminUserUpdateSerializer,
+            401: "Authentication required",
+            403: "Super admin permission required",
+            404: "User not found",
+        },
+        manual_parameters=[
+            openapi.Parameter(
+                "user_id",
+                openapi.IN_PATH,
+                description="User UUID",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_UUID,
+                required=True,
+            ),
+        ],
+        tags=["Admin - Users"],
+    )
+    def patch(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+         # Serialize the updated instance
+        response_serializer = SysAdminUserSerializer(user)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
