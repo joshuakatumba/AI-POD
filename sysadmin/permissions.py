@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.permissions import BasePermission
 
 class IsSystemAdmin(BasePermission):
     """
@@ -7,5 +7,4 @@ class IsSystemAdmin(BasePermission):
     message = "Only system admins can access this resource."
 
     def has_permission(self, request, view):
-        if request.user and request.user.is_authenticated and request.user.is_superuser:
-            return True
+        return request.user and request.user.is_authenticated and request.user.is_superuser

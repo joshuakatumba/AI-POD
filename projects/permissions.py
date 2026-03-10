@@ -20,7 +20,7 @@ class CanCreateProject(BasePermission):
             return False
 
         # Check if user has membership in this org with role='admin'
-        return user.memberships.filter(
+        return user.organisation_memberships.filter(
             organization_id=organisation_id,
             role="admin"
         ).exists()
@@ -44,7 +44,7 @@ class CanUpdateProject(BasePermission):
             return False
 
         # Check if user is an admin of this organization
-        return user.memberships.filter(
+        return user.organisation_memberships.filter(
             organization_id=organisation_id,
             role="admin"
         ).exists()

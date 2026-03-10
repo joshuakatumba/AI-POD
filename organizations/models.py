@@ -79,7 +79,7 @@ class Membership(CommonField):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="memberships",
+        related_name="organisation_memberships",
     )
     organization = models.ForeignKey(
         Organization,

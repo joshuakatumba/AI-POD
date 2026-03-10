@@ -1,12 +1,15 @@
 from rest_framework import serializers
-from rest_framework.permissions import BasePermission, IsAuthenticated
 from organizations.models import Organization, Membership
-from django.db.models import Count
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from projects.models import Project
 from tasks.models import Task
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 # ---------- System Admin List Organisations Serializer ----------
 class AdminOrganizationSerializer(serializers.ModelSerializer):
@@ -114,3 +117,36 @@ class AdminForceDeleteOrganizationSerializer(serializers.Serializer):
         )
 
         return organization
+
+
+class SysAdminUserSerializer(serializers.ModelSerializer):
+    memberships = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "last_login",
+            "date_joined",
+            "memberships",
+        ]
+
+    def get_memberships(self, obj):
+        memberships = getattr(obj, "prefetched_memberships", [])
+
+        return [
+            {
+                "id": str(m.id),
+                "organization_id": str(m.organization_id),
+                "organization_name": m.organization.name,
+                "display_name": m.display_name,
+                "role": m.role,
+                "joined_at": m.joined_at,
+                "last_accessed_at": m.last_accessed_at,
+            }
+            for m in memberships
+        ]

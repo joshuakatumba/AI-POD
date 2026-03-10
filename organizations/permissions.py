@@ -13,4 +13,4 @@ class CanCreateOrganization(BasePermission):
         if user.is_superuser:
             return True
 
-        return not user.memberships.filter(role="member").exists()
+        return not user.organisation_memberships.filter(role="member").exists()

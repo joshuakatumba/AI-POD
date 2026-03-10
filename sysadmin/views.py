@@ -1,13 +1,16 @@
 from django.shortcuts import render
-from django.db.models import Prefetch, Count
+from django.db.models import Prefetch, Count, F
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from organizations.models import Membership, Organization
-from sysadmin.serializers import AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer
+from sysadmin.serializers import AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from sysadmin.permissions import IsSystemAdmin
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 # ---------- Admin List Organisations ----------
@@ -115,3 +118,43 @@ class AdminForceDeleteOrganisationView(generics.GenericAPIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class SysAdminUsersView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsSystemAdmin]
+    serializer_class = SysAdminUserSerializer
+
+    @swagger_auto_schema(
+        operation_summary="Admin list users",
+        operation_description="Returns all users. Accessible only to system admins or superusers.",
+        responses={
+            200: SysAdminUserSerializer(many=True),
+            401: "Authentication required",
+            403: "Permission denied",
+        },
+        tags=["Admin - Users"],
+    )
+    def get(self, request):
+        memberships_qs = (
+            Membership.objects
+            .select_related("organization")
+            .order_by(
+                F("last_accessed_at").desc(nulls_last=True),
+                "joined_at",
+            )
+        )
+
+        users = (
+            User.objects
+            .all()
+            .prefetch_related(
+                Prefetch(
+                    "organisation_memberships",
+                    queryset=memberships_qs,
+                    to_attr="prefetched_memberships",
+                )
+            )
+        )
+
+        serializer = self.get_serializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
