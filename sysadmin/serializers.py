@@ -11,6 +11,8 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+from sysadmin.models import AIModel
+
 # ---------- System Admin List Organisations Serializer ----------
 class AdminOrganizationSerializer(serializers.ModelSerializer):
     member_count = serializers.IntegerField(read_only=True)
@@ -185,3 +187,43 @@ class SysAdminUserUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class AIModelCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIModel
+        fields = ["name", "provider", "api_key"]
+
+    def create(self, validated_data):
+        request = self.context["request"]
+        return AIModel.objects.create(**validated_data, created_by=request.user,)
+
+
+class AIModelUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIModel
+        fields = ["name", "provider", "api_key", "is_active"]
+
+
+class AIModelUpdateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+    provider = serializers.CharField(required=False)
+    api_key = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    is_active = serializers.BooleanField(required=False)
+
+    class Meta:
+        model = AIModel
+        fields = ["name", "provider", "api_key", "is_active"]
+
+class AIModelDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIModel
+        fields = [
+            "id",
+            "reference",
+            "name",
+            "provider",
+            "is_active",
+            "created_at",
+            "modified_at",
+        ]

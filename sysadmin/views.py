@@ -1,15 +1,19 @@
 from django.shortcuts import get_object_or_404, render
 from drf_yasg import openapi
-from django.db.models import Prefetch, Count, F
+from django.db.models import Q, Prefetch, Count, F
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from organizations.models import Membership, Organization
-from sysadmin.serializers import AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
+from sysadmin.models import AIModel
+from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from sysadmin.permissions import IsSystemAdmin
 from django.contrib.auth import get_user_model
+
+from django.db import IntegrityError
+from rest_framework.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -201,3 +205,87 @@ class SysAdminUsersDetailsView(generics.GenericAPIView):
          # Serialize the updated instance
         response_serializer = SysAdminUserSerializer(user)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+# ---------- Admin AI Models View  ----------
+class AIModelsApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsSystemAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return AIModelCreateSerializer
+        return AIModelDetailSerializer
+
+    def get_queryset(self):
+        queryset = AIModel.objects.all().order_by("-created_at")
+
+        search = self.request.query_params.get("search")
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(provider__icontains=search) |
+                Q(reference__icontains=search)
+            )
+
+        return queryset
+
+    @swagger_auto_schema(
+        operation_description="Create a new AI model configuration.",
+        request_body=AIModelCreateSerializer,
+        responses={
+            201: AIModelDetailSerializer(),
+            400: openapi.Response(description="Bad request - validation error"),
+            401: openapi.Response(description="Authentication required"),
+            500: openapi.Response(description="Internal server error"),
+        },
+        tags=["Admin - AI Models"],
+    )
+    def post(self, request, *args, **kwargs):
+        """Create an AI model"""
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            instance = serializer.save()
+            response_serializer = AIModelDetailSerializer(instance)
+
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+        except ValidationError as e:
+            return Response(
+                {"detail": "Validation error", "errors": e.detail},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except IntegrityError:
+            return Response(
+                {"detail": "AI model with these attributes already exists."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception as e:
+            return Response(
+                {"detail": "An unexpected error occurred."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @swagger_auto_schema(
+        operation_description="List AI models.",
+        manual_parameters=[
+            openapi.Parameter(
+                "search",
+                openapi.IN_QUERY,
+                "Search by name, provider, or reference",
+                type=openapi.TYPE_STRING
+            ),
+        ],
+        responses={
+            200: AIModelDetailSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+        },
+        tags=["Admin - AI Models"],
+    )
+    def get(self, request, *args, **kwargs):
+        """List AI models with search"""
+        queryset = self.get_queryset()
+        serializer = AIModelDetailSerializer(queryset, many=True)
+        return Response(serializer.data)

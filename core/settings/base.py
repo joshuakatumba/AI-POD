@@ -128,3 +128,6 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
 }
+
+# Django Encryption key
+FIELD_ENCRYPTION_KEY = os.getenv("FIELD_ENCRYPTION_KEY")

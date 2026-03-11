@@ -48,3 +48,11 @@ TASK_STATUS_CHOICES = [
     ("cancelled", _("Cancelled")),
     ("closed", _("Closed")),
 ]
+
+AI_PROVIDER_CHOICES = [
+    ("openai", _("OpenAI")),
+    ("anthropic", _("Anthropic")),
+    ("cohere", _("Cohere")),
+    ("gemini", _("Gemini")),
+    ("local", _("Local")),
+]
