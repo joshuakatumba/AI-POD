@@ -107,6 +107,36 @@ class AdminListOrganisationsAPITests(APITestCase):
         self.assertEqual(org1_data["member_count"], 2)
         self.assertEqual(org2_data["member_count"], 0)
 
+    def test_memberships_are_returned(self):
+        """Organizations should include their memberships in the response"""
+        self.authenticate(self.admin_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        org1_data = next(o for o in response.data if o["name"] == "Groundbreaker Talents")
+        org2_data = next(o for o in response.data if o["name"] == "RHU")
+
+        # org1 should have 2 memberships
+        self.assertEqual(len(org1_data["memberships"]), 2)
+
+        admin_membership = next(
+            m for m in org1_data["memberships"] if m["email"] == "admin@example.com"
+        )
+        member_membership = next(
+            m for m in org1_data["memberships"] if m["email"] == "member@example.com"
+        )
+
+        self.assertEqual(admin_membership["role"], "admin")
+        self.assertTrue(admin_membership["is_active"])
+
+        self.assertEqual(member_membership["role"], "member")
+        self.assertTrue(member_membership["is_active"])
+
+        # org2 should have no memberships
+        self.assertEqual(org2_data["memberships"], [])
+
     def test_member_user_cannot_list_organisations(self):
         """Non-superuser should be denied access"""
         self.authenticate(self.member_user)

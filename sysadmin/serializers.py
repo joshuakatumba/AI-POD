@@ -17,6 +17,7 @@ from sysadmin.models import AIModel, AIWorkflow
 class AdminOrganizationSerializer(serializers.ModelSerializer):
     member_count = serializers.IntegerField(read_only=True)
     creator = serializers.SerializerMethodField()
+    memberships = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
@@ -31,6 +32,7 @@ class AdminOrganizationSerializer(serializers.ModelSerializer):
             "country",
             "member_count",
             "creator",
+            "memberships",
             "is_active",
             "is_deleted",
             "created_at",
@@ -45,6 +47,20 @@ class AdminOrganizationSerializer(serializers.ModelSerializer):
             "display_name": membership.display_name if membership else None,
             "email": obj.created_by.email if obj.created_by else None,
         }
+
+    def get_memberships(self, obj):
+        memberships = getattr(obj, "prefetched_memberships", [])
+
+        return [
+            {
+                "id": str(m.id),
+                "display_name": m.display_name,
+                "email": m.user.email,
+                "is_active": m.is_active,
+                "role": m.role,
+            }
+            for m in memberships
+        ]
     
 # ---------- Admin Force Delete Organisation Serializer ----------
 class AdminForceDeleteOrganizationSerializer(serializers.Serializer):
