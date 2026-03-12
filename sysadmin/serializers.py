@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-from sysadmin.models import AIModel
+from sysadmin.models import AIModel, AIWorkflow
 
 # ---------- System Admin List Organisations Serializer ----------
 class AdminOrganizationSerializer(serializers.ModelSerializer):
@@ -121,6 +121,7 @@ class AdminForceDeleteOrganizationSerializer(serializers.Serializer):
         return organization
 
 
+# ---------- Admin Users Serializer ----------
 class SysAdminUserSerializer(serializers.ModelSerializer):
     memberships = serializers.SerializerMethodField()
 
@@ -189,6 +190,7 @@ class SysAdminUserUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
+# ---------- Admin AI Models Serializer ----------
 class AIModelCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AIModel
@@ -226,4 +228,61 @@ class AIModelDetailSerializer(serializers.ModelSerializer):
             "is_active",
             "created_at",
             "modified_at",
+        ]
+
+
+# ---------- Admin AI Workflows Serializer ----------
+class AIWorkflowCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AIWorkflow
+        fields = [
+            "name",
+            "description",
+            "category",
+            "system_prompt",
+            "ai_model",
+        ]
+
+    def create(self, validated_data):
+        request = self.context["request"]
+        return AIWorkflow.objects.create(**validated_data, created_by=request.user,)
+
+
+class AIWorkflowDetailSerializer(serializers.ModelSerializer):
+    ai_model_name = serializers.CharField(source="ai_model.name", read_only=True)
+
+    class Meta:
+        model = AIWorkflow
+        fields = [
+            "id",
+            "reference",
+            "name",
+            "description",
+            "category",
+            "system_prompt",
+            "ai_model",
+            "ai_model_name",
+            "is_active",
+            "created_at",
+            "modified_at",
+        ]
+
+
+class AIWorkflowUpdateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    category = serializers.CharField(required=False)
+    system_prompt = serializers.CharField(required=False)
+    ai_model = serializers.UUIDField(required=False)
+    is_active = serializers.BooleanField(required=False)
+
+    class Meta:
+        model = AIWorkflow
+        fields = [
+            "name",
+            "description",
+            "category",
+            "system_prompt",
+            "ai_model",
+            "is_active",
         ]

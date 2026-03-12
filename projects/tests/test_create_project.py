@@ -92,8 +92,6 @@ class TestCreateProject(MockAuthMixin, APITestCase):
         with self.mock_auth({"organisation_id": random_uuid, "membership_id": str(self.admin_membership.id)}):
             response = self.client.post(self.url, self.valid_data)
 
-        print("GRAGO: ", response.data)
-
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("detail", response.data)
         self.assertEqual(response.data["detail"], "You must be an admin of this organization to create projects.")

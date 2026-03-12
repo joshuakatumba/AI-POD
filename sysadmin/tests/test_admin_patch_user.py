@@ -69,7 +69,6 @@ class TestSysAdminUserPatch(MockAuthMixin, APITestCase):
     def test_cannot_deactivate_self(self):
         """Superadmin cannot deactivate their own account."""
         response = self.patch_user(self.superuser, {"is_active": False})
-        print("Data: ", response.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.superuser.refresh_from_db()
         self.assertTrue(self.superuser.is_active)

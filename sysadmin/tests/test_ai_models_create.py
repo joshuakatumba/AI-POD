@@ -51,8 +51,6 @@ class TestAdminCreateAIModel(APITestCase):
             "api_key": "sk-test-key"
         }
 
-        print(self.normal_user.is_superuser)
-
         self.client.force_authenticate(self.normal_user)
         response = self.client.post(self.url, payload, format="json")
 

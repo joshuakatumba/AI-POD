@@ -56,3 +56,9 @@ AI_PROVIDER_CHOICES = [
     ("gemini", _("Gemini")),
     ("local", _("Local")),
 ]
+
+AI_WORKFLOW_CATEGORY_CHOICES = [
+    ("requirements", "Requirements"),
+    ("report", "Report"),
+    ("translation", "Translation"),
+]

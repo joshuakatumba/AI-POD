@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from organizations.models import Membership, Organization
-from sysadmin.models import AIModel
-from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
+from sysadmin.models import AIModel, AIWorkflow
+from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AIWorkflowCreateSerializer, AIWorkflowDetailSerializer, AIWorkflowUpdateSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from sysadmin.permissions import IsSystemAdmin
@@ -61,7 +61,8 @@ class AdminOrganisationListView(generics.ListAPIView):
             )
             .order_by("-created_at")
         )
-    
+
+
 # ---------- Admin Force Delete Organisation ----------
 class AdminForceDeleteOrganisationView(generics.GenericAPIView):
     serializer_class = AdminForceDeleteOrganizationSerializer
@@ -125,6 +126,7 @@ class AdminForceDeleteOrganisationView(generics.GenericAPIView):
         )
 
 
+# ---------- Admin Users View  ----------
 class SysAdminUsersView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsSystemAdmin]
     serializer_class = SysAdminUserSerializer
@@ -165,6 +167,7 @@ class SysAdminUsersView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# ---------- Admin User Details View  ----------
 class SysAdminUsersDetailsView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsSystemAdmin]
     serializer_class = SysAdminUserSerializer
@@ -205,6 +208,7 @@ class SysAdminUsersDetailsView(generics.GenericAPIView):
          # Serialize the updated instance
         response_serializer = SysAdminUserSerializer(user)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+
 
 # ---------- Admin AI Models View  ----------
 class AIModelsApiView(generics.GenericAPIView):
@@ -289,3 +293,101 @@ class AIModelsApiView(generics.GenericAPIView):
         queryset = self.get_queryset()
         serializer = AIModelDetailSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+# ---------- Admin AI Workflows View  ----------
+class AIWorkflowsApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsSystemAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return AIWorkflowCreateSerializer
+        return AIWorkflowDetailSerializer
+
+    def get_queryset(self):
+        return AIWorkflow.objects.select_related("ai_model").order_by("-created_at")
+
+    @swagger_auto_schema(
+        operation_description="Create a new AI workflow.",
+        request_body=AIWorkflowCreateSerializer,
+        responses={
+            201: AIWorkflowDetailSerializer(),
+            400: openapi.Response(description="Bad request - validation error"),
+            401: openapi.Response(description="Authentication required"),
+        },
+        tags=["Admin - AI Workflows"],
+    )
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        instance = serializer.save()
+        response_serializer = AIWorkflowDetailSerializer(instance)
+
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+    @swagger_auto_schema(
+        operation_description="List AI workflows.",
+        responses={
+            200: AIWorkflowDetailSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+        },
+        tags=["Admin - AI Workflows"],
+    )
+    def get(self, request):
+        queryset = self.get_queryset()
+        serializer = AIWorkflowDetailSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+# ---------- Admin AI Workflows View  ----------
+class AIWorkflowApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsSystemAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method == "PATCH":
+            return AIWorkflowUpdateSerializer
+        return AIWorkflowDetailSerializer
+
+    def get_object(self, workflow_id):
+        return get_object_or_404(AIWorkflow, id=workflow_id)
+
+    @swagger_auto_schema(
+        operation_description="Retrieve an AI workflow.",
+        responses={
+            200: AIWorkflowDetailSerializer(),
+            404: openapi.Response(description="Workflow not found"),
+        },
+        tags=["Admin - AI Workflows"],
+    )
+    def get(self, request, workflow_id):
+        workflow = self.get_object(workflow_id)
+        serializer = AIWorkflowDetailSerializer(workflow)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Update an AI workflow.",
+        request_body=AIWorkflowUpdateSerializer,
+        responses={
+            200: AIWorkflowDetailSerializer(),
+            400: openapi.Response(description="Validation error"),
+            404: openapi.Response(description="Workflow not found"),
+        },
+        tags=["Admin - AI Workflows"],
+    )
+    def patch(self, request, workflow_id):
+        workflow = self.get_object(workflow_id)
+
+        serializer = self.get_serializer(workflow, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            instance = serializer.save()
+        except IntegrityError:
+            return Response(
+                {"detail": "A workflow already exists for this category."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        response_serializer = AIWorkflowDetailSerializer(instance)
+        return Response(response_serializer.data)
