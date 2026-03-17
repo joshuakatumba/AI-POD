@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from drf_yasg import openapi
 from django.db.models import Q, Prefetch, Count, F
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from organizations.models import Membership, Organization
 from sysadmin.models import AIModel, AIWorkflow
-from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AIWorkflowCreateSerializer, AIWorkflowDetailSerializer, AIWorkflowUpdateSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
+from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AIModelsUpdateSerializer, AIWorkflowCreateSerializer, AIWorkflowDetailSerializer, AIWorkflowUpdateSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from sysadmin.permissions import IsSystemAdmin
@@ -293,6 +294,97 @@ class AIModelsApiView(generics.GenericAPIView):
         queryset = self.get_queryset()
         serializer = AIModelDetailSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class AIModelApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsSystemAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method == "PATCH":
+            return AIModelsUpdateSerializer
+        return AIModelDetailSerializer
+
+    def get_object(self, model_id):
+        return get_object_or_404(AIModel, id=model_id)
+
+    @swagger_auto_schema(
+        operation_description="Retrieve an AI Model.",
+        responses={
+            200: AIModelDetailSerializer(),
+            404: openapi.Response(description="AI Model not found"),
+        },
+        tags=["Admin - AI Models"],
+    )
+    def get(self, request, model_id):
+        model = self.get_object(model_id)
+        serializer = AIModelDetailSerializer(model)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Update an AI Model.",
+        request_body=AIModelsUpdateSerializer,
+        responses={
+            200: AIModelDetailSerializer(),
+            400: openapi.Response(description="Validation error"),
+            404: openapi.Response(description="AI Model not found"),
+        },
+        tags=["Admin - AI Models"],
+    )
+    def patch(self, request, model_id):
+        model = self.get_object(model_id)
+
+        serializer = self.get_serializer(model, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            instance = serializer.save()
+        except IntegrityError:
+            return Response(
+                {"detail": "An AI model with these attributes already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        response_serializer = AIModelDetailSerializer(instance)
+        return Response(response_serializer.data)
+
+
+    @swagger_auto_schema(
+        operation_description="Delete an AI Model (soft delete).",
+        responses={
+            200: openapi.Response(description="AI Model successfully deleted"),
+            400: openapi.Response(description="AI Model is currently in use"),
+            404: openapi.Response(description="AI Model not found"),
+        },
+        tags=["Admin - AI Models"],
+    )
+    def delete(self, request, model_id):
+        model = self.get_object(model_id)
+
+        # Check if model is used by any workflows
+        if AIWorkflow.objects.filter(ai_model=model).exists():
+            return Response(
+                {
+                    "detail": "This AI model cannot be deleted because it is currently in use by one or more workflows."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Soft delete
+        model.is_active = False
+        model.is_deleted = True
+        model.is_deleted_at = timezone.now()
+        model.is_deleted_by_email = request.user.email
+        model.is_deleted_reason = "Removed by admin"
+        model.save()
+
+        return Response(
+            {
+                "detail": "AI Model successfully deleted.",
+                "model_id": str(model.id),
+                "deleted_by": request.user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 # ---------- Admin AI Workflows View  ----------

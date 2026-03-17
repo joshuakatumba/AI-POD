@@ -247,6 +247,33 @@ class AIModelDetailSerializer(serializers.ModelSerializer):
         ]
 
 
+class AIModelsUpdateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+    provider = serializers.CharField(required=False)
+    api_key = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    is_active = serializers.BooleanField(required=False)
+
+    class Meta:
+        model = AIModel
+        fields = [
+            "name",
+            "provider",
+            "api_key",
+            "is_active",
+        ]
+
+    def validate_name(self, value):
+        return value.strip()
+
+    def validate_provider(self, value):
+        return value.strip()
+
+    def validate_api_key(self, value):
+        if value is None:
+            return value
+        return value.strip()
+
+
 # ---------- Admin AI Workflows Serializer ----------
 class AIWorkflowCreateSerializer(serializers.ModelSerializer):
     class Meta:
