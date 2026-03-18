@@ -99,6 +99,7 @@ class LoginView(APIView):
                 "display_name": m.display_name,
                 "role": m.role,
                 "is_current": m.id == current_membership.id,
+                "preferred_language": m.preferred_language,
                 "joined_at": m.joined_at,
                 "last_accessed_at": m.last_accessed_at,
             })
@@ -119,7 +120,7 @@ class LoginView(APIView):
             "membership": str(current_membership.id),
             "role": current_membership.role,
             "tokens": token,
-            "memberships": memberships_data
+            "memberships": memberships_data,
         })
 
 
@@ -256,6 +257,7 @@ class SwitchOrganizationView(APIView):
                 "display_name": m.display_name,
                 "role": m.role,
                 "is_current": m.id == current_membership.id,
+                "preferred_language": m.preferred_language,
                 "joined_at": m.joined_at,
                 "last_accessed_at": m.last_accessed_at,
             })

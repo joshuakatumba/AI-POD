@@ -280,6 +280,12 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
         help_text="Display name for the member in this organization. Users can only update their own display name."
     )
 
+    preferred_language = serializers.ChoiceField(
+        choices=Membership._meta.get_field("preferred_language").choices,
+        required=False,
+        help_text="Preferred language for the member in this organization."
+    )
+
     def validate(self, attrs):
         request = self.context["request"]
         organization = self.context["organization"]
@@ -327,17 +333,25 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
                         "Please assign another admin first."
                     )
         
-        # Check display name changes - STRICT: Only the user themselves can update
-        if "display_name" in attrs:
+        # Check display name and language preferences changes - STRICT: Only the user themselves can update
+        if "display_name" in attrs or "preferred_language" in attrs:
             if not is_target_user:
                 raise PermissionDenied(
-                    "You can only update your own display name."
+                    "You can only update your own information."
                 )
+            
+        if "display_name" in attrs:
+            if not attrs["display_name"]:
+                raise ValidationError("Display name cannot be empty.")
+        
+        if "preferred_language" in attrs:
+            if not attrs["preferred_language"]:
+                raise ValidationError("Preferred language cannot be empty.")
         
         # At least one field should be provided
         if not attrs:
             raise ValidationError(
-                "At least one of 'role' or 'display_name' must be provided."
+                "At least one of 'role', 'display_name', or 'preferred_language' must be provided."
             )
 
         return attrs
@@ -350,6 +364,10 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
         # Update display name if provided
         if "display_name" in validated_data:
             instance.display_name = validated_data["display_name"]
+
+        # Update preferred language if provided
+        if "preferred_language" in validated_data:
+            instance.preferred_language = validated_data["preferred_language"]
         
         instance.save()
         

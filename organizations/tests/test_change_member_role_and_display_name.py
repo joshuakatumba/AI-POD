@@ -299,7 +299,7 @@ class TestUpdateMemberRoleAndName(APITestCase):
         response = self.client.patch(url, payload, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn("your own display name", str(response.data).lower())
+        self.assertIn("you can only update your own information", str(response.data).lower())
         
         # Verify NO change was made
         member_membership.refresh_from_db()
@@ -332,7 +332,7 @@ class TestUpdateMemberRoleAndName(APITestCase):
         response = self.client.patch(url, payload, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn("your own display name", str(response.data).lower())
+        self.assertIn("you can only update your own information", str(response.data).lower())
         
         # Verify NO change was made
         member_membership.refresh_from_db()
@@ -359,7 +359,7 @@ class TestUpdateMemberRoleAndName(APITestCase):
         response = self.client.patch(url, payload, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn("your own display name", str(response.data).lower())
+        self.assertIn("you can only update your own information", str(response.data).lower())
         
         # Verify no change was made
         membership2.refresh_from_db()
@@ -376,7 +376,6 @@ class TestUpdateMemberRoleAndName(APITestCase):
             organization=self.org, 
             role="member", 
             created_by=self.admin_user,
-            display_name="Some Name"
         )
 
         # Authenticate as the member
@@ -387,8 +386,10 @@ class TestUpdateMemberRoleAndName(APITestCase):
         
         response = self.client.patch(url, payload, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('non_field_errors', response.data)
+        self.assertIn('Display name cannot be empty.', response.data['non_field_errors'])
+                
         # Verify display name is now empty
         member_membership.refresh_from_db()
         self.assertEqual(member_membership.display_name, "")
@@ -454,6 +455,36 @@ class TestUpdateMemberRoleAndName(APITestCase):
         admin2_membership.refresh_from_db()
         self.assertEqual(admin2_membership.role, "member")
         self.assertEqual(admin2_membership.display_name, "New Member Name")
+
+    def test_user_can_update_own_preferred_language(self):
+        """Test that a user can update their own preferred language"""
+        self.client.force_authenticate(self.admin_user)
+        url = self._get_member_url(self.admin_membership.id)
+        payload = {"preferred_language": "ja"}  # use a valid choice from your model
+
+        response = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.admin_membership.refresh_from_db()
+        self.assertEqual(self.admin_membership.preferred_language, "ja")
+
+    def test_admin_cannot_update_others_preferred_language(self):
+        """Test that an admin cannot update another member's preferred language"""
+        member_user = User.objects.create_user(email="member_lang@example.com", password="pass123")
+        member_membership = Membership.objects.create(
+            user=member_user, organization=self.org, role="member", created_by=self.admin_user
+        )
+
+        url = self._get_member_url(member_membership.id)
+        payload = {"preferred_language": "ja"}
+
+        response = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertIn("you can only update your own information", str(response.data).lower())
+
+        member_membership.refresh_from_db()
+        self.assertNotEqual(member_membership.preferred_language, "ja")
 
     # ---------- VALIDATION & ERROR TESTS ----------
     def test_no_fields_provided_returns_error(self):

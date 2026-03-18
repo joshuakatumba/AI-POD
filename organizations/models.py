@@ -96,7 +96,9 @@ class Membership(CommonField):
     preferred_language = models.CharField(
         max_length=10,
         choices=LANGUAGE_CHOICES,
-        default="en",
+        null=True,
+        blank=True,
+        default=None,
     )
 
     display_name = models.CharField(max_length=255, blank=True)
