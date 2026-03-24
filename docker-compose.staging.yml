@@ -3,24 +3,29 @@ version: "3.9"
 services:
   app_blue:
     build: .
+    container_name: app_blue
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
-    container_name: app_blue
+    environment:
+      - DEBUG=0
+      - PYTHONPATH=/usr/src/app
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=core.settings.staging
     command: >
-      gunicorn --chdir /usr/src/app core.asgi:application
+      gunicorn core.asgi:application
       -k uvicorn.workers.UvicornWorker
       --bind 0.0.0.0:8000
       --workers 2
-    environment:
-      - DEBUG=0
-      - DJANGO_SETTINGS_MODULE=core.settings.staging
     ports:
       - "8001:8000"
     volumes:
       - static_volume:/usr/src/app/core/staticfiles
+    restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
       interval: 10s
@@ -29,24 +34,29 @@ services:
 
   app_green:
     build: .
+    container_name: app_green
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
-    container_name: app_green
+    environment:
+      - DEBUG=0
+      - PYTHONPATH=/usr/src/app
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=core.settings.staging
     command: >
-      gunicorn --chdir /usr/src/app core.asgi:application
+      gunicorn core.asgi:application
       -k uvicorn.workers.UvicornWorker
       --bind 0.0.0.0:8000
       --workers 2
-    environment:
-      - DEBUG=0
-      - DJANGO_SETTINGS_MODULE=core.settings.staging
     ports:
       - "8002:8000"
     volumes:
       - static_volume:/usr/src/app/core/staticfiles
+    restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
       interval: 10s
