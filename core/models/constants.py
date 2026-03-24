@@ -58,7 +58,27 @@ AI_PROVIDER_CHOICES = [
 ]
 
 AI_WORKFLOW_CATEGORY_CHOICES = [
-    ("requirements", "Requirements"),
-    ("report", "Report"),
-    ("translation", "Translation"),
+    ("requirements", _("Requirements")),
+    ("report", _("Report")),
+    ("translation", _("Translation")),
+]
+
+SESSION_STATUS_CHOICES = [
+    ("ingesting", _("Ingesting")),
+    ("interviewing", _("Interviewing")),
+    ("drafting", _("Drafting")),
+    ("review", _("Review")),
+    ("archived", _("Archived")),        
+]
+
+SESSION_TYPE_CHOICES = [
+    ("report_generation", _("Report Generation")),
+    ("project_audit", _("Admin Project Audit")),   
+]
+
+SESSION_MESSAGE_ROLE_CHOICES = [
+    ("user", _("User")),
+    ("assistant", _("Assistant")),   
+    ("system", _("System")),   
+    ("tool", _("Tool Call/Result")),   
 ]

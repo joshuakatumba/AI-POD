@@ -32,3 +32,11 @@ typing_extensions==4.15.0
 uritemplate==4.2.0
 uvicorn==0.39.0
 whitenoise==6.11.0
+pydantic==2.12.5
+pydantic-ai==0.8.1
+pydantic-ai-slim==0.8.1
+httpx==0.28.1
+anyio==4.12.1
+typing_extensions==4.15.0
+channels==4.3.2
+channels-redis==4.3.0

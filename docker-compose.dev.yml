@@ -12,6 +12,7 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_SETTINGS_MODULE=core.settings.development
+      - REDIS_URL=redis://redis:6379/0
 
 volumes:
   static_volume:
