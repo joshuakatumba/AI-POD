@@ -59,3 +59,34 @@ class Task(CommonField):
 
     def __str__(self):
         return f"{self.reference} - {self.name}"
+
+
+class TaskComment(CommonField):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.CharField(max_length=20, unique=True, editable=False, db_index=True)
+    task = models.ForeignKey(
+        Task, on_delete=models.CASCADE, 
+        related_name="comments")
+    content = models.TextField()
+    organisation = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, 
+        related_name="task_comments" #easier to query
+    )
+    membership = models.ForeignKey(
+        ProjectMember, on_delete=models.CASCADE, 
+        related_name="task_comments" 
+    )
+    
+    class Meta:
+        db_table = "task_comments"
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["task"]),
+            models.Index(fields=["organisation"]),
+            models.Index(fields=["created_at"]),
+        ]
+        
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = generate_reference(prefix="TCM", entity_uuid=self.id)
+        super().save(*args, **kwargs)
