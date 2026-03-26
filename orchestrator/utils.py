@@ -20,24 +20,12 @@ def seed_session_ai(session):
 # --- Specific Handlers ---
 def _seed_report_generation(session):
     task_count = session.session_tasks.count()
-    
-    # System Instruction
-    SessionMessage.objects.create(
-        session=session,
-        organisation=session.organisation,
-        membership=session.membership,
-        created_by=session.created_by,
-        role='system',
-        content=(
-            f"You are an AI specialized in report generation for {session.project.name}. "
-            f"Tasks to cover: {task_count}."
-        )
-    )
 
     # First Greeting
     greeting = (
-        f"Ready to begin the inspection for {session.project.name}. "
-        f"I see we have {task_count} tasks to cover. Which one are we starting with?"
+        f"Hi — let's get your 24-hour report for {session.project.name} started. "
+        f"We have {task_count} tasks to cover. "
+        "Could you give me a quick high-level overview of what you worked on in the last 24 hours?"
     )
     return SessionMessage.objects.create(session=session, organisation=session.organisation, membership=session.membership, role='assistant', content=greeting, created_by=session.created_by)
 

@@ -106,7 +106,7 @@ class ChatApiTests(MockAuthMixin, APITestCase):
         self.assertEqual(session.membership_id, self.membership.id)
         self.assertEqual(session.organisation_id, self.org.id)
         self.assertEqual(ReportTask.objects.filter(session=session).count(), 1)
-        self.assertEqual(SessionMessage.objects.filter(session=session).count(), 2)
+        self.assertEqual(SessionMessage.objects.filter(session=session).count(), 1)
 
     def test_create_session_rejects_missing_auth_context(self):
         self.authenticate()
