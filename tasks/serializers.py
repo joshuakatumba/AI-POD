@@ -1,10 +1,12 @@
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils import timezone
 
 from core.models.constants import TASK_STATUS_CHOICES
 from projectMembers.models import ProjectMember
-from .models import Task
+from .models import Task, TaskComment
 
 
 class TaskReadSerializer(serializers.ModelSerializer):
@@ -174,3 +176,75 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+
+class TaskCommentReadSerializer(serializers.ModelSerializer):
+    task = serializers.SerializerMethodField()
+    membership = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TaskComment
+        fields = [
+            "id",
+            "reference",
+            "task",
+            "content",
+            "organisation",
+            "membership",
+            "created_by",
+            "created_at",
+            "modified_at",
+        ]
+
+    def get_task(self, obj):
+        return {
+            "id": obj.task.id,
+            "reference": obj.task.reference,
+            "name": obj.task.name,
+        }
+
+    def get_membership(self, obj):
+        project_member = obj.membership
+        member = getattr(project_member, "membership", None)
+        return {
+            "id": project_member.id,
+            "reference": project_member.reference,
+            "display_name": getattr(member, "display_name", None),
+        }
+
+
+class TaskCommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskComment
+        fields = [
+            "content",
+        ]
+        
+    def validate_content(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Content is required.")
+        return value.strip()
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        task_id = self.context["task_id"]
+        
+        task = get_object_or_404(Task, id=task_id)
+
+        try:
+            membership = ProjectMember.objects.get(
+                membership__user=request.user,
+                project=task.project
+            )
+        except ProjectMember.DoesNotExist:
+            raise PermissionDenied("You must be a member of this project to view or create comments.")
+
+        attrs["task"] = task
+        attrs["membership"] = membership
+        attrs["organisation"] = task.organisation
+        attrs["created_by"] = request.user
+        return attrs
+    
+    def create(self, validated_data):
+        return TaskComment.objects.create(**validated_data)
+        # TODO: enqueue async comment translations using celery.
