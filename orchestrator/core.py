@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import AsyncGenerator, Dict, Any
+from typing import AsyncGenerator, Dict, Any, List
+from pydantic import BaseModel
 from chat.models import Session
 from orchestrator.utils import broadcast_session_event
 from projects.models import ReportTask
@@ -105,4 +106,30 @@ class ReportAgentRunner:
         self.agent = report_agent
 
 
+class TranslationItem(BaseModel):
+    field_name: str
+    source_language: str
+    target_language: str
+    original_text: str
+    intended_text: str
+    translated_text: str
 
+
+class TranslationAgentRunner:
+    def __init__(self, workflow):
+        provider = OpenAIProvider(
+            api_key=workflow.ai_model.api_key
+        )
+
+        model = OpenAIChatModel(
+            model_name=workflow.ai_model.name,
+            provider=provider,
+        )
+
+        translation_agent = Agent(  
+            model,
+            output_type=List[TranslationItem],
+            system_prompt=workflow.system_prompt,
+        )
+
+        self.agent = translation_agent
