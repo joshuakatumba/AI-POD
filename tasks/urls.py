@@ -1,5 +1,5 @@
 from django.urls import path
-from tasks.views import TaskDetailView, TaskCommentsView, TasksView
+from tasks.views import TaskCommentDetailView, TaskDetailView, TaskCommentsView, TasksView
 
 app_name = "tasks"
 
@@ -18,5 +18,10 @@ urlpatterns = [
         "tasks/<uuid:task_id>/comments/",
         TaskCommentsView.as_view(),
         name="task-comments",
+    ),
+    path(
+        "tasks/<uuid:task_id>/comments/<uuid:comment_id>/",
+        TaskCommentDetailView.as_view(),
+        name="task-comment-detail",
     ),
 ]

@@ -3,12 +3,11 @@ from drf_yasg import openapi
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, NotFound
 
-from projects.models import Project
 from django.shortcuts import get_object_or_404
-from tasks.models import Task
-from projectMembers.models import ProjectMember
+from tasks.models import Task, TaskComment
+from projects.models import Project
+from tasks.permissions import IsProjectMemberForTaskScope
 from tasks.serializers import (
     TaskCreateSerializer,
     TaskReadSerializer,
@@ -18,14 +17,8 @@ from tasks.serializers import (
 )
 
 class TasksView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
     serializer_class = TaskCreateSerializer
-
-    def get_requester_membership(self, user, project):
-        try:
-            return ProjectMember.objects.get(membership__user=user, project=project)
-        except ProjectMember.DoesNotExist:
-            raise PermissionDenied("You must be a member of this project to view or create tasks.")
 
     @swagger_auto_schema(
         operation_description="Get all tasks in a project. Only project members can view tasks.",
@@ -55,7 +48,6 @@ class TasksView(generics.GenericAPIView):
     )
     def get(self, request, project_id, *args, **kwargs):
         project = get_object_or_404(Project, id=project_id)
-        self.get_requester_membership(request.user, project)
 
         tasks = Task.objects.filter(project=project).select_related(
             "organisation",
@@ -90,7 +82,6 @@ class TasksView(generics.GenericAPIView):
     )
     def post(self, request, project_id, *args, **kwargs):
         project = get_object_or_404(Project, id=project_id)
-        self.get_requester_membership(request.user, project)
 
         serializer = TaskCreateSerializer(
             data=request.data,
@@ -105,15 +96,8 @@ class TasksView(generics.GenericAPIView):
         )
 
 class TaskDetailView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
     serializer_class = TaskUpdateSerializer
-        
-    def get_requester_membership(self, user, project):
-        try:
-            return ProjectMember.objects.get(membership__user=user, project=project)
-        except ProjectMember.DoesNotExist:
-            raise PermissionDenied("You must be a member of this project to view or modify tasks.")
-        
     
     @swagger_auto_schema(
         operation_description="Update an existing task. Only project members can update tasks.",
@@ -129,7 +113,6 @@ class TaskDetailView(generics.GenericAPIView):
     )
     def patch(self, request, project_id, task_id, *args, **kwargs):
         project = get_object_or_404(Project, id=project_id)
-        self.get_requester_membership(request.user, project)
         task = get_object_or_404(Task, id=task_id, project=project)
 
         serializer = TaskUpdateSerializer(
@@ -139,17 +122,34 @@ class TaskDetailView(generics.GenericAPIView):
             context={"request": request, "project": project},
         )
         serializer.is_valid(raise_exception=True)
-        updated_task = serializer.save()
+        serializer.save()
 
         return Response(
-            TaskReadSerializer(updated_task).data,
+            TaskReadSerializer(serializer.save()).data,
             status=status.HTTP_200_OK,
         )
 
 
 class TaskCommentsView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
     serializer_class = TaskCommentCreateSerializer
+
+    @swagger_auto_schema(
+        operation_description="Get all comments on a task. Only project members can view comments.",
+        responses={
+            200: TaskCommentReadSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member"),
+            404: openapi.Response(description="Task not found"),
+        },
+        tags=["Task Comments"],
+    )
+    def get(self, request, task_id, *args, **kwargs):
+        task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
+
+        comments = TaskComment.objects.filter(task=task)
+        serializer = TaskCommentReadSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Create a comment on a task. Only project members can comment.",
@@ -175,3 +175,24 @@ class TaskCommentsView(generics.GenericAPIView):
         comment = serializer.save()
 
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_201_CREATED)
+
+
+class TaskCommentDetailView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
+    serializer_class = TaskCommentReadSerializer
+
+    @swagger_auto_schema(
+        operation_description="Get a single task comment. Only project members can view comments.",
+        responses={
+            200: TaskCommentReadSerializer,
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member"),
+            404: openapi.Response(description="Task or Comment not found"),
+        },
+        tags=["Task Comments"],
+    )
+    def get(self, request, task_id, comment_id, *args, **kwargs):
+        task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
+        comment = get_object_or_404(TaskComment, id=comment_id, task=task)
+
+        return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
