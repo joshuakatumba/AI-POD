@@ -1,6 +1,7 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import generics, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -14,6 +15,7 @@ from tasks.serializers import (
     TaskUpdateSerializer,
     TaskCommentCreateSerializer,
     TaskCommentReadSerializer,
+    TaskCommentUpdateSerializer,
 )
 
 class TasksView(generics.GenericAPIView):
@@ -119,7 +121,7 @@ class TaskDetailView(generics.GenericAPIView):
             task,
             data=request.data,
             partial=True,
-            context={"request": request, "project": project},
+            context={"request": request, "project": task.project},
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -194,5 +196,35 @@ class TaskCommentDetailView(generics.GenericAPIView):
     def get(self, request, task_id, comment_id, *args, **kwargs):
         task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
         comment = get_object_or_404(TaskComment, id=comment_id, task=task)
+
+        return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Update a task comment. Only project members who authored the comment can update it.",
+        request_body=TaskCommentUpdateSerializer,
+        responses={
+            200: TaskCommentReadSerializer,
+            400: openapi.Response(description="Validation error"),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member or not the comment author"),
+            404: openapi.Response(description="Task or Comment not found"),
+        },
+        tags=["Task Comments"],
+    )
+    def patch(self, request, task_id, comment_id, *args, **kwargs):
+        task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
+        comment = get_object_or_404(TaskComment, id=comment_id, task=task)
+
+        if comment.created_by_id != request.user.id:
+            raise PermissionDenied("Only the comment author can update this comment.")
+
+        serializer = TaskCommentUpdateSerializer(
+            comment,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_200_OK)

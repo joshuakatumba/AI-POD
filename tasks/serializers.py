@@ -246,5 +246,27 @@ class TaskCommentCreateSerializer(serializers.ModelSerializer):
         return attrs
     
     def create(self, validated_data):
-        return TaskComment.objects.create(**validated_data)
+       return TaskComment.objects.create(**validated_data)
         # TODO: enqueue async comment translations using celery.
+
+class TaskCommentUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskComment
+        fields = [
+            "content",
+        ]
+        extra_kwargs = {
+            "content": {"required": False},
+        }
+
+    def validate_content(self, value):
+        if value is not None and not value.strip():
+            raise serializers.ValidationError("Content cannot be blank.")
+        return value.strip() if value is not None else value
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        # TODO: if content changed, enqueue async comment translation still.
+        return instance
