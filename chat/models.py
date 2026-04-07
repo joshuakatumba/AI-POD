@@ -28,7 +28,7 @@ class Session(CommonField):
     project = models.ForeignKey(
         'projects.Project', 
         on_delete=models.CASCADE, 
-        related_name='reports',
+        related_name='sessions',
         null=True, blank=True # Nullable for general chats
     )
 

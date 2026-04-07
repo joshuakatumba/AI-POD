@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from projects.models import Project
+from projects.models import Project,  Report
 from projects.pagination import ProjectPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,8 +13,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from organizations.models import Membership, Organization
 from projects.permissions import CanCreateProject, CanDeleteProject, CanUpdateProject
-from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer
-
+from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportListSerializer
 
 class ProjectsApiView(generics.GenericAPIView):
     pagination_class = ProjectPagination
@@ -169,3 +168,97 @@ class ProjectDetailApiView(generics.GenericAPIView):
             },
             status=status.HTTP_200_OK,
         )
+
+class ReportsApiView(generics.GenericAPIView):
+    pagination_class = ProjectPagination
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReportListSerializer
+
+    def get_queryset(self):
+        auth = self.request.auth or {}
+        organisation_id = auth.get("organisation_id")
+
+        queryset = Report.objects.filter(
+            organisation_id=organisation_id,
+            is_deleted=False,
+        ).select_related(
+            "session",
+            "project",
+            "membership",
+            "membership__user",
+            "organisation",
+        ).prefetch_related(
+            "report_tasks",
+            "report_tasks__task",
+            "report_tasks__task__assignee",
+        ).order_by("-created_at")
+
+        month = self.request.query_params.get("month")
+        if month:
+            try:
+                year, mon = month.split("-")
+                queryset = queryset.filter(
+                    created_at__year=int(year),
+                    created_at__month=int(mon),
+                )
+            except (ValueError, AttributeError):
+                pass
+
+        project_id = self.request.query_params.get("project")
+        if project_id:
+            queryset = queryset.filter(project_id=project_id)
+
+        membership_id = self.request.query_params.get("membership")
+        if membership_id:
+            queryset = queryset.filter(membership_id=membership_id)
+
+        return queryset
+
+    @swagger_auto_schema(
+        operation_description="List all reports.",
+        manual_parameters=[
+            openapi.Parameter(
+                "month",
+                openapi.IN_QUERY,
+                description="Filter by month",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "project",
+                openapi.IN_QUERY,
+                description="Filter by project UUID",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_UUID,
+            ),
+            openapi.Parameter(
+                "membership",
+                openapi.IN_QUERY,
+                description="Filter by membership UUID",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_UUID,
+            ),
+            openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="Page number",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="Items per page",
+                type=openapi.TYPE_INTEGER,
+            ),
+        ],
+        responses={
+            200: ReportListSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+        },
+        tags=["Reports"],
+    )
+    def get(self, request):
+        queryset = self.get_queryset()
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = self.get_serializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)

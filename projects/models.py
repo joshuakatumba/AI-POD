@@ -112,16 +112,16 @@ class Report(CommonField):
         related_name='final_report'
     )
 
-    project = models.OneToOneField(
-        "projects.Project", 
-        on_delete=models.CASCADE, 
-        related_name='final_report'
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="reports",
     )
 
-    membership = models.OneToOneField(
-        "organizations.Membership", 
-        on_delete=models.CASCADE, 
-        related_name='final_report'
+    membership = models.ForeignKey(
+        "organizations.Membership",
+        on_delete=models.CASCADE,
+        related_name="reports",
     )
 
     organisation = models.ForeignKey(

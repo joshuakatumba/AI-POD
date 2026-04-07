@@ -6,8 +6,10 @@ from rest_framework.exceptions import ValidationError
 
 from organizations.models import Organization, Membership
 from projectMembers.models import ProjectMember
-from projects.models import Project
+from projects.models import Project, Report, ReportTask
 from projectMembers.serializers import ProjectMemberReadSerializer
+from tasks.models import Task
+
 
 User = get_user_model()
 
@@ -173,3 +175,85 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         if start and end and end < start:
             raise serializers.ValidationError({"end_date": "End date must be after start date."})
         return attrs
+
+class OrganisationMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ["id", "name"]
+
+class MembershipMinimalSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email", read_only=True)
+
+    class Meta:
+        model = Membership
+        fields = ["id", "email", "display_name"]
+
+class SessionMinimalSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    title = serializers.CharField()
+
+class AssigneeSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source="membership.id", read_only=True)
+    display_name = serializers.CharField(source="membership.display_name", read_only=True)
+
+    class Meta:
+        model = ProjectMember
+        fields = ["id", "display_name"]
+
+class TaskMinimalSerializer(serializers.ModelSerializer):
+    assignee = AssigneeSerializer(source="assigned_to", read_only=True)
+
+    class Meta:
+        model = Task
+        fields = ["id", "name", "status", "assignee"]
+
+class ReportTaskSerializer(serializers.ModelSerializer):
+    task = TaskMinimalSerializer(read_only=True)
+    session_id = serializers.UUIDField(source="session.id", read_only=True)
+    report_id = serializers.UUIDField(source="report.id", read_only=True)
+    organisation_id = serializers.UUIDField(source="organisation.id", read_only=True)
+
+    class Meta:
+        model = ReportTask
+        fields = [
+            "id",
+            "session_id",
+            "report_id",
+            "organisation_id",
+            "is_validated_by_ai",
+            "ai_notes",
+            "task",
+        ]
+
+class ReportListSerializer(serializers.ModelSerializer):
+    session = SessionMinimalSerializer(read_only=True)
+    project = serializers.SerializerMethodField()
+    membership = MembershipMinimalSerializer(read_only=True)
+    organisation = OrganisationMinimalSerializer(read_only=True)
+    report_tasks = ReportTaskSerializer(
+        source="session.session_tasks",
+        many=True,
+        read_only=True
+    )
+
+    class Meta:
+        model = Report
+        fields = [
+            "id",
+            "reference",
+            "session",
+            "project",
+            "membership",
+            "organisation",
+            "generated_text",
+            "structured_data_snapshot",
+            "report_tasks",
+            "created_at",
+            "modified_at",
+        ]
+
+    def get_project(self, obj):
+        return {
+            "id": str(obj.project.id),
+            "name": obj.project.name,
+        }
