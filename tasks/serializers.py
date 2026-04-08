@@ -191,6 +191,10 @@ class TaskCommentReadSerializer(serializers.ModelSerializer):
             "content",
             "organisation",
             "membership",
+            "is_deleted",
+            "is_deleted_at",
+            "is_deleted_by_email",
+            "is_deleted_reason",
             "created_by",
             "created_at",
             "modified_at",
@@ -265,6 +269,9 @@ class TaskCommentUpdateSerializer(serializers.ModelSerializer):
         return value.strip() if value is not None else value
 
     def update(self, instance, validated_data):
+        if instance.is_deleted:
+            raise NotFound("Comment not found.")
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

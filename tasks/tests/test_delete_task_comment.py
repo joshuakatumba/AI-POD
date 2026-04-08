@@ -17,7 +17,7 @@ from tasks.models import Task, TaskComment
 User = get_user_model()
 
 
-class TaskCommentUpdateAPITests(APITestCase):
+class TaskCommentDeleteAPITests(APITestCase):
     def setUp(self):
         self.client.raise_request_exception = False
 
@@ -103,8 +103,8 @@ class TaskCommentUpdateAPITests(APITestCase):
         )
 
         self.task = Task.objects.create(
-            name="Task for comment update",
-            description="Task used by comment update tests",
+            name="Task for comment deletion",
+            description="Task used by comment delete tests",
             due_date=timezone.now() + timedelta(days=5),
             expected_hours=Decimal("6.0"),
             organisation=self.organization,
@@ -115,7 +115,7 @@ class TaskCommentUpdateAPITests(APITestCase):
 
         self.comment = TaskComment.objects.create(
             task=self.task,
-            content="Original comment",
+            content="Comment to delete",
             organisation=self.organization,
             membership=self.member,
             created_by=self.member_user,
@@ -133,48 +133,45 @@ class TaskCommentUpdateAPITests(APITestCase):
         refresh = RefreshToken.for_user(user)
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
 
-    def test_patch_comment_requires_authentication(self):
-        response = self.client.patch(self.url, {"content": "Updated"}, format="json")
+    def test_delete_comment_requires_authentication(self):
+        response = self.client.delete(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_patch_comment_requires_project_membership(self):
+    def test_delete_comment_requires_project_membership(self):
         self.authenticate(self.external_user)
 
-        response = self.client.patch(self.url, {"content": "Updated"}, format="json")
+        response = self.client.delete(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_patch_comment_author_can_update(self):
-        self.authenticate(self.member_user)
-
-        payload = {"content": "Updated comment content"}
-        response = self.client.patch(self.url, payload, format="json")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.comment.refresh_from_db()
-        self.assertEqual(self.comment.content, payload["content"])
-        self.assertEqual(response.data["content"], payload["content"])
-
-    def test_patch_comment_non_author_project_member_forbidden(self):
+    def test_delete_comment_non_author_project_member_forbidden(self):
         self.authenticate(self.other_member_user)
 
-        response = self.client.patch(self.url, {"content": "Unauthorized edit"}, format="json")
+        response = self.client.delete(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.comment.refresh_from_db()
-        self.assertEqual(self.comment.content, "Original comment")
+        self.assertFalse(self.comment.is_deleted)
 
-    def test_patch_comment_blank_content_rejected(self):
+    def test_delete_comment_author_can_delete_and_task_remains(self):
         self.authenticate(self.member_user)
 
-        response = self.client.patch(self.url, {"content": "   "}, format="json")
+        response = self.client.delete(self.url)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "Comment successfully removed from task.")
+        self.assertEqual(response.data["comment_id"], str(self.comment.id))
+        self.assertEqual(response.data["removed_by"], self.member_user.email)
         self.comment.refresh_from_db()
-        self.assertEqual(self.comment.content, "Original comment")
+        self.assertTrue(self.comment.is_deleted)
+        self.assertFalse(self.comment.is_active)
+        self.assertIsNotNone(self.comment.is_deleted_at)
+        self.assertEqual(self.comment.is_deleted_by_email, self.member_user.email)
+        self.assertEqual(self.comment.is_deleted_reason, "Removed by author")
+        self.assertTrue(Task.objects.filter(id=self.task.id).exists())
 
-    def test_patch_comment_not_found(self):
+    def test_delete_comment_not_found(self):
         self.authenticate(self.member_user)
 
         url = reverse(
@@ -184,6 +181,7 @@ class TaskCommentUpdateAPITests(APITestCase):
                 "comment_id": uuid.uuid4(),
             },
         )
-        response = self.client.patch(url, {"content": "Updated"}, format="json")
+        response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+# TODO: Add feature where admins can delete any comment and add tests for that when implemented. 

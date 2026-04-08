@@ -1,11 +1,11 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import generics, status
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from tasks.models import Task, TaskComment
 from projects.models import Project
 from tasks.permissions import IsProjectMemberForTaskScope
@@ -149,7 +149,7 @@ class TaskCommentsView(generics.GenericAPIView):
     def get(self, request, task_id, *args, **kwargs):
         task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
 
-        comments = TaskComment.objects.filter(task=task)
+        comments = TaskComment.objects.filter(task=task, is_deleted=False)
         serializer = TaskCommentReadSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -195,7 +195,7 @@ class TaskCommentDetailView(generics.GenericAPIView):
     )
     def get(self, request, task_id, comment_id, *args, **kwargs):
         task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
-        comment = get_object_or_404(TaskComment, id=comment_id, task=task)
+        comment = get_object_or_404(TaskComment, id=comment_id, task=task, is_deleted=False)
 
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
 
@@ -213,10 +213,8 @@ class TaskCommentDetailView(generics.GenericAPIView):
     )
     def patch(self, request, task_id, comment_id, *args, **kwargs):
         task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
-        comment = get_object_or_404(TaskComment, id=comment_id, task=task)
-
-        if comment.created_by_id != request.user.id:
-            raise PermissionDenied("Only the comment author can update this comment.")
+        comment = get_object_or_404(TaskComment, id=comment_id, task=task, is_deleted=False)
+        self.check_object_permissions(request, comment)
 
         serializer = TaskCommentUpdateSerializer(
             comment,
@@ -228,3 +226,44 @@ class TaskCommentDetailView(generics.GenericAPIView):
         serializer.save()
 
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Soft delete a task comment. Only project members who authored the comment can delete it.",
+        responses={
+            200: openapi.Response(
+                description="Comment deleted",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "message": openapi.Schema(type=openapi.TYPE_STRING),
+                        "comment_id": openapi.Schema(type=openapi.TYPE_STRING),
+                        "removed_by": openapi.Schema(type=openapi.TYPE_STRING),
+                    },
+                ),
+            ),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member or not the comment author"),
+            404: openapi.Response(description="Task or Comment not found"),
+        },
+        tags=["Task Comments"],
+    )
+    def delete(self, request, task_id, comment_id, *args, **kwargs):
+        task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
+        comment = get_object_or_404(TaskComment, id=comment_id, task=task, is_deleted=False)
+        self.check_object_permissions(request, comment)
+
+        # Soft delete to preserve audit history.
+        comment.is_active = False
+        comment.is_deleted = True
+        comment.is_deleted_at = timezone.now()
+        comment.is_deleted_by_email = request.user.email
+        comment.is_deleted_reason = "Removed by author"
+        comment.save()
+        return Response(
+            {
+                "message": "Comment successfully removed from task.",
+                "comment_id": str(comment.id),
+                "removed_by": request.user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
