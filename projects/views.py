@@ -10,10 +10,14 @@ from django.db import DatabaseError
 from django.db.models import Q
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from datetime import datetime
+
 
 from organizations.models import Membership, Organization
 from projects.permissions import CanCreateProject, CanDeleteProject, CanUpdateProject
-from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportListSerializer
+from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportDetailSerializer, ReportUpdateSerializer
+from projects.models import Report
+
 
 class ProjectsApiView(generics.GenericAPIView):
     pagination_class = ProjectPagination
@@ -112,18 +116,13 @@ class ProjectDetailApiView(generics.GenericAPIView):
             is_active=True,
         )
 
-    def get_object(self):
-        """Get project or 404"""
-        queryset = self.get_queryset()
-        return get_object_or_404(queryset, id=self.kwargs["project_id"])
-
     @swagger_auto_schema(
         operation_description="Retrieve a single project",
         responses={200: ProjectDetailsSerializer()},
         tags=["Projects"],
     )
     def get(self, request, project_id):
-        project = self.get_object()
+        project = get_object_or_404(self.get_queryset(), id=project_id)
         serializer = ProjectDetailsSerializer(project)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -134,7 +133,7 @@ class ProjectDetailApiView(generics.GenericAPIView):
         tags=["Projects"],
     )
     def patch(self, request, project_id):
-        project = self.get_object()
+        project = get_object_or_404(self.get_queryset(), id=project_id)
         serializer = ProjectUpdateSerializer(project, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -146,8 +145,7 @@ class ProjectDetailApiView(generics.GenericAPIView):
         tags=["Projects"],
     )
     def delete(self, request, project_id):
-        project = self.get_object()
-
+        project = get_object_or_404(self.get_queryset(), id=project_id)
         # Explicitly trigger has_object_permission
         self.check_object_permissions(request, project)
         
@@ -170,14 +168,13 @@ class ProjectDetailApiView(generics.GenericAPIView):
         )
 
 class ReportsApiView(generics.GenericAPIView):
-    pagination_class = ProjectPagination
     permission_classes = [IsAuthenticated]
-    serializer_class = ReportListSerializer
+    serializer_class = ReportDetailSerializer
+    pagination_class = ProjectPagination
 
     def get_queryset(self):
         auth = self.request.auth or {}
         organisation_id = auth.get("organisation_id")
-
         queryset = Report.objects.filter(
             organisation_id=organisation_id,
             is_deleted=False,
@@ -190,75 +187,105 @@ class ReportsApiView(generics.GenericAPIView):
         ).prefetch_related(
             "report_tasks",
             "report_tasks__task",
-            "report_tasks__task__assignee",
+            "report_tasks__task__assigned_to",
+            "report_tasks__task__assigned_to__membership",
         ).order_by("-created_at")
-
+        
+        # Filter by membership if provided
+        membership = self.request.query_params.get("membership")
+        if membership:
+            queryset = queryset.filter(membership_id=membership)
+        
+        # Filter by project if provided
+        project = self.request.query_params.get("project")
+        if project:
+            queryset = queryset.filter(project_id=project)
+        
+        # Filter by month if provided (format: YYYY-MM)
         month = self.request.query_params.get("month")
         if month:
             try:
-                year, mon = month.split("-")
+                parsed_date = datetime.strptime(month, "%Y-%m")
                 queryset = queryset.filter(
-                    created_at__year=int(year),
-                    created_at__month=int(mon),
+                    created_at__year=parsed_date.year,
+                    created_at__month=parsed_date.month,
                 )
-            except (ValueError, AttributeError):
-                pass
-
-        project_id = self.request.query_params.get("project")
-        if project_id:
-            queryset = queryset.filter(project_id=project_id)
-
-        membership_id = self.request.query_params.get("membership")
-        if membership_id:
-            queryset = queryset.filter(membership_id=membership_id)
-
+            except ValueError:
+                raise ValidationError(
+                    {"month": "Invalid month format. Expected YYYY-MM."}
+                )
         return queryset
 
     @swagger_auto_schema(
-        operation_description="List all reports.",
+        operation_description="List all reports for the organization.",
         manual_parameters=[
-            openapi.Parameter(
-                "month",
-                openapi.IN_QUERY,
-                description="Filter by month",
-                type=openapi.TYPE_STRING,
-            ),
-            openapi.Parameter(
-                "project",
-                openapi.IN_QUERY,
-                description="Filter by project UUID",
-                type=openapi.TYPE_STRING,
-                format=openapi.FORMAT_UUID,
-            ),
-            openapi.Parameter(
-                "membership",
-                openapi.IN_QUERY,
-                description="Filter by membership UUID",
-                type=openapi.TYPE_STRING,
-                format=openapi.FORMAT_UUID,
-            ),
-            openapi.Parameter(
-                "page",
-                openapi.IN_QUERY,
-                description="Page number",
-                type=openapi.TYPE_INTEGER,
-            ),
-            openapi.Parameter(
-                "page_size",
-                openapi.IN_QUERY,
-                description="Items per page",
-                type=openapi.TYPE_INTEGER,
-            ),
+            openapi.Parameter("membership", openapi.IN_QUERY, "Filter by membership UUID", type=openapi.TYPE_STRING),
+            openapi.Parameter("project", openapi.IN_QUERY, "Filter by project UUID", type=openapi.TYPE_STRING),
+            openapi.Parameter("month", openapi.IN_QUERY, "Filter by month (format: YYYY-MM)", type=openapi.TYPE_STRING),
+            openapi.Parameter("page", openapi.IN_QUERY, "Page number", type=openapi.TYPE_INTEGER),
+            openapi.Parameter("page_size", openapi.IN_QUERY, "Items per page", type=openapi.TYPE_INTEGER),
         ],
         responses={
-            200: ReportListSerializer(many=True),
+            200: ReportDetailSerializer(many=True),
             401: openapi.Response(description="Authentication required"),
         },
         tags=["Reports"],
     )
     def get(self, request):
+        """List all reports with optional filtering"""
         queryset = self.get_queryset()
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(queryset, request)
         serializer = self.get_serializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
+
+class ReportDetailApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReportDetailSerializer
+
+    def get_queryset(self):
+        auth = self.request.auth or {}
+        organisation_id = auth.get("organisation_id")
+        return Report.objects.filter(
+            organisation_id=organisation_id,
+            is_deleted=False,
+        ).select_related(
+            "session",
+            "project",
+            "membership",
+            "membership__user",
+            "organisation",
+        ).prefetch_related(
+            "report_tasks",
+            "report_tasks__task",
+            "report_tasks__task__assigned_to",
+            "report_tasks__task__assigned_to__membership",
+        )
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a single report by ID.",
+        responses={
+            200: ReportDetailSerializer(),
+            401: openapi.Response(description="Authentication required"),
+            404: openapi.Response(description="Report not found"),
+        },
+        tags=["Reports"],
+    )
+    def get(self, request, project_id, report_id):
+        report = get_object_or_404(self.get_queryset(), id=report_id)
+        serializer = self.get_serializer(report)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        operation_description="Update a report (partial update).",
+        request_body=ReportUpdateSerializer,
+        responses={200: ReportDetailSerializer()},
+        tags=["Reports"],
+    )
+    def patch(self, request, project_id, report_id):
+        report = get_object_or_404(self.get_queryset(), id=report_id)
+        serializer = ReportUpdateSerializer(report, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        detail_serializer = ReportDetailSerializer(report)
+        return Response(detail_serializer.data, status=status.HTTP_200_OK)

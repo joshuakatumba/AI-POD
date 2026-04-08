@@ -90,10 +90,10 @@ class TasksView(generics.GenericAPIView):
             context={"request": request, "project": project},
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        task = serializer.save()
 
         return Response(
-            TaskReadSerializer(serializer.save()).data,
+            TaskReadSerializer(task).data,
             status=status.HTTP_201_CREATED,
         )
 

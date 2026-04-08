@@ -10,7 +10,6 @@ from projects.models import Project, Report, ReportTask
 from projectMembers.serializers import ProjectMemberReadSerializer
 from tasks.models import Task
 
-
 User = get_user_model()
 
 class ProjectCreateSerializer(serializers.ModelSerializer):
@@ -175,7 +174,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         if start and end and end < start:
             raise serializers.ValidationError({"end_date": "End date must be after start date."})
         return attrs
-
+    
 class OrganisationMinimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
@@ -225,16 +224,13 @@ class ReportTaskSerializer(serializers.ModelSerializer):
             "task",
         ]
 
-class ReportListSerializer(serializers.ModelSerializer):
+    
+class ReportDetailSerializer(serializers.ModelSerializer):
     session = SessionMinimalSerializer(read_only=True)
     project = serializers.SerializerMethodField()
     membership = MembershipMinimalSerializer(read_only=True)
     organisation = OrganisationMinimalSerializer(read_only=True)
-    report_tasks = ReportTaskSerializer(
-        source="session.session_tasks",
-        many=True,
-        read_only=True
-    )
+    report_tasks = ReportTaskSerializer(many=True, read_only=True, source="session.session_tasks")
 
     class Meta:
         model = Report
@@ -257,3 +253,21 @@ class ReportListSerializer(serializers.ModelSerializer):
             "id": str(obj.project.id),
             "name": obj.project.name,
         }
+
+class ReportUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = [
+            "generated_text",
+            "structured_data_snapshot",
+        ]
+        read_only_fields = [
+            "id",
+            "reference",
+            "session",
+            "project",
+            "membership",
+            "organisation",
+            "created_at",
+            "modified_at",
+        ]

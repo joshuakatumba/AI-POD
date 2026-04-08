@@ -294,7 +294,7 @@ class TestListReports(MockAuthMixin, APITestCase):
         )
 
     def test_filter_reports_invalid_month_ignored(self):
-        """GET ?month=invalid should not crash — returns all reports."""
+        """GET ?month=invalid should return 400 with validation error."""
         self.create_report()
         self.create_report()
 
@@ -302,8 +302,8 @@ class TestListReports(MockAuthMixin, APITestCase):
             auth=self.admin_auth,
             params={"month": "invalid"},
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("month", response.data)
 
     def test_list_reports_pagination(self):
         """GET should paginate reports with default page_size=10."""
