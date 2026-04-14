@@ -10,7 +10,7 @@ from sysadmin.models import AIModel, AIWorkflow
 from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AIModelsUpdateSerializer, AIWorkflowCreateSerializer, AIWorkflowDetailSerializer, AIWorkflowUpdateSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
-from sysadmin.permissions import IsSystemAdmin
+from sysadmin.permissions import CanViewAdminData, IsSystemAdmin, IsAdminUser
 from django.contrib.auth import get_user_model
 
 from django.db import IntegrityError
@@ -22,7 +22,12 @@ User = get_user_model()
 # ---------- Admin List Organisations ----------
 class AdminOrganisationListView(generics.ListAPIView):
     serializer_class = AdminOrganizationSerializer
-    permission_classes = [IsAuthenticated, IsSystemAdmin]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated(), CanViewAdminData()]
+        
+        return [IsSystemAdmin()]
 
     @swagger_auto_schema(
         operation_summary="Admin list organizations",
@@ -129,8 +134,13 @@ class AdminForceDeleteOrganisationView(generics.GenericAPIView):
 
 # ---------- Admin Users View  ----------
 class SysAdminUsersView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated, IsSystemAdmin]
     serializer_class = SysAdminUserSerializer
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated(), CanViewAdminData()]
+        
+        return [IsSystemAdmin()]
 
     @swagger_auto_schema(
         operation_summary="Admin list users",
