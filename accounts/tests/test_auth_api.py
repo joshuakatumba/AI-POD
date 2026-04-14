@@ -84,6 +84,23 @@ class AuthAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_login_without_membership_returns_forbidden_message(self):
+        user_without_membership = User.objects.create_user(
+            email="nomembership@example.com",
+            password="password123"
+        )
+
+        response = self.client.post(self.login_url, {
+            "email": user_without_membership.email,
+            "password": "password123"
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            response.data["detail"],
+            "You have not been invited to an organization and cannot access the system."
+        )
+
     # ---------- CURRENT USER ----------
 
     def authenticate(self):

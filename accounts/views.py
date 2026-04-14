@@ -83,7 +83,7 @@ class LoginView(APIView):
 
         if not memberships_qs.exists():
             return Response(
-                {"detail": "No memberships found."},
+                {"detail": "You have not been invited to an organization and cannot access the system."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
