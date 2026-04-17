@@ -56,7 +56,9 @@ class AuthAPITests(APITestCase):
     def test_signup_success(self):
         response = self.client.post(self.signup_url, {
             "email": "new@example.com",
-            "password": "password123"
+            "password": "password123",
+            "full_name": "Test User",
+            "preferred_language": "en"
         })
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
