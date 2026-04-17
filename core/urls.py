@@ -41,6 +41,7 @@ urlpatterns = [
     path("api/projects/", include("projects.urls")),
     path("api/projects/", include("projectMembers.urls")),
     path("api/projects/", include("tasks.urls")),
+    path("api/tasks/", include("tasks.task_comments_urls")),
     path("api/sysadmin/", include("sysadmin.urls")),
     path("api/chat/", include("chat.urls")),
     # Swagger UI

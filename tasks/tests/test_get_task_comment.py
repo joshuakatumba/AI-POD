@@ -119,13 +119,13 @@ class TaskCommentReadAPITests(APITestCase):
         )
 
         self.list_url = reverse(
-            "tasks:task-comments",
+            "task_comments:task_comments",
             kwargs={
                 "task_id": self.task.id,
             },
         )
         self.detail_url = reverse(
-            "tasks:task-comment-detail",
+            "task_comments:task_comment_detail",
             kwargs={
                 "task_id": self.task.id,
                 "comment_id": self.comment_1.id,
@@ -160,7 +160,7 @@ class TaskCommentReadAPITests(APITestCase):
         self.authenticate(self.member_user)
 
         url = reverse(
-            "tasks:task-comments",
+            "task_comments:task_comments",
             kwargs={
                 "task_id": uuid.uuid4(),
             },
@@ -185,7 +185,7 @@ class TaskCommentReadAPITests(APITestCase):
         self.authenticate(self.member_user)
 
         url = reverse(
-            "tasks:task-comment-detail",
+            "task_comments:task_comment_detail",
             kwargs={
                 "task_id": self.task.id,
                 "comment_id": uuid.uuid4(),

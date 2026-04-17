@@ -122,7 +122,7 @@ class TaskCommentUpdateAPITests(APITestCase):
         )
 
         self.url = reverse(
-            "tasks:task-comment-detail",
+            "task_comments:task_comment_detail",
             kwargs={
                 "task_id": self.task.id,
                 "comment_id": self.comment.id,
@@ -178,7 +178,7 @@ class TaskCommentUpdateAPITests(APITestCase):
         self.authenticate(self.member_user)
 
         url = reverse(
-            "tasks:task-comment-detail",
+            "task_comments:task_comment_detail",
             kwargs={
                 "task_id": self.task.id,
                 "comment_id": uuid.uuid4(),

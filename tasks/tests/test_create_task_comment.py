@@ -93,7 +93,7 @@ class TaskCommentCreateAPITests(APITestCase):
         )
 
         self.url = reverse(
-            "tasks:task-comments",
+            "task_comments:task_comments",
             kwargs={
                 "task_id": self.task.id,
             },
@@ -139,4 +139,3 @@ class TaskCommentCreateAPITests(APITestCase):
         self.assertEqual(comment.membership, self.member)
         self.assertEqual(comment.created_by, self.member_user)
         self.assertTrue(comment.reference.startswith("TCM"))
-
