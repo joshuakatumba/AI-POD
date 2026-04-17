@@ -1,5 +1,6 @@
 from rest_framework.permissions import BasePermission
 from organizations.models import Membership
+from projectMembers.models import ProjectMember
 
 
 class CanCreateProjectMember(BasePermission):
@@ -9,6 +10,7 @@ class CanCreateProjectMember(BasePermission):
         user = request.user
         auth = getattr(request, "auth", {}) or {}
         organisation_id = auth.get("organisation_id")
+        project_id = view.kwargs.get("project_id")
 
         if not user or not user.is_authenticated:
             return False
@@ -16,14 +18,14 @@ class CanCreateProjectMember(BasePermission):
         if user.is_superuser:
             return True
 
-        if not organisation_id:
+        if not organisation_id or not project_id:
             return False
 
-        # Check if user has membership in this org with role='admin'
-        return Membership.objects.filter(
-            organization_id=organisation_id,
-            user=user,
-            role="admin"
+        return ProjectMember.objects.filter(
+            organisation_id=organisation_id,
+            project_id=project_id,
+            membership__user=user,
+            role="admin",
         ).exists()
     
 class CanViewProjectMembers(BasePermission):
@@ -56,6 +58,7 @@ class CanUpdateProjectMember(BasePermission):
         user = request.user
         auth = getattr(request, "auth", {}) or {}
         organisation_id = auth.get("organisation_id")
+        project_id = view.kwargs.get("project_id")
 
         if not user or not user.is_authenticated:
             return False
@@ -63,12 +66,12 @@ class CanUpdateProjectMember(BasePermission):
         if user.is_superuser:  #Superusers can update
             return True
 
-        if not organisation_id:
+        if not organisation_id or not project_id:
             return False
 
-        #Only org admins can update
-        return Membership.objects.filter(
-            organization_id=organisation_id,
-            user=user,
-            role="admin"  
+        return ProjectMember.objects.filter(
+            organisation_id=organisation_id,
+            project_id=project_id,
+            membership__user=user,
+            role="admin",
         ).exists()

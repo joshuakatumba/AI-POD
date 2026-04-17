@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from projectMembers.models import ProjectMember
 from projectMembers.serializers import ProjectMemberCreateSerializer, ProjectMemberReadSerializer, ProjectMemberUpdateSerializer
-from projectMembers.permissions import CanCreateProjectMember, CanViewProjectMembers
+from projectMembers.permissions import CanCreateProjectMember, CanUpdateProjectMember, CanViewProjectMembers
 
 class ProjectMembersApiView(generics.GenericAPIView):
 
@@ -98,7 +98,7 @@ class ProjectMemberDetailApiView(generics.GenericAPIView):
 
     def get_permissions(self):
         if self.request.method in ["PATCH", "DELETE"]:
-            return [IsAuthenticated(), CanCreateProjectMember()]  # Only admins can update
+            return [IsAuthenticated(), CanCreateProjectMember(), CanUpdateProjectMember()]  # Only admins can update
         return [IsAuthenticated()]
 
     def get_queryset(self):
@@ -168,7 +168,7 @@ class ProjectMemberDetailApiView(generics.GenericAPIView):
         project_member = self.get_object()
         
         # Soft delete
-        project_member.status = "Inactive"
+        project_member.status = "inactive"
         project_member.is_active = False
         project_member.is_deleted = True
         project_member.is_deleted_at = timezone.now()
