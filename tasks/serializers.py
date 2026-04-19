@@ -6,6 +6,8 @@ from django.utils import timezone
 
 from core.models.constants import TASK_STATUS_CHOICES
 from projectMembers.models import ProjectMember
+from translation.models import Translation
+from translation.serializers import TranslationReadSerializer
 from .models import Task, TaskComment
 
 
@@ -13,6 +15,7 @@ class TaskReadSerializer(serializers.ModelSerializer):
     project = serializers.SerializerMethodField()
     assigned_to = serializers.SerializerMethodField()
     reported_by = serializers.SerializerMethodField()
+    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
 
     class Meta:
         model = Task
@@ -26,6 +29,7 @@ class TaskReadSerializer(serializers.ModelSerializer):
             "status",
             "organisation",
             "project",
+            "translations",
             "assigned_to",
             "reported_by",
             "created_by",

@@ -30,24 +30,25 @@ def build_translation_objects(entity, translations: list, created_by=None) -> li
     """
     Convert agent output into Translation model instances.
     """
+    entity_field = entity._meta.model_name
     return [
-        Translation(
-            task=entity,
-            field_name=item.field_name,
-            target_language=item.target_language,
-            source_language=item.source_language,
-            original_text=getattr(entity, item.field_name, None),
-            translated_text=item.translated_text,
-            intended_text=item.intended_text,
-            created_by=created_by,
-            reference=generate_reference(
+        Translation(**{
+            entity_field: entity,
+            "field_name": item.field_name,
+            "target_language": item.target_language,
+            "source_language": item.source_language,
+            "original_text": getattr(entity, item.field_name, None),
+            "translated_text": item.translated_text,
+            "intended_text": item.intended_text,
+            "created_by": created_by,
+            "reference": generate_reference(
                 prefix="TRN",
                 entity_uuid=uuid.uuid5(
                     uuid.NAMESPACE_DNS,
                     f"{entity.pk}:{item.field_name}:{item.target_language}",
                 ),
             ),
-        )
+        })
         for item in translations
     ]
 

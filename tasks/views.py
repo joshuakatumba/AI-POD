@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from tasks.helpers import queue_task_translation
 from tasks.models import Task, TaskComment
 from projects.models import Project
 from tasks.permissions import IsProjectMemberForTaskScope
@@ -92,6 +93,9 @@ class TasksView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         task = serializer.save()
 
+        # queue trigger translation
+        queue_task_translation(task)
+
         return Response(
             TaskReadSerializer(task).data,
             status=status.HTTP_201_CREATED,
@@ -124,7 +128,10 @@ class TaskDetailView(generics.GenericAPIView):
             context={"request": request, "project": task.project},
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        task = serializer.save()
+
+        # queue trigger translation
+        queue_task_translation(task)
 
         return Response(
             TaskReadSerializer(serializer.save()).data,

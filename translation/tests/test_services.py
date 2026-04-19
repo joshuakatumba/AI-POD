@@ -153,8 +153,9 @@ def test_trigger_translation_service_layer(
 # -----------------------
 # Celery task test (FIXED ENTITY_MODEL_MAP PATCH)
 # -----------------------
-@patch("translation.services.persist_translations")
-@patch("translation.services.trigger_translation")
+
+@patch("translation.tasks.persist_translations")
+@patch("translation.tasks.trigger_translation")
 @patch("django.apps.apps.get_model")
 def test_trigger_translation_task_success(
     mock_get_model,
