@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from projects.helpers import queue_project_translation
 from projects.models import Project,  Report
 from projects.pagination import ProjectPagination
 from rest_framework.permissions import IsAuthenticated
@@ -67,7 +68,10 @@ class ProjectsApiView(generics.GenericAPIView):
             context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        project = serializer.save()
+
+        # queue trigger translation
+        queue_project_translation(project)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
@@ -136,7 +140,11 @@ class ProjectDetailApiView(generics.GenericAPIView):
         project = get_object_or_404(self.get_queryset(), id=project_id)
         serializer = ProjectUpdateSerializer(project, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        project = serializer.save()
+
+        # queue trigger translation
+        queue_project_translation(project)
+
         return Response(ProjectReadSerializer(project).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(

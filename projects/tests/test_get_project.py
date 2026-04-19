@@ -37,6 +37,19 @@ class TestRetrieveProject(ProjectBaseTestCase):
             response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_response_contains_expected_fields(self):
+        self.client.force_authenticate(self.admin_user)
+        with self.mock_auth(self.admin_payload):
+            response = self.client.get(self.url)
+        
+        project_data = response.data
+        expected_fields = {
+            "id", "reference", "name", "description", "members", "status",
+            "translations", "start_date", "end_date", "is_active", "is_deleted", 
+            "visibility", "owner_id", "owner_name", "owner_email", "progress_data",
+        }
+        self.assertEqual(set(project_data.keys()), expected_fields)
+
     def test_get_project_isolation_failure(self):
         """Should 404 if user is in Org B trying to access Org A's project."""
         self.client.force_authenticate(self.admin_user)

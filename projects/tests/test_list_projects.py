@@ -94,6 +94,21 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         self.assertEqual(response.data['results'][0]["name"], "Project B")  # latest first
         self.assertEqual(response.data['results'][1]["name"], "Project A")
 
+    
+    def test_response_contains_expected_fields(self):
+        self.create_project(name="Project A")
+        self.create_project(name="Project B")
+        
+        response = self.get_projects(auth=self.admin_auth)
+        
+        project_data = response.data['results'][0]
+        expected_fields = {
+            "id", "reference", "name", "description", "members", "status",
+            "translations", "start_date", "end_date", "is_active", "is_deleted", 
+            "visibility", "owner_id", "owner_name", "owner_email",
+        }
+        self.assertEqual(set(project_data.keys()), expected_fields)
+
     def test_list_projects_empty(self):
         """GET returns empty list if no projects exist."""
         response = self.get_projects(auth=self.admin_auth)

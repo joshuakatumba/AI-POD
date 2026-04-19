@@ -9,6 +9,7 @@ from projectMembers.models import ProjectMember
 from projects.models import Project, Report, ReportTask
 from projectMembers.serializers import ProjectMemberReadSerializer
 from tasks.models import Task
+from translation.serializers import TranslationReadSerializer
 
 User = get_user_model()
 
@@ -16,6 +17,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.SerializerMethodField()
     owner_email = serializers.SerializerMethodField()
+    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
 
     class Meta:
         model = Project
@@ -25,6 +27,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "status",
+            "translations",
             "start_date",
             "end_date",
             "is_active",
@@ -37,6 +40,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "reference",
+            "translations",
             "status",
             "is_active",
             "is_deleted",
@@ -111,6 +115,7 @@ class ProjectReadSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.CharField(source="owner.display_name", read_only=True)
     owner_email = serializers.EmailField(source="owner.user.email", read_only=True)
+    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
 
     members = ProjectMemberReadSerializer(
         many=True,
@@ -125,6 +130,7 @@ class ProjectReadSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "members",
+            "translations",
             "status",
             "start_date",
             "end_date",
