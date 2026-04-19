@@ -14,4 +14,6 @@ DATABASES = {
     }
 }
 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 CSRF_TRUSTED_ORIGINS = ["https://mydomain.com"] # TODO: Fix this for production

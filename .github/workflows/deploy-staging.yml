@@ -58,6 +58,13 @@ jobs:
             DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_HOST }}:5432/${{ secrets.POSTGRES_DB }}
             FIELD_ENCRYPTION_KEY=${{ secrets.FIELD_ENCRYPTION_KEY }}
             REDIS_URL=${{ secrets.REDIS_URL }}
+            CELERY_BROKER_URL=${{ secrets.REDIS_URL }}
+            CELERY_RESULT_BACKEND=${{ secrets.REDIS_URL }}
+            CELERY_ACCEPT_CONTENT=${{ secrets.CELERY_ACCEPT_CONTENT }}
+            CELERY_TASK_SERIALIZER=${{ secrets.CELERY_TASK_SERIALIZER }}
+            CELERY_RESULT_SERIALIZER=${{ secrets.CELERY_RESULT_SERIALIZER }}
+            CELERY_TIMEZONE=${{ secrets.CELERY_TIMEZONE }}
+            CELERY_ENABLE_UTC=${{ secrets.CELERY_ENABLE_UTC }}
             EOF
 
             # Determine active container from nginx
@@ -84,6 +91,10 @@ jobs:
             # Build & start new container
             docker compose -f docker-compose.yml -f docker-compose.staging.yml build app_$NEW_COLOR
             docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d app_$NEW_COLOR
+
+            # Restart Celery worker (always sync with latest code)
+            echo "🔄 Restarting Celery worker..."
+            docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d celery_worker
 
             # Wait for health check with timeout
             echo "⏱ Waiting for health..."

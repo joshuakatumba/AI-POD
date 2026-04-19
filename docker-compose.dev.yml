@@ -14,5 +14,23 @@ services:
       - DJANGO_SETTINGS_MODULE=core.settings.development
       - REDIS_URL=redis://redis:6379/0
 
+  celery_worker:
+    command: celery -A core worker -l info
+    volumes:
+      - ./:/usr/src/app
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=core.settings.development
+      - REDIS_URL=redis://redis:6379/0
+
+  flower:
+    command: celery -A core flower --port=5555
+    volumes:
+      - ./:/usr/src/app
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=core.settings.development
+      - REDIS_URL=redis://redis:6379/0
+
 volumes:
   static_volume:

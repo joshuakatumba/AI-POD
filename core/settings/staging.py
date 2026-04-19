@@ -15,4 +15,6 @@ DATABASES = {
     }
 }
 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 CSRF_TRUSTED_ORIGINS = ["https://ai-daily-report.akademia.co.jp"]

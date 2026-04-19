@@ -63,5 +63,38 @@ services:
       timeout: 5s
       retries: 5
 
+  celery_worker:
+    build: .
+    container_name: celery_worker_staging
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DEBUG=0
+      - PYTHONPATH=/usr/src/app
+      - REDIS_URL=redis://redis:6379/0
+    command: celery -A core worker -l info
+    restart: always
+
+  flower:
+    build: .
+    container_name: flower_staging
+    depends_on:
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    ports: []
+    command: celery -A core flower --port=5555 --address=127.0.0.1
+    restart: always
+
 volumes:
   static_volume:
