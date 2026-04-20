@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from rest_framework import request, serializers
 from rest_framework.exceptions import ValidationError
 
 from organizations.models import Organization, Membership
@@ -89,9 +89,10 @@ class ProjectMemberCreateSerializer(serializers.ModelSerializer):
             raise ValidationError( "Project does not exist.")
 
         # Check duplicate project member
-        if ProjectMember.objects.filter(project=project, membership=membership).exists():
+        existing_member = ProjectMember.objects.filter(project=project, membership=membership).first()
+        if existing_member and not existing_member.is_deleted:
             raise ValidationError("Member already exists in this project.")
-
+        attrs ["existing_member"] = existing_member
         attrs["project"] = project
         attrs["organisation"] = project.organization
         attrs["membership"] = membership
@@ -101,6 +102,18 @@ class ProjectMemberCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("email", None)
+        existing_member = validated_data.pop("existing_member", None)
+        if existing_member:
+            existing_member.is_deleted = False
+            existing_member.is_active = True
+            existing_member.status = "active"
+            existing_member.is_deleted_at = None
+            existing_member.is_deleted_by_email = ""
+            existing_member.is_deleted_reason = ""
+            existing_member.role = validated_data.get("role", existing_member.role)
+            existing_member.created_by = validated_data.get("created_by")
+            existing_member.save()
+            return existing_member
         return super().create(validated_data)
     
 class ProjectMemberReadSerializer(serializers.ModelSerializer):
