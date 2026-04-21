@@ -65,7 +65,7 @@ services:
 
   celery_worker:
     build: .
-    container_name: celery_worker_staging
+    container_name: celery_worker
     depends_on:
       db:
         condition: service_healthy
@@ -82,7 +82,7 @@ services:
 
   flower:
     build: .
-    container_name: flower_staging
+    container_name: flower
     depends_on:
       redis:
         condition: service_healthy
