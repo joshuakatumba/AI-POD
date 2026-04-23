@@ -407,7 +407,7 @@ class AIWorkflowsApiView(generics.GenericAPIView):
         return AIWorkflowDetailSerializer
 
     def get_queryset(self):
-        return AIWorkflow.objects.select_related("ai_model").order_by("-created_at")
+        return AIWorkflow.objects.select_related("ai_model").filter(is_deleted=False).order_by("-created_at")
 
     @swagger_auto_schema(
         operation_description="Create a new AI workflow.",
@@ -452,7 +452,7 @@ class AIWorkflowApiView(generics.GenericAPIView):
         return AIWorkflowDetailSerializer
 
     def get_object(self, workflow_id):
-        return get_object_or_404(AIWorkflow, id=workflow_id)
+        return get_object_or_404(AIWorkflow, id=workflow_id, is_deleted=False)
 
     @swagger_auto_schema(
         operation_description="Retrieve an AI workflow.",
@@ -493,3 +493,31 @@ class AIWorkflowApiView(generics.GenericAPIView):
 
         response_serializer = AIWorkflowDetailSerializer(instance)
         return Response(response_serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Delete an AI Workflow (soft delete).",
+        responses={
+            200: openapi.Response(description="AI Workflow successfully deleted"),
+            404: openapi.Response(description="Workflow not found"),
+            },
+            tags=["Admin - AI Workflows"],
+        )
+    def delete(self, request, workflow_id):
+        workflow = self.get_object(workflow_id)
+        
+        # Soft delete
+        workflow.is_active = False
+        workflow.is_deleted = True
+        workflow.is_deleted_at = timezone.now()
+        workflow.is_deleted_by_email = request.user.email
+        workflow.is_deleted_reason = "Removed by admin"
+        workflow.save()
+        
+        return Response(
+            {
+                "detail": "AI Workflow successfully deleted.",
+                "workflow_id": str(workflow.id),
+                "deleted_by": request.user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
