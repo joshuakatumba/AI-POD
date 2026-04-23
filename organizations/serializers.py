@@ -47,6 +47,8 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
             user=user,
             organization=organization,
             role="admin",
+            display_name=user.full_name,
+            preferred_language=user.preferred_language,
             created_by=user,
         )
 
@@ -96,6 +98,8 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
                 user=invited_user,
                 organization=organization,
                 role="member",
+                display_name=invited_user.full_name,
+                preferred_language=invited_user.preferred_language,
                 created_by=user,
             )
 
@@ -193,6 +197,8 @@ class AddUserToOrganizationSerializer(serializers.Serializer):
             user=validated_data["user"],
             organization=organization,
             role=validated_data["role"],
+            display_name=validated_data["user"].full_name,
+            preferred_language=validated_data["user"].preferred_language,
             created_by=request.user,
         )
 

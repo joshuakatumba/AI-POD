@@ -89,7 +89,6 @@ class LoginView(APIView):
 
         # First one = most recent → current organisation
         current_membership = memberships_qs.first()
-
         memberships_data = []
         for m in memberships_qs:
             memberships_data.append({
@@ -116,6 +115,8 @@ class LoginView(APIView):
         return Response({
             "user_id": str(user.id),
             "email": user.email,
+            "full_name": user.full_name,
+            "preferred_language": user.preferred_language,
             "organisation": str(current_membership.organization_id),
             "membership": str(current_membership.id),
             "role": current_membership.role,
@@ -205,6 +206,8 @@ class CurrentUserView(APIView):
         return Response({
             "user_id": str(user.id),
             "email": user.email,
+            "full_name": user.full_name,
+            "preferred_language": user.preferred_language,
             "super_user": user.is_superuser,
             "memberships": memberships_data,
         })
@@ -265,6 +268,8 @@ class SwitchOrganizationView(APIView):
         return Response({
             "user_id": str(request.user.id),
             "email": request.user.email,
+            "full_name": request.user.full_name,
+            "preferred_language": request.user.preferred_language,
             "organisation": str(current_membership.organization_id),
             "membership": str(current_membership.id),
             "role": current_membership.role,
