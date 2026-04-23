@@ -94,3 +94,7 @@ class MeResponseSerializer(serializers.Serializer):
     memberships = MembershipInfoSerializer(many=True)
     full_name = serializers.CharField()
     preferred_language = serializers.CharField()
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()

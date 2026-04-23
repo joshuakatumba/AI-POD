@@ -82,3 +82,25 @@ SESSION_MESSAGE_ROLE_CHOICES = [
     ("system", _("System")),   
     ("tool", _("Tool Call/Result")),   
 ]
+
+NOTIFICATION_TYPE_CHOICES = [
+    ("password_reset", _("Password Reset")),
+]
+
+NOTIFICATION_CATEGORY_CHOICES = [
+    ("email", _("Email")),
+    ("push", _("Push")),
+    ("in_app", _("In App")),
+]
+
+NOTIFICATION_STATUS_CHOICES = [
+    ("pending", _("Pending")),
+    ("sent", _("Sent")),
+    ("failed", _("Failed")),
+]
+
+NOTIFICATION_SCOPE_CHOICES = [
+    ("user", _("User")),
+    ("organization", _("Organization")),
+    ("all_users", _("All Users")),
+]

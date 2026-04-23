@@ -1,16 +1,21 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.contrib.auth.tokens import default_token_generator
 from django.db.models import F
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import ValidationError
-from django.contrib.auth import authenticate
-from .serializers import LoginResponseSerializer, LogoutSerializer, OrganisationSelectResponseSerializer, UserInfoSerializer, UserSignUpSerializer, OrganisationSelectSerializer, LoginSerializer
+from django.contrib.auth import authenticate, get_user_model
+from .serializers import LoginResponseSerializer, LogoutSerializer, OrganisationSelectResponseSerializer, UserInfoSerializer, UserSignUpSerializer, OrganisationSelectSerializer, LoginSerializer, PasswordResetRequestSerializer
 from organizations.models import Membership
 from .utils import get_jwt_for_membership
+from .helpers import send_password_reset_email
 from django.utils.timezone import now
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+
+User = get_user_model()
 
 class SignUpView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -42,6 +47,44 @@ class SignUpView(APIView):
                 {"error": "Something went wrong. Please try again.", "details": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Request a password reset.",
+        request_body=PasswordResetRequestSerializer,
+        responses={
+            200: openapi.Response("Password reset request accepted."),
+            404: openapi.Response("No account found for this email."),
+        },
+        tags=["Auth"],
+    )
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = get_object_or_404(
+            User,
+            email__iexact=serializer.validated_data["email"],
+            is_active=True,
+        )
+
+        reset_token = default_token_generator.make_token(user)
+
+        try:
+            send_password_reset_email(user, reset_token)
+        except Exception as e:
+            return Response(
+                {"detail": f"An error occurred while sending the email. {e}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {"detail": "Password reset request accepted."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class LoginView(APIView):
