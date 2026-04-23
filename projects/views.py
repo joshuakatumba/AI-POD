@@ -215,6 +215,14 @@ class ReportsApiView(generics.GenericAPIView):
         if membership:
             queryset = queryset.filter(membership_id=membership)
         
+        # Filter by membership if provided
+        membership_user_id = self.request.query_params.get("membership_user_id")
+        if membership_user_id:
+            queryset = queryset.filter(
+                membership__user__id=membership_user_id,
+                organisation_id=organisation_id,
+            ).distinct()
+        
         # Filter by project if provided
         project = self.request.query_params.get("project")
         if project:
@@ -239,6 +247,7 @@ class ReportsApiView(generics.GenericAPIView):
         operation_description="List all reports for the organization.",
         manual_parameters=[
             openapi.Parameter("membership", openapi.IN_QUERY, "Filter by membership UUID", type=openapi.TYPE_STRING),
+            openapi.Parameter("membership_user_id", openapi.IN_QUERY, "Filter reports where the user has organisation membership", type=openapi.TYPE_STRING),
             openapi.Parameter("project", openapi.IN_QUERY, "Filter by project UUID", type=openapi.TYPE_STRING),
             openapi.Parameter("month", openapi.IN_QUERY, "Filter by month (format: YYYY-MM)", type=openapi.TYPE_STRING),
             openapi.Parameter("page", openapi.IN_QUERY, "Page number", type=openapi.TYPE_INTEGER),

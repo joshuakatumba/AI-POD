@@ -58,6 +58,12 @@ class TestListReports(MockAuthMixin, APITestCase):
             owner=self.admin_membership,
             created_by=self.admin_user,
         )
+        self.other_org_project = Project.objects.create(
+            name="Other Project",
+            organization=self.other_org,
+            owner=self.other_membership,
+            created_by=self.admin_user,
+        )
 
         self.url = reverse("projects:reports")
 
@@ -290,6 +296,84 @@ class TestListReports(MockAuthMixin, APITestCase):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(
             response.data["results"][0]["membership"]["id"],
+            str(self.admin_membership.id),
+        )
+
+
+    def test_filter_reports_by_membership_user_id(self):
+        """GET ?membership=<uuid> returns only reports for that member."""
+        self.create_report(membership=self.admin_membership)
+        self.create_report(membership=self.member_membership)
+
+        response = self.get_reports(
+            auth=self.admin_auth,
+            params={"membership_user_id": str(self.admin_user.id)},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(
+            response.data["results"][0]["membership"]["id"],
+            str(self.admin_membership.id),
+        )
+
+    def test_filter_reports_by_membership_user_id_returns_empty(self):
+        """
+        GET ?membership_user_id=<uuid> returns empty when user has no reports.
+        """
+        self.create_report(membership=self.admin_membership)
+        self.create_report(membership=self.member_membership)
+
+        random_user = User.objects.create_user(
+            email="no-reports@example.com",
+            password="pass",
+        )
+
+        response = self.get_reports(
+            auth=self.admin_auth,
+            params={"membership_user_id": str(random_user.id)},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["results"], [])
+
+
+    def test_filter_reports_by_membership_user_id_respects_organisation(self):
+        """
+        GET ?membership_user_id=<uuid> should not return reports
+        from memberships belonging to another organisation.
+        """
+        other_org = Organization.objects.create(
+            name="Other Org",
+            created_by=self.admin_user,
+        )
+
+        other_membership = Membership.objects.create(
+            user=self.admin_user,
+            organization=other_org,
+            role="member",
+            created_by=self.admin_user,
+        )
+
+        session = self.create_session(
+            membership=self.other_membership,
+            organisation=self.other_org,
+            project=self.other_org_project
+        )
+
+        self.create_report(membership=self.admin_membership)
+        self.create_report(membership=self.other_membership, session=session, project=self.other_org_project)
+
+        response = self.get_reports(
+            auth=self.admin_auth,
+            params={"membership_user_id": str(self.admin_user.id)},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.data["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(
+            results[0]["membership"]["id"],
             str(self.admin_membership.id),
         )
 
