@@ -168,6 +168,27 @@ class AddUserToOrganizationSerializer(serializers.Serializer):
         organization = self.context["organization"]
         request = self.context["request"]
 
+        existing_membership = Membership.objects.filter(
+            user=validated_data["user"],
+            organization=organization,
+        ).first()
+        if existing_membership:
+            existing_membership.is_active = True
+            existing_membership.is_deleted = False
+            existing_membership.is_deleted_at = None
+            existing_membership.is_deleted_by_email = ""
+            existing_membership.is_deleted_reason = ""
+            existing_membership.role = validated_data["role"]
+            existing_membership.save(update_fields=[
+                "is_active",
+                "is_deleted",
+                "is_deleted_at",
+                "is_deleted_by_email",
+                "is_deleted_reason",
+                "role",
+            ])
+            return existing_membership
+
         return Membership.objects.create(
             user=validated_data["user"],
             organization=organization,
