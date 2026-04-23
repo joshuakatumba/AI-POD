@@ -52,7 +52,7 @@ class TasksView(generics.GenericAPIView):
     def get(self, request, project_id, *args, **kwargs):
         project = get_object_or_404(Project, id=project_id)
 
-        tasks = Task.objects.filter(project=project).select_related(
+        tasks = Task.objects.filter(project=project, is_deleted=False).select_related(
             "organisation",
             "project",
             "reported_by",
@@ -136,7 +136,47 @@ class TaskDetailView(generics.GenericAPIView):
         return Response(
             TaskReadSerializer(serializer.save()).data,
             status=status.HTTP_200_OK,
-        )
+    )
+    @swagger_auto_schema(
+    operation_description="Delete a task (soft delete)",
+    responses={
+        200: openapi.Response(
+            description="Task deleted",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "detail": openapi.Schema(type=openapi.TYPE_STRING),
+                    "task_id": openapi.Schema(type=openapi.TYPE_STRING),
+                    "deleted_by": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+        ),
+        401: openapi.Response(description="Authentication required"),
+        403: openapi.Response(description="Not a project member"),
+        404: openapi.Response(description="Project or Task not found"),
+    },
+    tags=["Tasks"],
+    )
+    def delete(self, request, project_id, task_id, *args, **kwargs):
+        project = get_object_or_404(Project, id=project_id)
+        task = get_object_or_404(Task, id=task_id, project=project, is_deleted=False)
+
+        # Soft delete
+        task.status = "cancelled"
+        task.is_active = False
+        task.is_deleted = True
+        task.is_deleted_at = timezone.now()
+        task.is_deleted_by_email = request.user.email
+        task.is_deleted_reason = "Removed by admin"
+        task.save()
+        return Response(
+            {
+                "detail": "Task successfully deleted.",
+                "task_id": str(task.id),
+                "deleted_by": request.user.email,
+            },
+        status=status.HTTP_200_OK,
+    )
 
 
 class TaskCommentsView(generics.GenericAPIView):
