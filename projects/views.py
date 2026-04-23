@@ -138,6 +138,7 @@ class ProjectDetailApiView(generics.GenericAPIView):
     )
     def patch(self, request, project_id):
         project = get_object_or_404(self.get_queryset(), id=project_id)
+        self.check_object_permissions(request, project)
         serializer = ProjectUpdateSerializer(project, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         project = serializer.save()

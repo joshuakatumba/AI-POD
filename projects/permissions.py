@@ -42,12 +42,30 @@ class CanUpdateProject(BasePermission):
 
         if not organisation_id:
             return False
+        return True
 
-        # Check if user is an admin of this organization
-        return user.organisation_memberships.filter(
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        auth = getattr(request, "auth", {}) or {}
+        organisation_id = auth.get("organisation_id")
+        membership_id = auth.get("membership_id")
+
+        if user.is_superuser:
+            return True
+        
+        is_org_admin = user.organisation_memberships.filter(
             organization_id=organisation_id,
             role="admin"
         ).exists()
+
+        if is_org_admin:
+            return True
+        
+        is_project_admin = obj.members.filter(
+            membership_id=membership_id,
+            role="admin"
+        ).exists()
+        return is_project_admin
 
 
 class CanDeleteProject(BasePermission):
