@@ -48,6 +48,15 @@ class ProjectsApiView(generics.GenericAPIView):
             queryset = queryset.filter(
                 Q(name__icontains=search) | Q(description__icontains=search)
             )
+
+        # --- Filter by member_user_id (project member) ---
+        member_user_id = self.request.query_params.get("member_user_id")
+        if member_user_id:
+            queryset = queryset.filter(
+                members__membership__user__id=member_user_id,
+                members__organisation_id=organisation_id,
+            ).distinct()
+
         return queryset
 
     @swagger_auto_schema(
@@ -79,6 +88,7 @@ class ProjectsApiView(generics.GenericAPIView):
         operation_description="List projects under an organization.",
         manual_parameters=[
             openapi.Parameter("search", openapi.IN_QUERY, "Search by name or description", type=openapi.TYPE_STRING),
+            openapi.Parameter("member_user_id", openapi.IN_QUERY, "Filter projects where the user is a project member", type=openapi.TYPE_STRING),
             openapi.Parameter("page", openapi.IN_QUERY, "Page number", type=openapi.TYPE_INTEGER),
             openapi.Parameter("page_size", openapi.IN_QUERY, "Items per page", type=openapi.TYPE_INTEGER),
         ],

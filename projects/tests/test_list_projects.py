@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from core.tests.utils import MockAuthMixin
 from organizations.models import Organization, Membership
+from projectMembers.models import ProjectMember
 from projects.models import Project
 
 User = get_user_model()
@@ -43,14 +44,25 @@ class TestReadProjects(MockAuthMixin, APITestCase):
             "membership_id": str(self.normal_membership.id)
         }
 
+        # --- Additional users for project membership filtering ---
+        self.user_a = User.objects.create_user(email="a@example.com", password="pass")
+        self.user_b = User.objects.create_user(email="b@example.com", password="pass")
+
+        self.membership_a = Membership.objects.create(
+            user=self.user_a,
+            organization=self.org,
+            role="member",
+            created_by=self.admin_user,
+        )
+
+        self.membership_b = Membership.objects.create(
+            user=self.user_b,
+            organization=self.org,
+            role="member",
+            created_by=self.admin_user,
+        )
+
     # --- Helpers ---
-    # def get_projects(self, auth=None):
-    #     """Perform GET request with optional auth."""
-    #     if auth:
-    #         self.client.force_authenticate(auth.get("user", self.admin_user))
-    #         with self.mock_auth(auth):
-    #             return self.client.get(self.url)
-    #     return self.client.get(self.url)
     def get_projects(self, auth=None, params=None):
         """
         Perform GET request with optional auth and query parameters.
@@ -212,3 +224,98 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["name"], "Project A")
+
+    def test_list_projects_filter_by_user_id(self):
+        """Should return only projects where user is a project member via membership."""
+        # # Projects for membership filtering
+        project_a = self.create_project(name="Project A", owner=self.membership_a, deleted=False)
+        project_b = self.create_project(name="Project B", owner=self.membership_b, deleted=False)
+
+        # Link memberships → projects
+        ProjectMember.objects.create(
+            project=project_a,
+            organisation=self.org,
+            membership=self.membership_a,
+            created_by=self.user_a,
+        )
+
+        ProjectMember.objects.create(
+            project=project_b,
+            organisation=self.org,
+            membership=self.membership_b,
+            created_by=self.user_b,
+        )
+
+        # Get project response 
+        response = self.get_projects(
+            auth=self.admin_auth,
+            params={"member_user_id": str(self.user_a.id)},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.data["results"]
+        names = [p["name"] for p in results]
+
+        self.assertIn("Project A", names)
+        self.assertNotIn("Project B", names)
+        self.assertNotIn("Project C", names)
+
+    def test_list_projects_filter_by_user_id_returns_empty(self):
+        """User not linked to any project should return empty list."""
+        # # Projects for membership filtering
+        project_a = self.create_project(name="Project A", owner=self.membership_a, deleted=False)
+        project_b = self.create_project(name="Project B", owner=self.membership_b, deleted=False)
+
+        # Link memberships → projects
+        ProjectMember.objects.create(
+            project=project_a,
+            organisation=self.org,
+            membership=self.membership_a,
+            created_by=self.user_a,
+        )
+
+        ProjectMember.objects.create(
+            project=project_b,
+            organisation=self.org,
+            membership=self.membership_b,
+            created_by=self.user_b,
+        )
+
+        # Get project response
+        response = self.get_projects(
+            auth=self.admin_auth,
+            params={"member_user_id": str(self.random_user.id)},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["results"], [])
+
+    def test_list_projects_user_filter_respects_organisation(self):
+        """member_user_id filter must NOT return projects from other orgs."""
+        other_project = self.create_project(name="Other Org Project")
+
+        other_membership = Membership.objects.create(
+            user=self.user_a,
+            organization=self.other_org,
+            role="member",
+            created_by=self.admin_user,
+        )
+
+        ProjectMember.objects.create(
+            project=other_project,
+            organisation=self.other_org,
+            membership=other_membership,
+            created_by=self.admin_user,
+        )
+
+        response = self.get_projects(
+            auth=self.admin_auth,
+            params={"member_user_id": str(self.user_a.id)},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # must NOT include cross-org project
+        names = [p["name"] for p in response.data["results"]]
+        self.assertNotIn("Other Org Project", names)
