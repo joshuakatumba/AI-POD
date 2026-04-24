@@ -316,7 +316,7 @@ class AIWorkflowUpdateSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     category = serializers.CharField(required=False)
     system_prompt = serializers.CharField(required=False)
-    ai_model = serializers.UUIDField(required=False)
+    ai_model = serializers.PrimaryKeyRelatedField(queryset=AIModel.objects.filter(is_deleted=False), required=False)
     is_active = serializers.BooleanField(required=False)
 
     class Meta:
