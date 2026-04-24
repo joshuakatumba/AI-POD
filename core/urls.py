@@ -21,6 +21,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from core.views import healthz
+from sysadmin.views import AIWorkflowApiView, AIWorkflowsApiView
 
 # Swagger Schema View Configuration
 schema_view = get_schema_view(
@@ -42,6 +43,8 @@ urlpatterns = [
     path("api/projects/", include("projectMembers.urls")),
     path("api/projects/", include("tasks.urls")),
     path("api/tasks/", include("tasks.task_comments_urls")),
+    path("api/workflows/", AIWorkflowsApiView.as_view(), name="public-workflows"),
+    path("api/workflows/<uuid:workflow_id>/", AIWorkflowApiView.as_view(), name="public-workflow"),
     path("api/sysadmin/", include("sysadmin.urls")),
     path("api/chat/", include("chat.urls")),
     # Swagger UI

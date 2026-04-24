@@ -401,6 +401,11 @@ class AIModelApiView(generics.GenericAPIView):
 class AIWorkflowsApiView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsSystemAdmin]
 
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), IsSystemAdmin()]
+
     def get_serializer_class(self):
         if self.request.method == "POST":
             return AIWorkflowCreateSerializer
@@ -445,6 +450,11 @@ class AIWorkflowsApiView(generics.GenericAPIView):
 # ---------- Admin AI Workflows View  ----------
 class AIWorkflowApiView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsSystemAdmin]
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), IsSystemAdmin()]
 
     def get_serializer_class(self):
         if self.request.method == "PATCH":
