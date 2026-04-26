@@ -6,9 +6,12 @@ from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from tasks.filters import TaskFilterSet
 from tasks.helpers import queue_task_translation
 from tasks.models import Task, TaskComment
 from projects.models import Project
+from tasks.pagination import TaskPagination
 from tasks.permissions import IsProjectMemberForTaskScope
 from tasks.serializers import (
     TaskCreateSerializer,
@@ -18,6 +21,65 @@ from tasks.serializers import (
     TaskCommentReadSerializer,
     TaskCommentUpdateSerializer,
 )
+
+
+class AllTasksView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TaskReadSerializer
+    pagination_class = TaskPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TaskFilterSet
+
+    def get_queryset(self):
+        auth = self.request.auth or {}
+        organisation_id = auth.get("organisation_id")
+
+        return (
+            Task.objects.filter(
+                organisation_id=organisation_id,
+                is_deleted=False,
+            )
+            .select_related(
+                "organisation",
+                "project",
+                "reported_by",
+                "assigned_to",
+                "created_by",
+            )
+            .order_by("-created_at")
+        )
+    
+    @swagger_auto_schema(
+        operation_description="Get all tasks for the authenticated user's organisation.",
+        manual_parameters=[
+            openapi.Parameter("status", openapi.IN_QUERY, description="Filter by task status", type=openapi.TYPE_STRING, required=False,),
+            openapi.Parameter("assigned_to", openapi.IN_QUERY, description="Filter by assigned ProjectMember ID (UUID)", type=openapi.TYPE_STRING, required=False,),openapi.Parameter("project",
+            openapi.IN_QUERY, description="Filter by Project ID (UUID)", type=openapi.TYPE_STRING, required=False,),openapi.Parameter("high_priority", openapi.IN_QUERY, description="Filter high priority tasks (true/false)", type=openapi.TYPE_BOOLEAN, required=False,),
+            openapi.Parameter("limit", openapi.IN_QUERY, description="Page size for pagination", type=openapi.TYPE_INTEGER, required=False,),
+        ],
+        responses={
+            200: TaskReadSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+        },
+        tags=["Tasks"],
+    )
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # apply django-filter manually (since GenericAPIView doesn't auto-run it)
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(request, queryset, self)
+
+        # pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # fallback (no pagination)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 class TasksView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
@@ -100,6 +162,7 @@ class TasksView(generics.GenericAPIView):
             TaskReadSerializer(task).data,
             status=status.HTTP_201_CREATED,
         )
+
 
 class TaskDetailView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
