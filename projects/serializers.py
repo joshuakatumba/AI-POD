@@ -9,6 +9,7 @@ from projectMembers.models import ProjectMember
 from projects.models import Project, Report, ReportTask
 from projectMembers.serializers import ProjectMemberReadSerializer
 from tasks.models import Task
+from tasks.serializers import TaskReadSerializer
 from translation.serializers import TranslationReadSerializer
 
 User = get_user_model()
@@ -213,7 +214,7 @@ class TaskMinimalSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "status", "assignee"]
 
 class ReportTaskSerializer(serializers.ModelSerializer):
-    task = TaskMinimalSerializer(read_only=True)
+    task = TaskReadSerializer(read_only=True)
     session_id = serializers.UUIDField(source="session.id", read_only=True)
     report_id = serializers.UUIDField(source="report.id", read_only=True)
     organisation_id = serializers.UUIDField(source="organisation.id", read_only=True)
