@@ -54,4 +54,4 @@ class TestAdminRetrieveAIWorkflow(APITestCase):
         self.client.force_authenticate(self.normal_user)
         response = self.client.get(self.url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

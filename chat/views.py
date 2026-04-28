@@ -14,6 +14,8 @@ from chat.models import Session, SessionMessage
 from chat.serializers import CreateSessionSerializer, SessionDetailSerializer, SessionMessageCreateSerializer, SessionResponseSerializer
 from orchestrator.core import ReportAgentRunner, EngineeringDeps
 from orchestrator.utils import seed_session_ai
+from sysadmin.models import AIWorkflow
+from sysadmin.serializers import AIWorkflowDetailSerializer
 
 
 class SessionsApiView(generics.GenericAPIView):
@@ -222,3 +224,48 @@ class StreamApiView(generics.GenericAPIView):
             event_generator(), 
             content_type='text/plain' # Change to 'text/event-stream' if using SSE headers
         )
+   
+        
+class ChatAIWorkflowsApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return AIWorkflow.objects.select_related("ai_model").filter(is_deleted=False).order_by("-created_at")
+
+    @swagger_auto_schema(
+        operation_description="List all available AI workflows for chat sessions.",
+        responses={
+            200: AIWorkflowDetailSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+        },
+        tags=["Chat - AI Workflows"],
+    )
+    def get(self, request):
+        serializer = AIWorkflowDetailSerializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
+
+
+class ChatAIWorkflowApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a single AI workflow by ID.",
+        manual_parameters=[
+            openapi.Parameter(
+                "workflow_id",
+                openapi.IN_PATH,
+                description="AI workflow ID",
+                type=openapi.TYPE_STRING,
+            )
+        ],
+        responses={
+            200: AIWorkflowDetailSerializer(),
+            401: openapi.Response(description="Authentication required"),
+            404: openapi.Response(description="AI workflow not found"),
+        },
+        tags=["Chat - AI Workflows"],
+    )
+    def get(self, request, workflow_id):
+        workflow = get_object_or_404(AIWorkflow, id=workflow_id, is_deleted=False)
+        serializer = AIWorkflowDetailSerializer(workflow)
+        return Response(serializer.data)
