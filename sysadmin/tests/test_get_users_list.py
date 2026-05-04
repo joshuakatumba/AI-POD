@@ -167,3 +167,22 @@ class TestSysAdminGetUsers(MockAuthMixin, APITestCase):
         )
 
         self.assertEqual(user_data["memberships"], [])
+
+    def test_user_list_excludes_inactive_memberships(self):
+        inactive_org = Organization.objects.create(
+            name="Inactive Org",
+            created_by=self.superuser
+        )
+        Membership.objects.create(
+            user=self.normal_user,
+            organization=inactive_org,
+            role="member",
+            is_active=False,
+            created_by=self.superuser,
+        )
+        response = self.get_users(self.superuser)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user_data = next(u for u in response.data if u["email"] == self.normal_user.email)
+        self.assertEqual(len(user_data["memberships"]), 2)
+        org_names = [m["organization_name"] for m in user_data["memberships"]]
+        self.assertNotIn("Inactive Org", org_names)

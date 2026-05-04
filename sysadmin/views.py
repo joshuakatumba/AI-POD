@@ -155,7 +155,7 @@ class SysAdminUsersView(generics.GenericAPIView):
     def get(self, request):
         memberships_qs = (
             Membership.objects
-            .select_related("organization")
+            .select_related("organization").filter(is_active=True)
             .order_by(
                 F("last_accessed_at").desc(nulls_last=True),
                 "joined_at",
