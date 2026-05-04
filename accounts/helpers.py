@@ -12,7 +12,6 @@ def build_password_reset_link(user, reset_token):
     reset_link = f"{frontend_base_url}/reset-password?uid={encoded_id}&reset_token={reset_token}"
     return reset_link
 
-
 def send_password_reset_email(user, reset_token):
     reset_link = build_password_reset_link(user, reset_token)
     subject = "Password reset request"

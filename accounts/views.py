@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import authenticate, get_user_model
-from .serializers import LoginResponseSerializer, LogoutSerializer, OrganisationSelectResponseSerializer, UserInfoSerializer, UserSignUpSerializer, OrganisationSelectSerializer, LoginSerializer, PasswordResetRequestSerializer
+from .serializers import LoginResponseSerializer, LogoutSerializer, OrganisationSelectResponseSerializer, UserInfoSerializer, UserSignUpSerializer, OrganisationSelectSerializer, LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 from organizations.models import Membership
 from .utils import get_jwt_for_membership
 from .helpers import send_password_reset_email
@@ -83,6 +83,28 @@ class PasswordResetRequestView(APIView):
 
         return Response(
             {"detail": "Password reset request accepted."},
+            status=status.HTTP_200_OK,
+        )
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+    
+    @swagger_auto_schema(
+        operation_description="Reset password reset with uid, reset token and new password.",
+        request_body=PasswordResetConfirmSerializer,
+        responses={
+            200: openapi.Response("Password has been reset successfully."),
+            400: openapi.Response("Invalid or expired password reset token."),
+        },
+        tags=["Auth"],
+    )
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(
+            {"message": "Password has been reset successfully."},
             status=status.HTTP_200_OK,
         )
 
