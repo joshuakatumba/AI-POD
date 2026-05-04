@@ -58,3 +58,18 @@ class TestDeleteAIModels(APITestCase):
         self.client.credentials()
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+    def test_deleted_ai_model_not_in_list(self):
+        """Soft deleted model should not appear in the list"""
+        self.client.force_authenticate(self.superuser)
+        
+        #Delete the model
+        self.client.delete(self.url)
+        
+        #Check it doesn't appear in the list
+        list_url = reverse("sysadmin:ai-models")
+        response = self.client.get(list_url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        names = [m["name"] for m in response.data]
+        self.assertNotIn("GPT 4o", names)

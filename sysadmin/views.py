@@ -231,7 +231,7 @@ class AIModelsApiView(generics.GenericAPIView):
         return AIModelDetailSerializer
 
     def get_queryset(self):
-        queryset = AIModel.objects.all().order_by("-created_at")
+        queryset = AIModel.objects.filter(is_deleted=False,).order_by("-created_at")
 
         search = self.request.query_params.get("search")
         if search:
