@@ -8,11 +8,16 @@ from django.test import TestCase
 
 from organizations.models import Membership, Organization
 from projectMembers.models import ProjectMember
-from projects.models import Project, ReportTask
+from projects.models import Project, ReportTask, Report
 from sysadmin.models import AIModel, AIWorkflow
 from tasks.models import Task
 
-from orchestrator.core import EngineeringDeps, ReportAgentRunner
+from orchestrator.core import (
+    EngineeringDeps,
+    ReportAgentRunner,
+    TaskSnapshot,
+    TaskStatus,
+)
 
 User = get_user_model()
 
@@ -31,20 +36,30 @@ class FakeAgent:
 
 class OrchestratorCoreTests(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email="orchestrator@test.com", password="pass")
-        self.org = Organization.objects.create(name="Orchestrator Org", created_by=self.user)
+        self.user = User.objects.create_user(
+            email="orchestrator@test.com",
+            password="pass"
+        )
+
+        self.org = Organization.objects.create(
+            name="Orchestrator Org",
+            created_by=self.user
+        )
+
         self.membership = Membership.objects.create(
             user=self.user,
             organization=self.org,
             role="admin",
             created_by=self.user,
         )
+
         self.project = Project.objects.create(
             name="Project Beta",
             organization=self.org,
             owner=self.membership,
             created_by=self.user,
         )
+
         self.project_member = ProjectMember.objects.create(
             project=self.project,
             organisation=self.org,
@@ -52,6 +67,7 @@ class OrchestratorCoreTests(TestCase):
             role="admin",
             created_by=self.user,
         )
+
         self.task = Task.objects.create(
             name="Validate concrete",
             description="",
@@ -62,12 +78,14 @@ class OrchestratorCoreTests(TestCase):
             assigned_to=self.project_member,
             created_by=self.user,
         )
+
         self.ai_model = AIModel.objects.create(
             name="gpt-4o-mini",
             provider="openai",
             api_key="fake-key",
             created_by=self.user,
         )
+
         self.workflow = AIWorkflow.objects.create(
             name="Report Workflow Core",
             category="report",
@@ -88,6 +106,7 @@ class OrchestratorCoreTests(TestCase):
             status="interviewing",
             title="Inspection: Project Beta",
         )
+
         self.report_task = ReportTask.objects.create(
             session=self.session,
             task=self.task,
@@ -102,61 +121,149 @@ class OrchestratorCoreTests(TestCase):
                     runner = ReportAgentRunner(self.workflow)
         return runner, mock_provider, mock_model
 
+    # -----------------------------
+    # CORE INIT TEST
+    # -----------------------------
+
     def test_runner_wires_provider_model_and_prompt(self):
         runner, mock_provider, mock_model = self._build_runner()
 
-        mock_provider.assert_called_once_with(api_key=self.workflow.ai_model.api_key)
+        mock_provider.assert_called_once_with(
+            api_key=self.workflow.ai_model.api_key
+        )
         mock_model.assert_called_once()
+
         self.assertEqual(runner.agent.system_prompt, self.workflow.system_prompt)
         self.assertEqual(runner.agent.deps_type, EngineeringDeps)
 
-    def test_validate_task_success_updates_task_and_broadcasts(self):
+    # -----------------------------
+    # TASK SNAPSHOT TESTS
+    # -----------------------------
+
+    def _ctx(self):
+        return SimpleNamespace(
+            deps=EngineeringDeps(
+                session=self.session,
+                user=self.user,
+                task_snapshots={},
+                completed_tasks=set(),
+            )
+        )
+
+    def test_update_task_snapshot_success(self):
         runner, _, _ = self._build_runner()
-        validate_tool = runner.agent.registered_tools["validate_task"]
+        tool = runner.agent.registered_tools["update_task_snapshot"]
 
-        ctx = SimpleNamespace(deps=SimpleNamespace(session=self.session))
+        ctx = self._ctx()
 
-        with patch("orchestrator.core.broadcast_session_event", new_callable=AsyncMock) as mock_broadcast:
-            result = async_to_sync(validate_tool)(ctx, self.task.reference, "All checks passed")
+        snapshot = TaskSnapshot(
+            reference=self.task.reference,
+            status=TaskStatus.COMPLETED,
+            summary="Validated successfully",
+            blockers=[],
+            next_steps=["Archive results"],
+        )
 
-        self.report_task.refresh_from_db()
-        self.assertTrue(self.report_task.is_validated_by_ai)
-        self.assertEqual(self.report_task.ai_notes, "All checks passed")
-        self.assertIn("successfully validated", result)
-        mock_broadcast.assert_awaited_once()
+        result = async_to_sync(tool)(ctx, snapshot)
 
-    def test_validate_task_missing_returns_error_and_no_broadcast(self):
+        self.assertIn("Snapshot updated", result)
+        self.assertEqual(
+            ctx.deps.task_snapshots[self.task.reference]["summary"],
+            "Validated successfully",
+        )
+
+    def test_update_task_snapshot_invalid_task(self):
         runner, _, _ = self._build_runner()
-        validate_tool = runner.agent.registered_tools["validate_task"]
+        tool = runner.agent.registered_tools["update_task_snapshot"]
 
-        ctx = SimpleNamespace(deps=SimpleNamespace(session=self.session))
+        ctx = self._ctx()
 
-        with patch("orchestrator.core.broadcast_session_event", new_callable=AsyncMock) as mock_broadcast:
-            result = async_to_sync(validate_tool)(ctx, "TSK-DOES-NOT-EXIST", "notes")
+        snapshot = TaskSnapshot(
+            reference="INVALID",
+            status=TaskStatus.COMPLETED,
+            summary="n/a",
+            blockers=[],
+            next_steps=[],
+        )
 
-        self.assertIn("not associated", result)
-        mock_broadcast.assert_not_awaited()
+        result = async_to_sync(tool)(ctx, snapshot)
 
-    def test_transition_to_drafting_blocks_then_succeeds(self):
+        self.assertIn("not part of this session", result)
+
+    # -----------------------------
+    # REPORT CREATION
+    # -----------------------------
+
+    def test_create_report_success(self):
         runner, _, _ = self._build_runner()
-        transition_tool = runner.agent.registered_tools["transition_to_drafting"]
-        ctx = SimpleNamespace(deps=SimpleNamespace(session=self.session))
+        tool = runner.agent.registered_tools["create_report"]
 
-        with patch("orchestrator.core.broadcast_session_event", new_callable=AsyncMock) as mock_broadcast:
-            blocked = async_to_sync(transition_tool)(ctx)
+        ctx = self._ctx()
 
-        self.session.refresh_from_db()
-        self.assertEqual(self.session.status, "interviewing")
-        self.assertIn("cannot generate", blocked)
-        mock_broadcast.assert_not_awaited()
+        report_input = SimpleNamespace(
+            generated_text="Final report content",
+            structured_data_snapshot={
+                "tasks": [],
+                "completed": [],
+                "in_progress": [],
+                "blockers": [],
+                "next_steps": [],
+            },
+        )
 
-        self.report_task.is_validated_by_ai = True
-        self.report_task.save(update_fields=["is_validated_by_ai"])
+        result = async_to_sync(tool)(ctx, report_input)
 
-        with patch("orchestrator.core.broadcast_session_event", new_callable=AsyncMock) as mock_broadcast:
-            success = async_to_sync(transition_tool)(ctx)
+        self.assertIn("Report created successfully", result)
 
-        self.session.refresh_from_db()
-        self.assertEqual(self.session.status, "drafting")
-        self.assertIn("moved to drafting", success)
-        mock_broadcast.assert_awaited_once()
+        report = Report.objects.get(session=self.session)
+        self.assertEqual(report.generated_text, "Final report content")
+
+    # -----------------------------
+    # FINALIZE REPORT
+    # -----------------------------
+
+    def test_finalize_report_success(self):
+        runner, _, _ = self._build_runner()
+        tool = runner.agent.registered_tools["finalize_report"]
+
+        Report.objects.create(
+            session=self.session,
+            status="draft",
+            generated_text="x",
+            structured_data_snapshot={},
+            project_id=self.project.id,
+            membership_id=self.membership.id,
+            organisation_id=self.org.id,
+            created_by=self.user,
+        )
+
+        ctx = self._ctx()
+
+        with patch.dict("os.environ", {"FRONTEND_BASE_URL": "http://test"}):
+            result = async_to_sync(tool)(ctx)
+
+        self.assertIn("Report has been finalized", result)
+
+        report = Report.objects.get(session=self.session)
+        self.assertEqual(report.status, "complete")
+
+    def test_finalize_report_already_complete(self):
+        runner, _, _ = self._build_runner()
+        tool = runner.agent.registered_tools["finalize_report"]
+
+        Report.objects.create(
+            session=self.session,
+            status="complete",
+            generated_text="x",
+            structured_data_snapshot={},
+            project_id=self.project.id,
+            membership_id=self.membership.id,
+            organisation_id=self.org.id,
+            created_by=self.user,
+        )
+
+        ctx = self._ctx()
+
+        result = async_to_sync(tool)(ctx)
+
+        self.assertIn("already finalized", result)

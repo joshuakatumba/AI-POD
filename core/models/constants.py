@@ -20,6 +20,11 @@ PROJECT_STATUS_CHOICES = [
     ("closed", _("Closed")),
 ]
 
+REPORT_STATUS_CHOICES = [
+    ("draft", _("Draft")),
+    ("completed", _("Completed")),
+]
+
 PROJECT_VISIBILITY_CHOICES = [
     ("team", _("Team")),
     ("organisation", _("Organisation")),

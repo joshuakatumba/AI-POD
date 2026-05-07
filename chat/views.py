@@ -133,8 +133,16 @@ class StreamApiView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SessionMessageCreateSerializer
 
-    def get_object(self, session_id):
-        return get_object_or_404(Session, id=session_id)
+    def get_object(self, session_id):    
+        return get_object_or_404(
+            Session.objects.select_related(
+                "membership",
+                "organisation",
+                "project",
+                "created_by",
+            ),
+            id=session_id
+        )
 
     @swagger_auto_schema(
         operation_description="Stream a session",

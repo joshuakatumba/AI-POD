@@ -4,7 +4,7 @@ from django.conf import settings
 
 from chat.models import Session
 from core.models.base import CommonField
-from core.models.constants import PROJECT_STATUS_CHOICES, PROJECT_VISIBILITY_CHOICES
+from core.models.constants import PROJECT_STATUS_CHOICES, PROJECT_VISIBILITY_CHOICES, REPORT_STATUS_CHOICES
 from core.utils import generate_reference
 from organizations.models import Membership, Organization
 
@@ -139,6 +139,13 @@ class Report(CommonField):
     # Snapshots for history (even if the task logs change later)
     structured_data_snapshot = models.JSONField(
         help_text="The exact technical specs at time of generation"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=REPORT_STATUS_CHOICES,
+        default="draft",
+        help_text="Current lifecycle state of the report (e.g. draft, complete)."
     )
     
     class Meta:
