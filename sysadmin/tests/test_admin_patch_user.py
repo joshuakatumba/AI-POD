@@ -87,12 +87,12 @@ class TestSysAdminUserPatch(MockAuthMixin, APITestCase):
         self.superuser.refresh_from_db()
         self.assertTrue(self.superuser.is_superuser)
 
-    def test_cannot_remove_other_superuser(self):
-        """Cannot remove superuser status from another superuser."""
+    def test_superuser_can_update_other_superuser_role(self):
+        """Superuser can update another superuser's role."""
         response = self.patch_user(self.other_superuser, {"is_superuser": False})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.other_superuser.refresh_from_db()
-        self.assertTrue(self.other_superuser.is_superuser)
+        self.assertFalse(self.other_superuser.is_superuser)
 
     def test_unauthenticated_forbidden(self):
         """PATCH returns 401 if unauthenticated."""
@@ -104,3 +104,11 @@ class TestSysAdminUserPatch(MockAuthMixin, APITestCase):
         self.client.force_authenticate(self.normal_user)
         response = self.client.patch(self.url(self.normal_user.id), {"is_active": False}, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_non_superuser_cannot_modify_superuser(self):
+        """A staff or member user cannot modify a superuser's role."""
+        self.client.force_authenticate(self.normal_user)
+        response = self.client.patch(self.url(self.other_superuser.id), {"is_superuser": False}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.other_superuser.refresh_from_db()
+        self.assertTrue(self.other_superuser.is_superuser)

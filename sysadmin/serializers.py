@@ -194,8 +194,8 @@ class SysAdminUserUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("You cannot remove your own superuser privileges.")
 
         # Prevent accidentally removing superuser from other users (optional)
-        if instance.is_superuser and "is_superuser" in validated_data and not validated_data["is_superuser"]:
-            raise serializers.ValidationError("You cannot remove superuser status from this user.")
+        if instance.is_superuser and not request_user.is_superuser:
+            raise serializers.ValidationError("Only a superuser can modify another superuser's account.")
 
         # Update allowed fields
         for field in ["is_active", "is_staff", "is_superuser"]:
