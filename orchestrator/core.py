@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from pydantic import Field
 from enum import Enum
 import os
+from asgiref.sync import sync_to_async
+from django.db import transaction
 from typing import AsyncGenerator, Dict, Any, List, Literal
 from pydantic import BaseModel
 from chat.models import Session
@@ -329,14 +331,26 @@ class ReportAgentRunner:
         async def finalize_report(
             ctx: RunContext[EngineeringDeps],
         ) -> str:
+            def _finalize():
+                with transaction.atomic():
+                    report = (
+                        Report.objects
+                        .select_for_update()
+                        .get(session=ctx.deps.session)
+                    )
 
-            report = await Report.objects.select_for_update().aget(session=ctx.deps.session)
+                    if report.status == "complete":
+                        return None
 
-            if report.status == "complete":
+                    report.status = "complete"
+                    report.save(update_fields=["status"])
+
+                    return report
+
+            report = await sync_to_async(_finalize)()
+
+            if report is None:
                 return "⚠️ Report is already finalized."
-
-            report.status = "complete"
-            await report.asave(update_fields=["status"])
 
             FRONTEND_URL = os.getenv("FRONTEND_BASE_URL")
             report_url = f"{FRONTEND_URL}/reports/{report.id}"
