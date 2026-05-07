@@ -347,24 +347,13 @@ class ReportAgentRunner:
                         .get(session=ctx.deps.session)
                     )
 
-                    if report.status == "complete":
-                        return None
-
-                    report.status = "complete"
-                    report.save(update_fields=["status"])
-
-                    return report
-
-            report = await sync_to_async(_finalize)()
-
-            # queue trigger translation
-            from projects.helpers import queue_report_translation
-            await sync_to_async(queue_report_translation, thread_sensitive=True)(report)
-
-            if report is None:
+            if report.status == "complete":
                 return "⚠️ Report is already finalized."
 
-            FRONTEND_URL = os.getenv("FRONTEND_BASE_URL", "").rstrip("/")
+            report.status = "complete"
+            await report.asave(update_fields=["status"])
+
+            FRONTEND_URL = os.getenv("FRONTEND_BASE_URL")
             report_url = f"{FRONTEND_URL}/reports/{report.id}"
 
             return (
