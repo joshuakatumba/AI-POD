@@ -36,10 +36,12 @@ class TestReadProjects(MockAuthMixin, APITestCase):
 
         # Payloads
         self.admin_auth = {
+            "user": self.admin_user,
             "organisation_id": str(self.org.id),
             "membership_id": str(self.admin_membership.id)
         }
         self.member_auth = {
+            "user": self.member_user,
             "organisation_id": str(self.org.id),
             "membership_id": str(self.normal_membership.id)
         }
@@ -83,7 +85,7 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         return self.client.get(self.url, params)
 
 
-    def create_project(self, name="Project", org=None, owner=None, deleted=False):
+    def create_project(self, name="Project", org=None, owner=None, deleted=False, visibility="organization"):
         """Create a project for testing."""
         return Project.objects.create(
             name=name,
@@ -91,6 +93,7 @@ class TestReadProjects(MockAuthMixin, APITestCase):
             owner=owner or self.admin_membership,
             created_by=self.admin_user,
             is_deleted=deleted,
+            visibility=visibility,
         )
 
     # --- Tests ---
@@ -319,3 +322,71 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         # must NOT include cross-org project
         names = [p["name"] for p in response.data["results"]]
         self.assertNotIn("Other Org Project", names)
+
+    def test_team_visibility_hidden_from_non_member(self):
+        self.create_project(name="Team Project", visibility="team")
+        # admin_user is NOT added as a ProjectMember
+
+        response = self.get_projects(auth=self.admin_auth)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["results"], [])
+
+    def test_team_visibility_visible_to_project_member(self):
+        project = self.create_project(name="Team Project", visibility="team")
+        ProjectMember.objects.create(
+            project=project,
+            organisation=self.org,
+            membership=self.admin_membership,
+            created_by=self.admin_user,
+        )
+
+        response = self.get_projects(auth=self.admin_auth)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["name"], "Team Project")
+
+    def test_organization_visibility_visible_to_all_org_members(self):
+        self.create_project(name="Org Project", visibility="organization")
+
+        # member_user has no ProjectMember record but should still see it
+        response = self.get_projects(auth=self.member_auth)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["name"], "Org Project")
+
+    def test_mixed_visibility_member_sees_both(self):
+        org_project = self.create_project(name="Org Project", visibility="organization")
+        team_project = self.create_project(name="Team Project", visibility="team")
+        ProjectMember.objects.create(
+            project=team_project,
+            organisation=self.org,
+            membership=self.admin_membership,
+            created_by=self.admin_user,
+        )
+
+        response = self.get_projects(auth=self.admin_auth)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 2)
+
+    def test_mixed_visibility_non_member_sees_only_org(self):
+        """A non-project-member should only see org-visible projects, not team ones."""
+        self.create_project(name="Org Project", visibility="organization")
+        self.create_project(name="Team Project", visibility="team")
+        # member_user is NOT added to the team project
+
+        response = self.get_projects(auth=self.member_auth)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["name"], "Org Project")
+
+    def test_no_duplicates_when_user_is_project_member(self):
+        project = self.create_project(name="Team Project", visibility="team")
+        ProjectMember.objects.create(
+            project=project,
+            organisation=self.org,
+            membership=self.admin_membership,
+            created_by=self.admin_user,
+        )
+        response = self.get_projects(auth=self.admin_auth)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 1)
