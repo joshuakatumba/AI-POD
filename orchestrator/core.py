@@ -112,10 +112,10 @@ class ReportAgentRunner:
             lines = []
 
             async for report_task in session_tasks:
-                snapshot = ctx.deps.task_snapshots.get(rt.task.reference, {})
+                snapshot = ctx.deps.task_snapshots.get(report_task.task.reference, {})
                 status = snapshot.get("status", "not_started")
                 lines.append(
-                    f"- {rt.task.name} ({rt.task.reference}) | status: {status}"
+                    f"- {report_task.task.name} ({report_task.task.reference}) | status: {status}"
                 )
 
             return "Current Task Status:\n" + "\n".join(lines)
