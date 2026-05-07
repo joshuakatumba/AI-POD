@@ -352,7 +352,7 @@ class ReportAgentRunner:
             if report is None:
                 return "⚠️ Report is already finalized."
 
-            FRONTEND_URL = os.getenv("FRONTEND_BASE_URL")
+            FRONTEND_URL = os.getenv("FRONTEND_BASE_URL", "").rstrip("/")
             report_url = f"{FRONTEND_URL}/reports/{report.id}"
 
             return (
