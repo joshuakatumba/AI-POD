@@ -44,6 +44,7 @@ LOCAL_APPS = [
     "tasks",
     "translation",
     "chat",
+    "notifications",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -136,6 +137,9 @@ SWAGGER_SETTINGS = {
 
 # Django Encryption key
 FIELD_ENCRYPTION_KEY = os.getenv("FIELD_ENCRYPTION_KEY")
+
+# Email
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 # Redis 
 CHANNEL_LAYERS = {

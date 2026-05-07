@@ -21,5 +21,5 @@ def send_password_reset_email(user, reset_token):
         f"{reset_link}\n\n"
         "If you did not request this change, you can ignore this email."
     )
-    from_email = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@example.com")
+    from_email = os.getenv("DEFAULT_FROM_EMAIL")
     send_mail(subject, message, from_email, [user.email], fail_silently=True)
