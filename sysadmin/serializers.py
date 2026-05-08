@@ -134,7 +134,20 @@ class AdminForceDeleteOrganizationSerializer(serializers.Serializer):
             is_deleted_reason=f"Organization force deleted by admin: {deletion_reason or 'No reason provided'}"
         )
 
-        return organization
+        return organization    
+
+# ---------- Admin Update Organisation Serializer ----------
+class AdminOrganizationUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = [
+            "name",
+            "email",
+            "country",
+            "description",
+            "type",
+            "is_active",
+        ]
 
 
 # ---------- Admin Users Serializer ----------

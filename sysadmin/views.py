@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from organizations.models import Membership, Organization
 from sysadmin.models import AIModel, AIWorkflow
-from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AIModelsUpdateSerializer, AIWorkflowCreateSerializer, AIWorkflowDetailSerializer, AIWorkflowUpdateSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer
+from sysadmin.serializers import AIModelCreateSerializer, AIModelDetailSerializer, AIModelsUpdateSerializer, AIWorkflowCreateSerializer, AIWorkflowDetailSerializer, AIWorkflowUpdateSerializer, AdminOrganizationSerializer, AdminForceDeleteOrganizationSerializer, SysAdminUserSerializer, SysAdminUserUpdateSerializer, AdminOrganizationUpdateSerializer
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from sysadmin.permissions import CanViewAdminData, IsSystemAdmin, IsAdminUser
@@ -130,6 +130,26 @@ class AdminForceDeleteOrganisationView(generics.GenericAPIView):
             },
             status=status.HTTP_200_OK,
         )
+    
+    @swagger_auto_schema(
+            operation_summary="Admin update organisation",
+            operation_description="Update an organisation's details.",
+            request_body=AdminOrganizationUpdateSerializer,
+            responses={
+                200: AdminOrganizationSerializer,
+                401: "Authentication required",
+                403: "Permission denied",
+                404: "Organisation not found",
+                },
+            tags=["Admin - Organizations"],
+    )
+    def patch(self, request, organization_id):
+        organisation = get_object_or_404(Organization, id=organization_id)
+        serializer = AdminOrganizationUpdateSerializer(organisation, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response_serializer = AdminOrganizationSerializer(organisation)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 # ---------- Admin Users View  ----------
