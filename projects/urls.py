@@ -1,5 +1,5 @@
 from django.urls import path
-from projects.views import ProjectDetailApiView, ProjectsApiView, ReportDetailApiView, ReportsApiView
+from projects.views import ProjectDetailApiView, ProjectsApiView
 
 app_name = "projects"
 
@@ -13,15 +13,5 @@ urlpatterns = [
         "<uuid:project_id>/",
         ProjectDetailApiView.as_view(),
         name="project",
-    ),
-    path(
-        "reports/",
-        ReportsApiView.as_view(),
-        name="reports",
-    ),
-    path(
-        "<uuid:project_id>/reports/<uuid:report_id>/",
-        ReportDetailApiView.as_view(),
-        name="project_report_detail",
     ),
 ]

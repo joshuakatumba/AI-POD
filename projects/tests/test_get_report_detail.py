@@ -81,9 +81,8 @@ class TestReportDetail(MockAuthMixin, APITestCase):
     # --- Helpers ---
     def get_url(self, report_id=None):
         return reverse(
-            "projects:project_report_detail",
+            "reports:report_detail",
             kwargs={
-                "project_id": self.project.id,
                 "report_id": report_id or self.report.id,
             },
         )
@@ -127,8 +126,8 @@ class TestReportDetail(MockAuthMixin, APITestCase):
     def test_get_report_not_found(self):
         """GET returns 404 for non-existent report."""
         url = reverse(
-            "projects:project_report_detail",
-            kwargs={"project_id": self.project.id, "report_id": uuid.uuid4()},
+            "reports:report_detail",
+            kwargs={"report_id": uuid.uuid4()},
         )
         self.client.force_authenticate(self.admin_auth.get("user", self.admin_user))
         with self.mock_auth(self.admin_auth):
@@ -138,8 +137,8 @@ class TestReportDetail(MockAuthMixin, APITestCase):
     def test_patch_report_not_found(self):
         """PATCH returns 404 for non-existent report."""
         url = reverse(
-            "projects:project_report_detail",
-            kwargs={"project_id": self.project.id, "report_id": uuid.uuid4()},
+            "reports:report_detail",
+            kwargs={"report_id": uuid.uuid4()},
         )
         self.client.force_authenticate(self.admin_auth.get("user", self.admin_user))
         with self.mock_auth(self.admin_auth):

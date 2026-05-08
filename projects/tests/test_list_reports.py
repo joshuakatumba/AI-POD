@@ -65,7 +65,7 @@ class TestListReports(MockAuthMixin, APITestCase):
             created_by=self.admin_user,
         )
 
-        self.url = reverse("projects:reports")
+        self.url = reverse("reports:reports")
 
         # 6. Auth payloads
         self.admin_auth = {

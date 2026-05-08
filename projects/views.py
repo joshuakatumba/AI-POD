@@ -306,7 +306,7 @@ class ReportDetailApiView(generics.GenericAPIView):
         },
         tags=["Reports"],
     )
-    def get(self, request, project_id, report_id):
+    def get(self, request, report_id):
         report = get_object_or_404(self.get_queryset(), id=report_id)
         serializer = self.get_serializer(report)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -317,7 +317,7 @@ class ReportDetailApiView(generics.GenericAPIView):
         responses={200: ReportDetailSerializer()},
         tags=["Reports"],
     )
-    def patch(self, request, project_id, report_id):
+    def patch(self, request, report_id):
         report = get_object_or_404(self.get_queryset(), id=report_id)
         serializer = ReportUpdateSerializer(report, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
