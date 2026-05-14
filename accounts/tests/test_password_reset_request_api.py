@@ -3,6 +3,7 @@ from django.core import mail
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from unittest.mock import patch
 
 User = get_user_model()
 
@@ -13,15 +14,18 @@ class PasswordResetRequestAPITests(APITestCase):
         self.user = User.objects.create_user(email="reset@example.com", password="password123")
         mail.outbox = []
 
-    def test_request_for_existing_user_returns_link_and_sends_email(self):
+    @patch("accounts.helpers.send_email_task")
+    def test_request_for_existing_user_enqueues_email_task(self, mock_task):
         response = self.client.post(self.url, {"email": self.user.email})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["detail"], "Password reset request accepted.")
-        
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.user.email])
-        self.assertIn("Reset link:", mail.outbox[0].body)
+        mock_task.delay.assert_called_once()
+        call_args, call_kwargs = mock_task.delay.call_args
+        self.assertEqual(call_args[0], "password_reset")
+        self.assertEqual(call_kwargs["user_id"], self.user.id)
+        self.assertIn("reset_link", call_kwargs)
+        self.assertIn("password-reset", call_kwargs["reset_link"])
 
     def test_request_for_unknown_email_returns_not_found(self):
         response = self.client.post(self.url, {"email": "unknown@example.com"})

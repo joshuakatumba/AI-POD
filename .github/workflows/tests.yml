@@ -47,6 +47,7 @@ jobs:
           echo "SECRET_KEY=test-secret" >> $GITHUB_ENV
           echo "FIELD_ENCRYPTION_KEY=3Y0XHnC1F2s5GkL2n5sD8g6Yb9xFQw4u9s8vK3mL0pA=" >> $GITHUB_ENV
           echo "DEFAULT_FROM_EMAIL=no-reply@example.com" >> $GITHUB_ENV
+          echo "FRONTEND_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
 
       - name: Run migrations
         run: |

@@ -5,6 +5,7 @@ from django.core import mail
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from unittest.mock import patch
 
 User = get_user_model()
 
@@ -27,17 +28,17 @@ class PasswordResetConfirmAPITests(APITestCase):
         return uid, reset_token
 
     def _request_reset_and_get_uid_token(self):
-        request_response = self.client.post(self.request_url, {"email": self.user.email})
+        with patch('accounts.helpers.send_email_task') as mock_task:
+            request_response = self.client.post(self.request_url, {"email": self.user.email})
 
-        self.assertEqual(request_response.status_code, status.HTTP_200_OK)
-        self.assertEqual(request_response.data["detail"], "Password reset request accepted.")
-        self.assertEqual(len(mail.outbox), 1)
+            self.assertEqual(request_response.status_code, status.HTTP_200_OK)
+            self.assertEqual(request_response.data["detail"], "Password reset request accepted.")
+            mock_task.delay.assert_called_once()
+            call_kwargs = mock_task.delay.call_args[1]
+            reset_link = call_kwargs.get("reset_link")
+            self.assertIsNotNone(reset_link)
 
-        body = mail.outbox[0].body
-        self.assertIn("Reset link:\n", body)
-        reset_link = body.split("Reset link:\n", 1)[1].split("\n", 1)[0].strip()
-
-        return self._extract_uid_and_token(reset_link)
+            return self._extract_uid_and_token(reset_link)
 
     def test_confirm_success_with_uid_and_token(self):
         uid, reset_token = self._request_reset_and_get_uid_token()
