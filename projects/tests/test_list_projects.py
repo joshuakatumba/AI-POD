@@ -85,7 +85,7 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         return self.client.get(self.url, params)
 
 
-    def create_project(self, name="Project", org=None, owner=None, deleted=False, visibility="organization"):
+    def create_project(self, name="Project", org=None, owner=None, deleted=False, visibility="organisation"):
         """Create a project for testing."""
         return Project.objects.create(
             name=name,
@@ -346,7 +346,7 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         self.assertEqual(response.data["results"][0]["name"], "Team Project")
 
     def test_organization_visibility_visible_to_all_org_members(self):
-        self.create_project(name="Org Project", visibility="organization")
+        self.create_project(name="Org Project", visibility="organisation")
 
         # member_user has no ProjectMember record but should still see it
         response = self.get_projects(auth=self.member_auth)
@@ -355,7 +355,7 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         self.assertEqual(response.data["results"][0]["name"], "Org Project")
 
     def test_mixed_visibility_member_sees_both(self):
-        org_project = self.create_project(name="Org Project", visibility="organization")
+        org_project = self.create_project(name="Org Project", visibility="organisation")
         team_project = self.create_project(name="Team Project", visibility="team")
         ProjectMember.objects.create(
             project=team_project,
@@ -370,7 +370,7 @@ class TestReadProjects(MockAuthMixin, APITestCase):
 
     def test_mixed_visibility_non_member_sees_only_org(self):
         """A non-project-member should only see org-visible projects, not team ones."""
-        self.create_project(name="Org Project", visibility="organization")
+        self.create_project(name="Org Project", visibility="organisation")
         self.create_project(name="Team Project", visibility="team")
         # member_user is NOT added to the team project
 

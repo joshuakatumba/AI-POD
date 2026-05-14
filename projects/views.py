@@ -36,18 +36,16 @@ class ProjectsApiView(generics.GenericAPIView):
     def get_queryset(self):
         auth = self.request.auth or {}
         organisation_id = auth.get("organisation_id")
-        user = self.request.user
-
+        user = self.request.user        
         queryset = Project.objects.filter(
             organization_id=organisation_id,
             is_deleted=False,
         ).order_by("-created_at")
 
-        #------Filter projects by Visibility
         queryset = queryset.filter(
-            Q(visibility="organization") |
+            Q(visibility="organisation") |
             Q(visibility="team", members__membership__user__id=user.id)
-        )
+        ).distinct()
 
         # --- Apply search ---
         search = self.request.query_params.get("search")
