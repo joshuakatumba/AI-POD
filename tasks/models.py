@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 from core.models.base import CommonField
-from core.models.constants import TASK_STATUS_CHOICES
+from core.models.constants import TASK_STATUS_CHOICES, TASK_ATTACHMENT_TYPE_CHOICES
 from core.utils import generate_reference
 from organizations.models import Organization
 from projects.models import Project
@@ -89,4 +89,36 @@ class TaskComment(CommonField):
     def save(self, *args, **kwargs):
         if not self.reference:
             self.reference = generate_reference(prefix="TCM", entity_uuid=self.id)
+        super().save(*args, **kwargs)
+
+
+class TaskAttachment(CommonField):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.CharField(max_length=20, unique=True, editable=False, db_index=True)
+    task = models.ForeignKey(
+        Task, on_delete=models.CASCADE,
+        related_name="attachments"
+    )
+    title = models.CharField(max_length=255)
+    type = models.CharField(max_length=20, choices=TASK_ATTACHMENT_TYPE_CHOICES, default="link")
+    url = models.URLField(max_length=2048)
+    organisation = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="task_attachments"
+    )
+    membership = models.ForeignKey(
+        ProjectMember, on_delete=models.CASCADE,
+        related_name="task_attachments"
+    )
+
+    class Meta:
+        db_table = "task_attachments"
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["task", "is_deleted"])
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = generate_reference(prefix="TAT", entity_uuid=self.id)
         super().save(*args, **kwargs)

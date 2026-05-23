@@ -3,12 +3,13 @@ from drf_yasg import openapi
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from tasks.filters import TaskFilterSet
 from tasks.helpers import queue_task_translation
-from tasks.models import Task, TaskComment
+from tasks.models import Task, TaskComment, TaskAttachment
 from projects.models import Project
 from tasks.pagination import TaskPagination
 from tasks.permissions import IsProjectMemberForTaskScope
@@ -19,6 +20,8 @@ from tasks.serializers import (
     TaskCommentCreateSerializer,
     TaskCommentReadSerializer,
     TaskCommentUpdateSerializer,
+    TaskAttachmentCreateSerializer,
+    TaskAttachmentReadSerializer,
 )
 
 
@@ -33,6 +36,11 @@ class AllTasksView(generics.GenericAPIView):
         auth = self.request.auth or {}
         organisation_id = auth.get("organisation_id")
 
+        attachments_qs = TaskAttachment.objects.filter(is_deleted=False).select_related(
+            "membership",
+            "created_by",
+        )
+
         return (
             Task.objects.filter(
                 organisation_id=organisation_id,
@@ -44,6 +52,13 @@ class AllTasksView(generics.GenericAPIView):
                 "reported_by",
                 "assigned_to",
                 "created_by",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "attachments",
+                    queryset=attachments_qs,
+                    to_attr="active_attachments",
+                )
             )
             .order_by("-created_at")
         )
@@ -113,12 +128,23 @@ class TasksView(generics.GenericAPIView):
     def get(self, request, project_id, *args, **kwargs):
         project = get_object_or_404(Project, id=project_id)
 
+        attachments_qs = TaskAttachment.objects.filter(is_deleted=False).select_related(
+            "membership",
+            "created_by",
+        )
+
         tasks = Task.objects.filter(project=project, is_deleted=False).select_related(
             "organisation",
             "project",
             "reported_by",
             "assigned_to",
             "created_by",
+        ).prefetch_related(
+            Prefetch(
+                "attachments",
+                queryset=attachments_qs,
+                to_attr="active_attachments",
+            )
         )
 
         status_filter = request.query_params.get("status")
@@ -239,6 +265,127 @@ class TaskDetailView(generics.GenericAPIView):
             },
         status=status.HTTP_200_OK,
     )
+
+
+class TaskAttachmentsView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
+    serializer_class = TaskAttachmentCreateSerializer
+
+    @swagger_auto_schema(
+        operation_description="Get all attachments on a task. Only project members can view attachments.",
+        responses={
+            200: TaskAttachmentReadSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member"),
+            404: openapi.Response(description="Task not found"),
+        },
+        tags=["Task Attachments"],
+    )
+    def get(self, request, task_id, *args, **kwargs):
+        task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
+
+        attachments = TaskAttachment.objects.filter(task=task, is_deleted=False).select_related(
+            "membership",
+            "created_by",
+        )
+        serializer = TaskAttachmentReadSerializer(attachments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Create an attachment on a task. Only project members can attach URLs.",
+        request_body=TaskAttachmentCreateSerializer,
+        responses={
+            201: TaskAttachmentReadSerializer,
+            400: openapi.Response(description="Validation error"),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member"),
+            404: openapi.Response(description="Task not found"),
+        },
+        tags=["Task Attachments"],
+    )
+    def post(self, request, task_id, *args, **kwargs):
+        serializer = TaskAttachmentCreateSerializer(
+            data=request.data,
+            context={
+                "request": request,
+                "task_id": task_id,
+            },
+        )
+        serializer.is_valid(raise_exception=True)
+        attachment = serializer.save()
+
+        return Response(TaskAttachmentReadSerializer(attachment).data, status=status.HTTP_201_CREATED)
+
+
+class TaskAttachmentDetailView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsProjectMemberForTaskScope]
+    serializer_class = TaskAttachmentReadSerializer
+
+    @swagger_auto_schema(
+        operation_description="Get a single task attachment. Only project members can view attachments.",
+        responses={
+            200: TaskAttachmentReadSerializer,
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member"),
+            404: openapi.Response(description="Task or Attachment not found"),
+        },
+        tags=["Task Attachments"],
+    )
+    def get(self, request, task_id, attachment_id, *args, **kwargs):
+        task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
+        attachment = get_object_or_404(
+            TaskAttachment,
+            id=attachment_id,
+            task=task,
+            is_deleted=False,
+        )
+
+        return Response(TaskAttachmentReadSerializer(attachment).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description="Soft delete a task attachment. Only the creator can delete it.",
+        responses={
+            200: openapi.Response(
+                description="Attachment deleted",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "message": openapi.Schema(type=openapi.TYPE_STRING),
+                        "attachment_id": openapi.Schema(type=openapi.TYPE_STRING),
+                        "removed_by": openapi.Schema(type=openapi.TYPE_STRING),
+                    },
+                ),
+            ),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not a project member or not the attachment creator"),
+            404: openapi.Response(description="Task or Attachment not found"),
+        },
+        tags=["Task Attachments"],
+    )
+    def delete(self, request, task_id, attachment_id, *args, **kwargs):
+        task = get_object_or_404(Task.objects.select_related("project"), id=task_id)
+        attachment = get_object_or_404(
+            TaskAttachment,
+            id=attachment_id,
+            task=task,
+            is_deleted=False,
+        )
+        self.check_object_permissions(request, attachment)
+
+        attachment.is_active = False
+        attachment.is_deleted = True
+        attachment.is_deleted_at = timezone.now()
+        attachment.is_deleted_by_email = request.user.email
+        attachment.is_deleted_reason = "Removed by author"
+        attachment.save()
+        return Response(
+            {
+                "message": "Attachment successfully removed from task.",
+                "attachment_id": str(attachment.id),
+                "removed_by": request.user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class TaskCommentsView(generics.GenericAPIView):

@@ -212,7 +212,7 @@ class TaskPatchAPITests(APITestCase):
         expected_fields = [
             "id", "reference", "name", "description", "due_date",
             "expected_hours", "status", "organisation", "project",
-            "assigned_to", "reported_by", "created_by", "created_at", "closed_at",
+            "assigned_to", "reported_by", "created_by", "created_at", "closed_at", "attachments",
         ]
         for field in expected_fields:
             self.assertIn(field, response.data)

@@ -4,7 +4,7 @@ from rest_framework.permissions import BasePermission
 from projectMembers.models import ProjectMember
 from projects.models import Project
 from tasks.models import Task
-from tasks.models import TaskComment
+from tasks.models import TaskComment, TaskAttachment
 
 
 class IsProjectMemberForTaskScope(BasePermission):
@@ -42,6 +42,9 @@ class IsProjectMemberForTaskScope(BasePermission):
         # If the object is a TaskComment and the request attempts to modify it,
         # only the comment author may perform the action.
         if isinstance(obj, TaskComment) and request.method in ("PATCH", "DELETE"):
+            return getattr(obj, "created_by_id", None) == request.user.id
+
+        if isinstance(obj, TaskAttachment) and request.method == "DELETE":
             return getattr(obj, "created_by_id", None) == request.user.id
 
         return True

@@ -54,6 +54,13 @@ TASK_STATUS_CHOICES = [
     ("closed", _("Closed")),
 ]
 
+TASK_ATTACHMENT_TYPE_CHOICES = [
+    ("github", _("GitHub")),
+    ("file", _("File")),
+    ("link", _("Link")),
+    ("document", _("Document")),
+]
+
 AI_PROVIDER_CHOICES = [
     ("openai", _("OpenAI")),
     ("anthropic", _("Anthropic")),

@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from urllib.parse import urlparse
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.utils import timezone
@@ -8,7 +9,7 @@ from core.models.constants import TASK_STATUS_CHOICES
 from projectMembers.models import ProjectMember
 from translation.models import Translation
 from translation.serializers import TranslationReadSerializer
-from .models import Task, TaskComment
+from .models import Task, TaskComment, TaskAttachment
 
 
 class TaskReadSerializer(serializers.ModelSerializer):
@@ -16,6 +17,7 @@ class TaskReadSerializer(serializers.ModelSerializer):
     assigned_to = serializers.SerializerMethodField()
     reported_by = serializers.SerializerMethodField()
     translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
+    attachments = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
@@ -30,6 +32,7 @@ class TaskReadSerializer(serializers.ModelSerializer):
             "organisation",
             "project",
             "translations",
+            "attachments",
             "assigned_to",
             "reported_by",
             "created_by",
@@ -61,6 +64,12 @@ class TaskReadSerializer(serializers.ModelSerializer):
                 "name": obj.reported_by.membership.display_name
             }
         return None
+
+    def get_attachments(self, obj):
+        attachments = getattr(obj, "active_attachments", None)
+        if attachments is None:
+            attachments = obj.attachments.filter(is_deleted=False)
+        return TaskAttachmentReadSerializer(attachments, many=True).data
 
 
 class TaskCreateSerializer(serializers.ModelSerializer):
@@ -281,3 +290,89 @@ class TaskCommentUpdateSerializer(serializers.ModelSerializer):
         instance.save()
         # TODO: if content changed, enqueue async comment translation still.
         return instance
+
+
+class TaskAttachmentReadSerializer(serializers.ModelSerializer):
+    task = serializers.SerializerMethodField()
+    membership = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TaskAttachment
+        fields = [
+            "id",
+            "reference",
+            "task",
+            "title",
+            "type",
+            "url",
+            "membership",
+            "is_deleted",
+            "is_deleted_at",
+            "is_deleted_by_email",
+            "is_deleted_reason",
+            "created_by",
+            "created_at",
+            "modified_at",
+        ]
+
+    def get_task(self, obj):
+        return {
+            "id": obj.task.id,
+            "reference": obj.task.reference,
+            "name": obj.task.name,
+        }
+
+    def get_membership(self, obj):
+        project_member = obj.membership
+        member = getattr(project_member, "membership", None)
+        return {
+            "id": project_member.id,
+            "reference": project_member.reference,
+            "display_name": getattr(member, "display_name", None),
+        }
+
+
+class TaskAttachmentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskAttachment
+        fields = [
+            "title",
+            "type",
+            "url",
+        ]
+
+    def validate_title(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Title is required.")
+        return value
+
+    def validate_url(self, value):
+        value = value.strip()
+        parsed = urlparse(value)
+        if parsed.scheme != "https":
+            raise serializers.ValidationError("Only https URLs are allowed.")
+        return value
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        task_id = self.context["task_id"]
+
+        task = get_object_or_404(Task, id=task_id)
+
+        try:
+            membership = ProjectMember.objects.get(
+                membership__user=request.user,
+                project=task.project
+            )
+        except ProjectMember.DoesNotExist:
+            raise PermissionDenied("You must be a member of this project to view or create attachments.")
+
+        attrs["task"] = task
+        attrs["membership"] = membership
+        attrs["organisation"] = task.organisation
+        attrs["created_by"] = request.user
+        return attrs
+
+    def create(self, validated_data):
+        return TaskAttachment.objects.create(**validated_data)
