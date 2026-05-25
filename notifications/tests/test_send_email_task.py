@@ -38,9 +38,68 @@ def test_send_email_task_password_reset_renders_and_sends(mock_service_class, mo
 
     assert result["status"] == "sent"
     assert result["email_type"] == "password_reset"
+    assert mock_render.call_args[0][0] == ["en/password_reset.html"]
     mock_service.send.assert_called_once()
     call_args = mock_service.send.call_args
     assert call_args[0][0] == user.email
+    assert call_args[0][1] == "Password reset request"
+    assert reset_link in call_args[0][2]
+
+
+@patch("notifications.tasks.render_to_string")
+@patch("notifications.tasks.EmailService")
+def test_send_email_task_password_reset_japanese_content(mock_service_class, mock_render):
+    mock_render.return_value = "<p>リセットメール HTML</p>"
+
+    reset_link = "http://localhost:3000/password-reset?uid=abc&reset_token=xyz"
+    mock_service = MagicMock()
+    mock_service_class.return_value = mock_service
+
+    user = User.objects.create_user(
+        email="user-ja@example.com",
+        password="password123",
+        full_name="テストユーザー",
+        preferred_language="ja",
+    )
+
+    from notifications.tasks import send_email_task
+    result = send_email_task("password_reset", str(user.id), reset_link=reset_link)
+
+    assert result["status"] == "sent"
+    assert result["email_type"] == "password_reset"
+    assert mock_render.call_args[0][0] == ["ja/password_reset.html", "en/password_reset.html"]
+    mock_service.send.assert_called_once()
+    call_args = mock_service.send.call_args
+    assert call_args[0][0] == user.email
+    assert call_args[0][1] == "パスワード再設定のご依頼"
+    assert "再設定リンク" in call_args[0][2]
+    assert reset_link in call_args[0][2]
+
+
+@patch("notifications.tasks.render_to_string")
+@patch("notifications.tasks.EmailService")
+def test_send_email_task_password_reset_unknown_language_falls_back_to_english(mock_service_class, mock_render):
+    mock_render.return_value = "<p>Reset email HTML</p>"
+
+    reset_link = "http://localhost:3000/password-reset?uid=abc&reset_token=xyz"
+    mock_service = MagicMock()
+    mock_service_class.return_value = mock_service
+
+    user = User.objects.create_user(
+        email="user-sw@example.com",
+        password="password123",
+        full_name="Test User Sw",
+        preferred_language="sw",
+    )
+
+    from notifications.tasks import send_email_task
+    result = send_email_task("password_reset", str(user.id), reset_link=reset_link)
+
+    assert result["status"] == "sent"
+    assert result["email_type"] == "password_reset"
+    assert mock_render.call_args[0][0] == ["en/password_reset.html"]
+    mock_service.send.assert_called_once()
+    call_args = mock_service.send.call_args
     assert call_args[0][1] == "Password reset request"
     assert reset_link in call_args[0][2]
 
@@ -105,4 +164,3 @@ def test_send_email_task_logs_user_not_found_warning(mock_logger):
     call_args = mock_logger.warning.call_args[0]
     assert "user" in call_args[0].lower()
     assert "not found" in call_args[0].lower()
-
