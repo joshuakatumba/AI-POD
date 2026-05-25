@@ -250,6 +250,10 @@ class ReportAgentRunner:
                 }
             )
 
+            # queue trigger translation
+            from projects.helpers import queue_report_translation
+            await sync_to_async(queue_report_translation, thread_sensitive=True)(report_instance)
+
             async for report_task in session_tasks:
                 if report_task.report_id != report_instance.id:
                     report_task.report = report_instance
@@ -304,6 +308,10 @@ class ReportAgentRunner:
                 ]
             )
 
+            # queue trigger translation
+            from projects.helpers import queue_report_translation
+            await sync_to_async(queue_report_translation, thread_sensitive=True)(existing_report)
+
             return (
                 f"✅ Draft report updated successfully.\n"
                 f"Status: DRAFT\n"
@@ -348,6 +356,10 @@ class ReportAgentRunner:
                     return report
 
             report = await sync_to_async(_finalize)()
+
+            # queue trigger translation
+            from projects.helpers import queue_report_translation
+            await sync_to_async(queue_report_translation, thread_sensitive=True)(report)
 
             if report is None:
                 return "⚠️ Report is already finalized."

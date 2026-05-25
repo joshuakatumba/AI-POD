@@ -238,6 +238,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     membership = MembershipMinimalSerializer(read_only=True)
     organisation = OrganisationMinimalSerializer(read_only=True)
     report_tasks = ReportTaskSerializer(many=True, read_only=True, source="session.session_tasks")
+    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
 
     class Meta:
         model = Report
@@ -249,6 +250,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "membership",
             "organisation",
             "generated_text",
+            "translations",
             "structured_data_snapshot",
             "report_tasks",
             "created_at",

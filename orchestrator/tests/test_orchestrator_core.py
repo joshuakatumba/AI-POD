@@ -193,8 +193,8 @@ class OrchestratorCoreTests(TestCase):
     # -----------------------------
     # REPORT CREATION
     # -----------------------------
-
-    def test_create_report_success(self):
+    @patch("projects.helpers.queue_report_translation")
+    def test_create_report_success(self, mock_queue):
         runner, _, _ = self._build_runner()
         tool = runner.agent.registered_tools["create_report"]
 
@@ -222,7 +222,8 @@ class OrchestratorCoreTests(TestCase):
     # FINALIZE REPORT
     # -----------------------------
 
-    def test_finalize_report_success(self):
+    @patch("projects.helpers.queue_report_translation")
+    def test_finalize_report_success(self, mock_queue):
         runner, _, _ = self._build_runner()
         tool = runner.agent.registered_tools["finalize_report"]
 
@@ -247,7 +248,8 @@ class OrchestratorCoreTests(TestCase):
         report = Report.objects.get(session=self.session)
         self.assertEqual(report.status, "complete")
 
-    def test_finalize_report_already_complete(self):
+    @patch("projects.helpers.queue_report_translation")
+    def test_finalize_report_already_complete(self, mock_queue):
         runner, _, _ = self._build_runner()
         tool = runner.agent.registered_tools["finalize_report"]
 

@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 ENTITY_MODEL_MAP = {
     "project": ("projects", "Project", "project"),
     "task": ("tasks", "Task", "task"),
+    "report": ("projects", "Report", "report"),
 }
 
 @shared_task(

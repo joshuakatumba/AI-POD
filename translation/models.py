@@ -5,7 +5,7 @@ from django.db.models import Q
 from core.models.base import CommonField
 from core.models.constants import LANGUAGE_CHOICES
 from core.utils import generate_reference
-from projects.models import Project
+from projects.models import Project, Report
 from tasks.models import Task
 
 class Translation(CommonField):
@@ -39,6 +39,13 @@ class Translation(CommonField):
         blank=True,
         help_text="Task this translation belongs to, if the translated content is task-level.",
     )
+    report = models.ForeignKey(
+        Report,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        help_text="Report this translation belongs to, if the translated content is report-level.",
+    )
     field_name = models.CharField(
         max_length=100,
         help_text="Name of the translated field, for example title, description, or content.",
@@ -71,6 +78,7 @@ class Translation(CommonField):
         indexes = [
             models.Index(fields=["project_id"]),
             models.Index(fields=["task_id"]),
+            models.Index(fields=["report_id"]),
             models.Index(fields=["source_language", "target_language"]),
         ]
         constraints = [
@@ -82,12 +90,30 @@ class Translation(CommonField):
                 fields=["task_id", "field_name", "target_language"],
                 name="uniq_translation_task_field_target_lang",
             ),
+            models.UniqueConstraint(
+                fields=["report_id", "field_name", "target_language"],
+                name="uniq_translation_report_field_target_lang",
+            ),
             models.CheckConstraint(
                 name="translation_requires_exactly_one_scope",
                 check=(
-                    (Q(project__isnull=False) & Q(task__isnull=True))
+                    (
+                        Q(project__isnull=False)
+                        & Q(task__isnull=True)
+                        & Q(report__isnull=True)
+                    )
                     |
-                    (Q(project__isnull=True) & Q(task__isnull=False))
+                    (
+                        Q(project__isnull=True)
+                        & Q(task__isnull=False)
+                        & Q(report__isnull=True)
+                    )
+                    |
+                    (
+                        Q(project__isnull=True)
+                        & Q(task__isnull=True)
+                        & Q(report__isnull=False)
+                    )
                 ),
             ),
         ]
