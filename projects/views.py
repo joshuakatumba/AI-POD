@@ -322,3 +322,62 @@ class ReportDetailApiView(generics.GenericAPIView):
         serializer.save()
         detail_serializer = ReportDetailSerializer(report)
         return Response(detail_serializer.data, status=status.HTTP_200_OK)
+
+
+class ReportInvalidateApiView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        auth = self.request.auth or {}
+        organisation_id = auth.get("organisation_id")
+        return Report.objects.filter(
+            organisation_id=organisation_id,
+            is_deleted=False,
+        ).select_related(
+            "session",
+            "project",
+            "membership",
+            "membership__user",
+            "organisation",
+        )
+
+    @swagger_auto_schema(
+        operation_description="Mark a report as invalid (soft delete). Use this when duplicate reports are generated for the same day and you need to discard the erroneous ones.",
+        responses={
+            200: openapi.Response(
+                description="Report successfully invalidated.",
+                examples={
+                    "application/json": {
+                        "detail": "Report successfully invalidated.",
+                        "report_id": "<uuid>",
+                        "invalidated_by": "user@example.com",
+                    }
+                },
+            ),
+            400: openapi.Response(description="Report is already invalid."),
+            401: openapi.Response(description="Authentication required"),
+            404: openapi.Response(description="Report not found"),
+        },
+        tags=["Reports"],
+    )
+    def delete(self, request, report_id):
+        report = get_object_or_404(self.get_queryset(), id=report_id)
+
+        if report.status == "invalid":
+            raise ValidationError({"detail": "This report is already marked as invalid."})
+
+        report.status = "invalid"
+        report.is_deleted = True
+        report.is_deleted_at = timezone.now()
+        report.is_deleted_by_email = request.user.email
+        report.is_deleted_reason = "Marked as invalid by user — duplicate or erroneous report."
+        report.save()
+
+        return Response(
+            {
+                "detail": "Report successfully invalidated.",
+                "report_id": str(report.id),
+                "invalidated_by": request.user.email,
+            },
+            status=status.HTTP_200_OK,
+        )

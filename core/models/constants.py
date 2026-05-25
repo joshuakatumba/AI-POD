@@ -23,6 +23,7 @@ PROJECT_STATUS_CHOICES = [
 REPORT_STATUS_CHOICES = [
     ("draft", _("Draft")),
     ("completed", _("Completed")),
+    ("invalid", _("Invalid")),
 ]
 
 PROJECT_VISIBILITY_CHOICES = [

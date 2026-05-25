@@ -278,3 +278,13 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
             "created_at",
             "modified_at",
         ]
+
+
+class ReportInvalidateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = ["id", "status", "is_deleted"]
+        read_only_fields = [
+            "id",
+            "is_deleted",
+        ]
