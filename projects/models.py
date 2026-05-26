@@ -199,3 +199,42 @@ class ReportTask(CommonField):
     class Meta:
         db_table = "report_tasks"
         unique_together = ('session', 'task')
+
+
+class ReportComment(CommonField):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.CharField(max_length=20, unique=True, editable=False, db_index=True)
+    report = models.ForeignKey(
+        Report, on_delete=models.CASCADE,
+        related_name="comments",
+    )
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="replies",
+    )
+    content = models.TextField()
+    organisation = models.ForeignKey(
+        Organization, on_delete=models.CASCADE,
+        related_name="report_comments",
+    )
+    membership = models.ForeignKey(
+        "organizations.Membership", on_delete=models.CASCADE,
+        related_name="report_comments",
+    )
+
+    class Meta:
+        db_table = "report_comments"
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["report"]),
+            models.Index(fields=["organisation"]),
+            models.Index(fields=["created_at"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = generate_reference(prefix="RCM", entity_uuid=self.id)
+        super().save(*args, **kwargs)

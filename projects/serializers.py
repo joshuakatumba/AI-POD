@@ -2,11 +2,12 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from organizations.models import Organization, Membership
 from projectMembers.models import ProjectMember
-from projects.models import Project, Report, ReportTask
+from projects.models import Project, Report, ReportComment, ReportTask
 from projectMembers.serializers import ProjectMemberReadSerializer
 from tasks.models import Task
 from tasks.serializers import TaskReadSerializer
@@ -290,3 +291,118 @@ class ReportInvalidateSerializer(serializers.ModelSerializer):
             "id",
             "is_deleted",
         ]
+
+class ReportCommentReadSerializer(serializers.ModelSerializer):
+    report = serializers.SerializerMethodField()
+    membership = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField()
+    replies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ReportComment
+        fields = [
+            "id",
+            "reference",
+            "report",
+            "parent",
+            "content",
+            "organisation",
+            "membership",
+            "replies",
+            "is_deleted",
+            "is_deleted_at",
+            "is_deleted_by_email",
+            "is_deleted_reason",
+            "created_by",
+            "created_at",
+            "modified_at",
+        ]
+
+    def get_report(self, obj):
+        return {"id": obj.report.id, "reference": obj.report.reference}
+
+    def get_parent(self, obj):
+        if obj.parent_id is None:
+            return None
+        return {
+            "id": obj.parent.id,
+            "reference": obj.parent.reference,
+        }
+
+    def get_membership(self, obj):
+        return {  
+            "id": obj.membership.id, 
+            "display_name": obj.membership.display_name,  
+            "email": obj.membership.user.email  
+        } 
+
+    def get_replies(self, obj):
+        if obj.parent is not None:
+            return []
+        qs = obj.replies.filter(is_deleted=False).order_by("created_at")
+        return ReportCommentReadSerializer(qs, many=True).data
+
+
+
+class ReportCommentCreateSerializer(serializers.ModelSerializer):
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=ReportComment.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = ReportComment
+        fields = ["content", "parent"]
+
+    def validate_content(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Content is required.")
+        return value.strip()
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        report_id = self.context["report_id"]
+
+        report = get_object_or_404(Report, id=report_id, is_deleted=False)
+
+        auth = request.auth or {}
+        membership_id = auth.get("membership_id")
+
+        try:
+            membership = Membership.objects.get(
+                id=membership_id,
+                organization=report.organisation,
+            )
+        except Membership.DoesNotExist:
+            raise PermissionDenied(
+                "You must be a member of this organisation to comment on reports."
+            )
+
+        parent = attrs.get("parent")
+
+        if parent:
+            if parent.report_id != report.id:
+                raise serializers.ValidationError(
+                    {"parent": "Parent comment not found on this report."}
+                )
+
+            if parent.parent_id is not None:
+                raise serializers.ValidationError(
+                    {
+                        "parent": (
+                            "Cannot reply to a reply. "
+                            "Only top-level comments can receive replies."
+                        )
+                    }
+                )
+
+        attrs.update(
+            {
+                "report": report,
+                "membership": membership,
+                "organisation": report.organisation,
+                "created_by": request.user,
+            }
+        )
+        return attrs

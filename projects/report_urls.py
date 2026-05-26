@@ -1,5 +1,5 @@
 from django.urls import path
-from projects.views import ReportDetailApiView, ReportInvalidateApiView, ReportsApiView
+from projects.views import ReportCommentsView, ReportDetailApiView, ReportInvalidateApiView, ReportsApiView
 
 app_name = "reports"
 
@@ -18,5 +18,10 @@ urlpatterns = [
         "<uuid:report_id>/invalidate/",
         ReportInvalidateApiView.as_view(),
         name="report_invalidate",
+    ),
+    path(
+        "<uuid:report_id>/comments/",
+        ReportCommentsView.as_view(),
+        name="report_comments",
     ),
 ]

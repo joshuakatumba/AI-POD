@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from projects.helpers import queue_project_translation
-from projects.models import Project,  Report
+from projects.models import Project, Report, ReportComment
 from projects.pagination import ProjectPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,8 +16,7 @@ from datetime import datetime
 
 from organizations.models import Membership, Organization
 from projects.permissions import CanCreateProject, CanDeleteProject, CanUpdateProject
-from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportDetailSerializer, ReportUpdateSerializer
-from projects.models import Report
+from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportCommentCreateSerializer, ReportCommentReadSerializer, ReportDetailSerializer, ReportUpdateSerializer
 
 
 class ProjectsApiView(generics.GenericAPIView):
@@ -380,4 +379,33 @@ class ReportInvalidateApiView(generics.GenericAPIView):
                 "invalidated_by": request.user.email,
             },
             status=status.HTTP_200_OK,
+        )
+
+class ReportCommentsView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReportCommentCreateSerializer
+
+    @swagger_auto_schema(
+        operation_description="Create a comment on a report. Requester must be an organization member.",
+        request_body=ReportCommentCreateSerializer,
+        responses={
+            201: ReportCommentReadSerializer,
+            400: openapi.Response(description="Validation error"),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not an organization member"),
+            404: openapi.Response(description="Report not found"),
+        },
+        tags=["Report Comments"],
+    )
+    def post(self, request, report_id, *args, **kwargs):
+        serializer = ReportCommentCreateSerializer(
+            data=request.data,
+            context={"request": request, "report_id": report_id},
+        )
+        serializer.is_valid(raise_exception=True)
+        comment = serializer.save()
+
+        return Response(
+            ReportCommentReadSerializer(comment).data,
+            status=status.HTTP_201_CREATED,
         )
