@@ -55,6 +55,21 @@ TASK_STATUS_CHOICES = [
     ("closed", _("Closed")),
 ]
 
+TASK_PRIORITY_CHOICES = [
+    ("low", _("Low")),
+    ("medium", _("Medium")),
+    ("high", _("High")),
+    ("critical", _("Critical")),
+]
+
+TASK_CATEGORY_CHOICES = [
+    ("feature", _("Feature")),
+    ("bug", _("Bug")),
+    ("improvement", _("Improvement")),
+    ("documentation", _("Documentation")),
+    ("other", _("Other")),
+]
+
 TASK_ATTACHMENT_TYPE_CHOICES = [
     ("github", _("GitHub")),
     ("file", _("File")),

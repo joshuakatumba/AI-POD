@@ -163,6 +163,8 @@ class TaskPatchAPITests(APITestCase):
         payload = {
             "name": "New Name",
             "expected_hours": 8.5,
+            "category": "feature",
+            "priority": "low",
         }
 
         response = self.client.patch(self.url, payload, format="json")
@@ -210,7 +212,7 @@ class TaskPatchAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         expected_fields = [
-            "id", "reference", "name", "description", "due_date",
+            "id", "reference", "name", "description", "due_date", "category", "priority",
             "expected_hours", "status", "organisation", "project",
             "assigned_to", "reported_by", "created_by", "created_at", "closed_at", "attachments",
         ]

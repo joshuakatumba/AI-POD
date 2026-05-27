@@ -28,6 +28,8 @@ class TaskReadSerializer(serializers.ModelSerializer):
             "description",
             "due_date",
             "expected_hours",
+            "category",
+            "priority",
             "status",
             "organisation",
             "project",
@@ -88,6 +90,8 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         model = Task
         fields = [
             "name",
+            "category",
+            "priority",
             "status",
             "description",
             "due_date",
@@ -150,6 +154,8 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
             "due_date",
             "expected_hours",
             "status",
+            "category",
+            "priority",
             "assigned_to",
         ]
 
@@ -159,6 +165,8 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
             "due_date": {"required": False},
             "expected_hours": {"required": False},
             "status": {"required": False},
+            "category": {"required": False},
+            "priority": {"required": False},
         }
 
     def validate_expected_hours(self, value):

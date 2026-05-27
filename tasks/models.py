@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 from core.models.base import CommonField
-from core.models.constants import TASK_STATUS_CHOICES, TASK_ATTACHMENT_TYPE_CHOICES
+from core.models.constants import TASK_CATEGORY_CHOICES, TASK_PRIORITY_CHOICES, TASK_STATUS_CHOICES, TASK_ATTACHMENT_TYPE_CHOICES
 from core.utils import generate_reference
 from organizations.models import Organization
 from projects.models import Project
@@ -17,6 +17,8 @@ class Task(CommonField):
     description = models.TextField(blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
     expected_hours = models.DecimalField(max_digits=6, decimal_places=1)
+    category = models.CharField(max_length=20, choices=TASK_CATEGORY_CHOICES, default="feature")
+    priority = models.CharField(max_length=20, choices=TASK_PRIORITY_CHOICES, default="medium")
     status = models.CharField(max_length=20, choices=TASK_STATUS_CHOICES, default="backlog")
 
     organisation = models.ForeignKey(
