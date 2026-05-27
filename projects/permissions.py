@@ -1,5 +1,7 @@
-from projects.models import Project
+from projects.models import Project, Report
 from rest_framework.permissions import BasePermission
+
+from organizations.models import Membership
 
 class CanCreateProject(BasePermission):
     message = "You must be an admin of this organization to create projects."
@@ -87,3 +89,23 @@ class CanDeleteProject(BasePermission):
             return True
 
         return getattr(obj.owner, "user_id", None) == user.id
+
+
+class IsReportOrgMember(BasePermission):
+    message = "You must be a member of this organisation to view report comments."
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        
+        auth = getattr(request, "auth", {}) or {}
+        membership_id = auth.get("membership_id")
+        organization_id = auth.get("organisation_id")
+        if not membership_id:
+            return False
+        
+        return Membership.objects.filter(
+            user=user,
+            organization_id=organization_id,
+        ).exists()

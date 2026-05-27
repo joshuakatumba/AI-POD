@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 from organizations.models import Membership, Organization
-from projects.permissions import CanCreateProject, CanDeleteProject, CanUpdateProject
+from projects.permissions import CanCreateProject, CanDeleteProject, CanUpdateProject, IsReportOrgMember
 from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportCommentCreateSerializer, ReportCommentReadSerializer, ReportDetailSerializer, ReportUpdateSerializer
 
 
@@ -381,9 +381,35 @@ class ReportInvalidateApiView(generics.GenericAPIView):
             status=status.HTTP_200_OK,
         )
 
+
 class ReportCommentsView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsReportOrgMember]
     serializer_class = ReportCommentCreateSerializer
+
+    @swagger_auto_schema(
+        operation_description="Get all comments on a report. Requester must be an organization member.",
+        responses={
+            200: ReportCommentReadSerializer(many=True),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not an organization member"),
+            404: openapi.Response(description="Report not found"),
+        },
+        tags=["Report Comments"],
+    )
+    def get(self, request, report_id):
+        organisation_id = request.auth.get("organisation_id")
+        comments = ReportComment.objects.filter(
+            report_id=report_id,
+            is_deleted=False,
+            organisation_id=organisation_id,
+        ).select_related(
+            "report",
+            "parent",
+            "membership",
+            "membership__user",
+        )
+        serializer = ReportCommentReadSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Create a comment on a report. Requester must be an organization member.",
@@ -397,7 +423,7 @@ class ReportCommentsView(generics.GenericAPIView):
         },
         tags=["Report Comments"],
     )
-    def post(self, request, report_id, *args, **kwargs):
+    def post(self, request, report_id):
         serializer = ReportCommentCreateSerializer(
             data=request.data,
             context={"request": request, "report_id": report_id},
@@ -409,3 +435,35 @@ class ReportCommentsView(generics.GenericAPIView):
             ReportCommentReadSerializer(comment).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+class ReportCommentDetailView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, IsReportOrgMember]
+    serializer_class = ReportCommentReadSerializer
+
+    @swagger_auto_schema(
+        operation_description="Get a single report comment. Requester must be an organization member.",
+        responses={
+            200: ReportCommentReadSerializer,
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not an organization member"),
+            404: openapi.Response(description="Report or Comment not found"),
+        },
+        tags=["Report Comments"],
+    )
+    def get(self, request, report_id, comment_id):
+        organisation_id = request.auth.get("organisation_id")
+        comment = get_object_or_404(
+            ReportComment.objects.select_related(
+                "report",
+                "parent",
+                "membership",
+                "membership__user",
+            ),
+            id=comment_id,
+            report_id=report_id,
+            organisation_id=organisation_id,
+            is_deleted=False,
+        )
+
+        return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
