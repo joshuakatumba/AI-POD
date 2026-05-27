@@ -26,6 +26,38 @@ class PasswordResetRequestAPITests(APITestCase):
         self.assertEqual(call_kwargs["user_id"], self.user.id)
         self.assertIn("reset_link", call_kwargs)
         self.assertIn("password-reset", call_kwargs["reset_link"])
+        self.assertEqual(call_kwargs["preferred_language"], self.user.preferred_language)
+
+    @patch("accounts.helpers.send_email_task")
+    def test_submitted_language_takes_precedence_over_user_preference(self, mock_task):
+        user = User.objects.create_user(
+            email="reset-lang@example.com",
+            password="password123",
+            preferred_language="en",
+        )
+
+        response = self.client.post(
+            self.url,
+            {"email": user.email, "preferred_language": "ja"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        call_kwargs = mock_task.delay.call_args[1]
+        self.assertEqual(call_kwargs["preferred_language"], "ja")
+
+    @patch("accounts.helpers.send_email_task")
+    def test_missing_submitted_language_falls_back_to_user_preference(self, mock_task):
+        user = User.objects.create_user(
+            email="reset-user-preference@example.com",
+            password="password123",
+            preferred_language="ja",
+        )
+
+        response = self.client.post(self.url, {"email": user.email})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        call_kwargs = mock_task.delay.call_args[1]
+        self.assertEqual(call_kwargs["preferred_language"], "ja")
 
     def test_request_for_unknown_email_returns_not_found(self):
         response = self.client.post(self.url, {"email": "unknown@example.com"})

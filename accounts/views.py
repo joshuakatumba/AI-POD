@@ -64,17 +64,20 @@ class PasswordResetRequestView(APIView):
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = get_object_or_404(
             User,
             email__iexact=serializer.validated_data["email"],
             is_active=True,
         )
-
+        preferred_language = serializer.validated_data.get("preferred_language") or user.preferred_language
         reset_token = default_token_generator.make_token(user)
 
         try:
-            send_password_reset_email(user, reset_token)
+            send_password_reset_email(
+                user,
+                reset_token,
+                preferred_language=preferred_language,
+            )
         except Exception as e:
             return Response(
                 {"detail": f"An error occurred while sending the email. {e}"},

@@ -23,6 +23,12 @@ _EMAIL_TYPE_REQUIRED_KWARGS = {
     name="notifications.send_email_task",
 )
 def send_email_task(self, email_type, user_id, **kwargs):
+    """
+    Send a localized email using only the kwargs required for the given email_type.
+
+    The required list acts as a whitelist, and the dict comprehension filters
+    kwargs to pass only those expected keys into the template/content render.
+    """
     if email_type not in _EMAIL_TYPE_REQUIRED_KWARGS:
         logger.error("send_email_task: unknown email_type %s", email_type)
         return {"status": "error", "message": f"Unknown email type: {email_type}", "email_type": email_type}
@@ -39,7 +45,12 @@ def send_email_task(self, email_type, user_id, **kwargs):
         logger.error("send_email_task: missing kwargs %s for %s", missing, email_type)
         return {"status": "error", "message": f"{missing[0]} not provided", "email_type": email_type}
 
-    email = get_email_content(email_type, user.preferred_language, **{k: kwargs[k] for k in required})
+    preferred_language = kwargs.get("preferred_language") or user.preferred_language
+    email = get_email_content(
+        email_type,
+        preferred_language,
+        **{k: kwargs[k] for k in required},
+    )
     context = {
         "full_name": user.full_name or user.email,
         "language_code": email["language_code"],

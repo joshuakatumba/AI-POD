@@ -104,6 +104,7 @@ class MeResponseSerializer(serializers.Serializer):
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    preferred_language = serializers.CharField(required=False, allow_blank=True)
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     uid = serializers.CharField()
