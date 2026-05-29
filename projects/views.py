@@ -15,8 +15,14 @@ from datetime import datetime
 
 
 from organizations.models import Membership, Organization
-from projects.permissions import CanCreateProject, CanDeleteProject, CanUpdateProject, IsReportOrgMember
-from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportCommentCreateSerializer, ReportCommentReadSerializer, ReportDetailSerializer, ReportUpdateSerializer
+from projects.permissions import (
+    CanCreateProject,
+    CanDeleteProject,
+    CanEditReportComment,
+    CanUpdateProject,
+    IsReportOrgMember,
+)
+from projects.serializers import ProjectCreateSerializer, ProjectDetailsSerializer, ProjectReadSerializer, ProjectUpdateSerializer, ReportCommentCreateSerializer, ReportCommentReadSerializer, ReportCommentUpdateSerializer, ReportDetailSerializer, ReportUpdateSerializer
 
 
 class ProjectsApiView(generics.GenericAPIView):
@@ -441,6 +447,11 @@ class ReportCommentDetailView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, IsReportOrgMember]
     serializer_class = ReportCommentReadSerializer
 
+    def get_permissions(self):
+        if self.request.method == "PATCH":
+            return [IsAuthenticated(), IsReportOrgMember(),CanEditReportComment()]
+        return [IsAuthenticated(), IsReportOrgMember()]
+
     @swagger_auto_schema(
         operation_description="Get a single report comment. Requester must be an organization member.",
         responses={
@@ -465,5 +476,44 @@ class ReportCommentDetailView(generics.GenericAPIView):
             organisation_id=organisation_id,
             is_deleted=False,
         )
+
+        return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_description=(
+            "Update a report comment. Only organisation members who authored the comment can update it."
+        ),
+        request_body=ReportCommentUpdateSerializer,
+        responses={
+            200: ReportCommentReadSerializer,
+            400: openapi.Response(description="Validation error"),
+            401: openapi.Response(description="Authentication required"),
+            403: openapi.Response(description="Not an organisation member or not the comment author"),
+            404: openapi.Response(description="Report or Comment not found"),
+        },
+        tags=["Report Comments"],
+    )
+    def patch(self, request, report_id, comment_id):
+        organisation_id = request.auth.get("organisation_id")
+        comment = get_object_or_404(
+            ReportComment.objects.select_related(
+                "report",
+                "parent",
+                "membership",
+                "membership__user",
+            ),
+            id=comment_id,
+            report_id=report_id,
+            organisation_id=organisation_id,
+            is_deleted=False,
+        )
+        serializer = ReportCommentUpdateSerializer(
+            comment,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)

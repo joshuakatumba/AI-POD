@@ -406,3 +406,22 @@ class ReportCommentCreateSerializer(serializers.ModelSerializer):
             }
         )
         return attrs
+
+
+class ReportCommentUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportComment
+        fields = ["content"]
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        if self.instance and self.instance.created_by_id != request.user.id:
+            raise PermissionDenied("You must be the author of this report comment to edit it")
+
+        content = attrs.get("content")
+        if content is not None and not content.strip():
+            raise serializers.ValidationError({
+                "content": "Content cannot be blank."
+            })
+
+        return attrs

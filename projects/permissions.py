@@ -1,4 +1,4 @@
-from projects.models import Project, Report
+from projects.models import Project, Report, ReportComment
 from rest_framework.permissions import BasePermission
 
 from organizations.models import Membership
@@ -109,3 +109,17 @@ class IsReportOrgMember(BasePermission):
             user=user,
             organization_id=organization_id,
         ).exists()
+
+
+class CanEditReportComment(BasePermission):
+    message = "You must be the author of this report comment to edit it"
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(user and user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in ("PATCH", "PUT"):
+            return getattr(obj, "created_by_id", None) == request.user.id
+
+        return True
