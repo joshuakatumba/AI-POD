@@ -518,5 +518,6 @@ class ReportCommentDetailView(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        queue_report_comment_translation(comment)
 
         return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)

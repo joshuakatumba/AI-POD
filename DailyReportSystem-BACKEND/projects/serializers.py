@@ -19,7 +19,6 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.SerializerMethodField()
     owner_email = serializers.SerializerMethodField()
-    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -55,16 +54,6 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 
     def get_owner_email(self, obj):
         return getattr(getattr(obj.owner, "user", None), "email", None)
-    
-    def get_translations(self, obj):
-        from translation.models import Translation
-
-        qs = Translation.objects.filter(
-            scope="project",
-            scope_id=obj.id,
-        )
-
-        return TranslationReadSerializer(qs, many=True).data
 
     def validate(self, attrs):
         request = self.context.get("request")
@@ -299,6 +288,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
         )
 
         return TranslationReadSerializer(qs, many=True).data
+
 
 class ReportUpdateSerializer(serializers.ModelSerializer):
     class Meta:
