@@ -137,4 +137,6 @@ TRANSLATION_SCOPE_CHOICES = [
     ("project", _("Project")),
     ("task", _("Task")),
     ("report", _("Report")),
+    ("task_comment", _("Task Comment")),
+    ("report_comment", _("Report Comment")),
 ]

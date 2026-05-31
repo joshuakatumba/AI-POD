@@ -200,3 +200,16 @@ class TestGetReportComment(MockAuthMixin, APITestCase):
             response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_response_contains_expected_fields(self):
+        self.client.force_authenticate(self.member_user)
+        with self.mock_auth(self.member_auth):
+            response = self.client.get(self.list_url)
+
+        task_data = response.data[0]
+        expected_fields = {
+            "id", "reference", "modified_at", "is_deleted_by_email", "report", "is_deleted",
+            "content", "membership", "is_deleted_reason", "is_deleted_at", "translations",
+            "parent", "replies", "created_by", "organisation", "created_at"
+        }
+        self.assertEqual(set(task_data.keys()), expected_fields)

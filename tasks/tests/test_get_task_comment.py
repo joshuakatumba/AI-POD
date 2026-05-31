@@ -194,3 +194,15 @@ class TaskCommentReadAPITests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_response_contains_expected_fields(self):
+        self.authenticate(self.member_user)
+        response = self.client.get(self.list_url)
+
+        task_data = response.data[0]
+        expected_fields = {
+            "id", "reference", "modified_at", "is_deleted_by_email", "task", "is_deleted",
+            "content", "membership", "is_deleted_reason", "is_deleted_at", "translations",
+            "created_by", "organisation", "created_at"
+        }
+        self.assertEqual(set(task_data.keys()), expected_fields)

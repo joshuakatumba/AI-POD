@@ -12,7 +12,9 @@ from sysadmin.models import AIWorkflow
 SCOPE_MODEL_FIELD = (
     "project",
     "task",
-    "report"
+    "report",
+    "task_comment",
+    "report_comment"
 )
 
 

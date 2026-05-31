@@ -147,7 +147,8 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             created_by=request.user,
             reported_by=reported_by,
         )
-    
+
+
 class TaskUpdateSerializer(serializers.ModelSerializer):
     expected_hours = serializers.FloatField(min_value=0.01,required=False)
     assigned_to = serializers.PrimaryKeyRelatedField(
@@ -212,6 +213,7 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
 class TaskCommentReadSerializer(serializers.ModelSerializer):
     task = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
+    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = TaskComment
@@ -222,6 +224,7 @@ class TaskCommentReadSerializer(serializers.ModelSerializer):
             "content",
             "organisation",
             "membership",
+            "translations",
             "is_deleted",
             "is_deleted_at",
             "is_deleted_by_email",
@@ -246,6 +249,16 @@ class TaskCommentReadSerializer(serializers.ModelSerializer):
             "reference": project_member.reference,
             "display_name": getattr(member, "display_name", None),
         }
+    
+    def get_translations(self, obj):
+        from translation.models import Translation
+
+        qs = Translation.objects.filter(
+            scope="task_comment",
+            scope_id=obj.id,
+        )
+
+        return TranslationReadSerializer(qs, many=True).data
 
 
 class TaskCommentCreateSerializer(serializers.ModelSerializer):
@@ -283,6 +296,7 @@ class TaskCommentCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
        return TaskComment.objects.create(**validated_data)
         # TODO: enqueue async comment translations using celery.
+
 
 class TaskCommentUpdateSerializer(serializers.ModelSerializer):
     class Meta:

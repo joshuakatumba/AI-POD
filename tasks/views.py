@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from tasks.filters import TaskFilterSet
-from tasks.helpers import queue_task_translation
+from tasks.helpers import queue_task_comment_translation, queue_task_translation
 from tasks.models import Task, TaskComment, TaskAttachment
 from projects.models import Project
 from tasks.pagination import TaskPagination
@@ -432,6 +432,8 @@ class TaskCommentsView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
 
+        queue_task_comment_translation(comment)
+
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_201_CREATED)
 
 
@@ -479,7 +481,8 @@ class TaskCommentDetailView(generics.GenericAPIView):
             context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        comment = serializer.save()
+        queue_task_comment_translation(comment)
 
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
 

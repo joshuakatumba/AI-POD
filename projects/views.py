@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from projects.helpers import queue_project_translation
+from projects.helpers import queue_project_translation, queue_report_comment_translation
 from projects.models import Project, Report, ReportComment
 from projects.pagination import ProjectPagination
 from rest_framework.permissions import IsAuthenticated
@@ -196,6 +196,7 @@ class ProjectDetailApiView(generics.GenericAPIView):
             status=status.HTTP_200_OK,
         )
 
+
 class ReportsApiView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ReportDetailSerializer
@@ -276,6 +277,7 @@ class ReportsApiView(generics.GenericAPIView):
         page = paginator.paginate_queryset(queryset, request)
         serializer = self.get_serializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
+
 
 class ReportDetailApiView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -436,6 +438,7 @@ class ReportCommentsView(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
+        queue_report_comment_translation(comment)
 
         return Response(
             ReportCommentReadSerializer(comment).data,
@@ -515,5 +518,6 @@ class ReportCommentDetailView(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        queue_report_comment_translation(comment)
 
         return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)

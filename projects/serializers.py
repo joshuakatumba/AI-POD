@@ -19,7 +19,6 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.SerializerMethodField()
     owner_email = serializers.SerializerMethodField()
-    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -29,7 +28,6 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "status",
-            "translations",
             "start_date",
             "end_date",
             "is_active",
@@ -56,16 +54,6 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 
     def get_owner_email(self, obj):
         return getattr(getattr(obj.owner, "user", None), "email", None)
-    
-    def get_translations(self, obj):
-        from translation.models import Translation
-
-        qs = Translation.objects.filter(
-            scope="project",
-            scope_id=obj.id,
-        )
-
-        return TranslationReadSerializer(qs, many=True).data
 
     def validate(self, attrs):
         request = self.context.get("request")
@@ -122,6 +110,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         )
 
         return project
+
 
 class ProjectReadSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
@@ -202,11 +191,13 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         if start and end and end < start:
             raise serializers.ValidationError({"end_date": "End date must be after start date."})
         return attrs
-    
+
+
 class OrganisationMinimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ["id", "name"]
+
 
 class MembershipMinimalSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
@@ -215,9 +206,11 @@ class MembershipMinimalSerializer(serializers.ModelSerializer):
         model = Membership
         fields = ["id", "email", "display_name"]
 
+
 class SessionMinimalSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     title = serializers.CharField()
+
 
 class AssigneeSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source="membership.id", read_only=True)
@@ -227,12 +220,14 @@ class AssigneeSerializer(serializers.ModelSerializer):
         model = ProjectMember
         fields = ["id", "display_name"]
 
+
 class TaskMinimalSerializer(serializers.ModelSerializer):
     assignee = AssigneeSerializer(source="assigned_to", read_only=True)
 
     class Meta:
         model = Task
         fields = ["id", "name", "status", "assignee"]
+
 
 class ReportTaskSerializer(serializers.ModelSerializer):
     task = TaskReadSerializer(read_only=True)
@@ -294,6 +289,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
 
         return TranslationReadSerializer(qs, many=True).data
 
+
 class ReportUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
@@ -322,11 +318,13 @@ class ReportInvalidateSerializer(serializers.ModelSerializer):
             "is_deleted",
         ]
 
+
 class ReportCommentReadSerializer(serializers.ModelSerializer):
     report = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
     parent = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
+    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = ReportComment
@@ -338,6 +336,7 @@ class ReportCommentReadSerializer(serializers.ModelSerializer):
             "content",
             "organisation",
             "membership",
+            "translations",
             "replies",
             "is_deleted",
             "is_deleted_at",
@@ -365,13 +364,23 @@ class ReportCommentReadSerializer(serializers.ModelSerializer):
             "display_name": obj.membership.display_name,  
             "email": obj.membership.user.email  
         } 
+    
+    def get_translations(self, obj):
+        from translation.models import Translation
+
+        qs = Translation.objects.filter(
+            scope="report_comment",
+            scope_id=obj.id,
+        )
+
+        return TranslationReadSerializer(qs, many=True).data
+
 
     def get_replies(self, obj):
         if obj.parent is not None:
             return []
         qs = obj.replies.filter(is_deleted=False).order_by("created_at")
         return ReportCommentReadSerializer(qs, many=True).data
-
 
 
 class ReportCommentCreateSerializer(serializers.ModelSerializer):

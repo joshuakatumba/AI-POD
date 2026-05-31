@@ -7,10 +7,13 @@ from django.core.exceptions import ObjectDoesNotExist
 
 logger = logging.getLogger(__name__)
 
+# app_label, model_name, scope
 ENTITY_MODEL_MAP = {
     "project": ("projects", "Project", "project"),
     "task": ("tasks", "Task", "task"),
+    "task_comment": ("tasks", "TaskComment", "task_comment"),
     "report": ("projects", "Report", "report"),
+    "report_comment": ("projects", "ReportComment", "report_comment"),
 }
 
 @shared_task(
