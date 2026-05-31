@@ -22,62 +22,60 @@ ENTITY_MODEL_MAP = {
 )
 def trigger_translation_task(
     self,
-    entity_type,
-    entity_id,
+    scope,
+    scope_id,
     target_languages,
     field_names,
 ):
     try:
-        app_label, model_name, scope = ENTITY_MODEL_MAP[entity_type]
+        app_label, model_name, scope = ENTITY_MODEL_MAP[scope]
     except KeyError:
         logger.error(
             "Unsupported entity type received",
             extra={
-                "entity_type": entity_type,
-                "entity_id": entity_id,
+                "scope": scope,
+                "scope_id": scope_id,
             },
         )
-        raise ValueError(f"Unsupported entity type: {entity_type}")
+        raise ValueError(f"Unsupported entity type: {scope}")
 
     entity_model = apps.get_model(app_label, model_name)
 
     try:
-        entity = entity_model.objects.get(id=entity_id)
+        entity = entity_model.objects.get(id=scope_id)
     except ObjectDoesNotExist:
         logger.warning(
             "Entity not found for translation task",
             extra={
-                "entity_type": entity_type,
-                "entity_id": entity_id,
+                "scope": scope,
+                "scope_id": scope_id,
                 "model": f"{app_label}.{model_name}",
             },
         )
 
         return {
             "status": "not_found",
-            "entity_type": entity_type,
-            "entity_id": entity_id,
             "scope": scope,
+            "scope_id": scope_id,
         }
 
     logger.info(
         "Translation task started",
         extra={
-            "entity_type": entity_type,
-            "entity_id": entity_id,
+            "scope": scope,
+            "scope_id": scope_id,
             "target_languages": target_languages,
             "field_names": field_names,
         },
     )
 
-    objects = trigger_translation(entity, target_languages, field_names)
+    objects = trigger_translation(entity, target_languages, field_names, scope)
     persist_translations(scope, objects)
 
     return {
         "status": "success",
-        "entity_type": entity_type,
-        "entity_id": entity_id,
         "scope": scope,
+        "scope_id": scope_id,
         "target_languages_count": len(target_languages),
         "fields_translated": field_names,
         "translations_created": len(objects) if objects else 0,

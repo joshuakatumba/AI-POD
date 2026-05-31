@@ -5,13 +5,12 @@ from translation.models import Translation
 class TranslationAdmin(admin.ModelAdmin):
 	list_display = (
 		"reference",
+		"scope",
 		"field_name",
-		"project",
-		"task",
 		"source_language",
 		"target_language",
 		"created_at",
 	)
-	list_filter = ("source_language", "target_language", "project", "task")
+	list_filter = ("source_language", "target_language")
 	ordering = ("-created_at",)
 	readonly_fields = ("id", "reference", "created_at", "modified_at")

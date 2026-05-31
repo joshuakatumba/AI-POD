@@ -12,8 +12,8 @@ def queue_project_translation(project):
 
     transaction.on_commit(
         lambda: trigger_translation_task.delay(
-            entity_type="project",
-            entity_id=project.id,
+            scope="project",
+            scope_id=project.id,
             target_languages=target_languages,
             field_names=field_names,
         )
@@ -28,8 +28,8 @@ def queue_report_translation(report):
 
     transaction.on_commit(
         lambda: trigger_translation_task.delay(
-            entity_type="report",
-            entity_id=report.id,
+            scope="report",
+            scope_id=report.id,
             target_languages=target_languages,
             field_names=field_names,
         )

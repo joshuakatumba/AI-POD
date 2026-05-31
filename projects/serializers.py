@@ -19,7 +19,7 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.SerializerMethodField()
     owner_email = serializers.SerializerMethodField()
-    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
+    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -56,6 +56,16 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 
     def get_owner_email(self, obj):
         return getattr(getattr(obj.owner, "user", None), "email", None)
+    
+    def get_translations(self, obj):
+        from translation.models import Translation
+
+        qs = Translation.objects.filter(
+            scope="project",
+            scope_id=obj.id,
+        )
+
+        return TranslationReadSerializer(qs, many=True).data
 
     def validate(self, attrs):
         request = self.context.get("request")
@@ -117,7 +127,7 @@ class ProjectReadSerializer(serializers.ModelSerializer):
     owner_id = serializers.UUIDField(source="owner.id", read_only=True)
     owner_name = serializers.CharField(source="owner.display_name", read_only=True)
     owner_email = serializers.EmailField(source="owner.user.email", read_only=True)
-    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
+    translations = serializers.SerializerMethodField()
 
     members = ProjectMemberReadSerializer(
         many=True,
@@ -143,6 +153,16 @@ class ProjectReadSerializer(serializers.ModelSerializer):
             "owner_name",
             "owner_email",
         ]
+
+    def get_translations(self, obj):
+        from translation.models import Translation
+
+        qs = Translation.objects.filter(
+            scope="project",
+            scope_id=obj.id,
+        )
+
+        return TranslationReadSerializer(qs, many=True).data
 
 
 class ProjectDetailsSerializer(ProjectReadSerializer):
@@ -239,7 +259,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     membership = MembershipMinimalSerializer(read_only=True)
     organisation = OrganisationMinimalSerializer(read_only=True)
     report_tasks = ReportTaskSerializer(many=True, read_only=True, source="session.session_tasks")
-    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
+    translations = serializers.SerializerMethodField()
 
     class Meta:
         model = Report
@@ -263,6 +283,16 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "id": str(obj.project.id),
             "name": obj.project.name,
         }
+    
+    def get_translations(self, obj):
+        from translation.models import Translation
+
+        qs = Translation.objects.filter(
+            scope="report",
+            scope_id=obj.id,
+        )
+
+        return TranslationReadSerializer(qs, many=True).data
 
 class ReportUpdateSerializer(serializers.ModelSerializer):
     class Meta:

@@ -16,7 +16,7 @@ class TaskReadSerializer(serializers.ModelSerializer):
     project = serializers.SerializerMethodField()
     assigned_to = serializers.SerializerMethodField()
     reported_by = serializers.SerializerMethodField()
-    translations = TranslationReadSerializer(many=True, read_only=True, source="translation_set")
+    translations = serializers.SerializerMethodField()
     attachments = serializers.SerializerMethodField()
 
     class Meta:
@@ -50,6 +50,16 @@ class TaskReadSerializer(serializers.ModelSerializer):
                 "description": getattr(obj.project, "description", None),
             }
         return None
+    
+    def get_translations(self, obj):
+        from translation.models import Translation
+
+        qs = Translation.objects.filter(
+            scope="task",
+            scope_id=obj.id,
+        )
+
+        return TranslationReadSerializer(qs, many=True).data
 
     def get_assigned_to(self, obj):
         if obj.assigned_to and getattr(obj.assigned_to, "membership", None):

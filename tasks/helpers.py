@@ -12,8 +12,8 @@ def queue_task_translation(task):
 
     transaction.on_commit(
         lambda: trigger_translation_task.delay(
-            entity_type="task",
-            entity_id=task.id,
+            scope="task",
+            scope_id=task.id,
             target_languages=target_languages,
             field_names=field_names,
         )

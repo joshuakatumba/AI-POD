@@ -102,12 +102,13 @@ def test_build_translation_objects(task, user):
          patch("translation.services.uuid.uuid5"):
 
         result = services.build_translation_objects(
+            "task",
             task,
             [item],
             created_by=user,
         )
 
-    assert result[0].task == task
+    assert result[0].scope_id == task.id
     assert result[0].created_by == user
 
 
@@ -144,10 +145,11 @@ def test_trigger_translation_service_layer(
             entity=task,
             target_languages=["fr"],
             field_names=["name"],
+            scope="task",
         )
 
     assert len(result) == 1
-    assert result[0].task == task
+    assert result[0].scope_id == task.id
 
 
 # -----------------------
@@ -172,8 +174,8 @@ def test_trigger_translation_task_success(
     mock_trigger_translation.return_value = ["obj1", "obj2"]
 
     result = trigger_translation_task(
-        entity_type="task",
-        entity_id=1,
+        scope="task",
+        scope_id=1,
         target_languages=["fr"],
         field_names=["name"],
     )
@@ -195,8 +197,8 @@ def test_trigger_translation_task_not_found(mock_get_model):
     mock_get_model.return_value = mock_model
 
     result = trigger_translation_task(
-        entity_type="task",
-        entity_id=999,
+        scope="task",
+        scope_id=999,
         target_languages=["fr"],
         field_names=["name"],
     )

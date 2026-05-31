@@ -40,6 +40,7 @@ class TranslationModelTests(TestCase):
             owner=self.membership,
             created_by=self.user,
         )
+
         self.project_2 = Project.objects.create(
             name="Project Two",
             organization=self.organization,
@@ -55,6 +56,7 @@ class TranslationModelTests(TestCase):
             status="active",
             created_by=self.user,
         )
+
         self.project_member_2 = ProjectMember.objects.create(
             project=self.project_2,
             organisation=self.organization,
@@ -72,6 +74,7 @@ class TranslationModelTests(TestCase):
             expected_hours=Decimal("2.0"),
             created_by=self.user,
         )
+
         self.task_2 = Task.objects.create(
             name="Task Two",
             organisation=self.organization,
@@ -81,10 +84,13 @@ class TranslationModelTests(TestCase):
             created_by=self.user,
         )
 
+    # -------------------------
+    # Payload helpers (NEW SCHEMA)
+    # -------------------------
     def _project_payload(self, **overrides):
         data = {
-            "project": self.project_1,
-            "task": None,
+            "scope": "project",
+            "scope_id": self.project_1.id,
             "field_name": "name",
             "source_language": "en",
             "target_language": "ja",
@@ -98,8 +104,8 @@ class TranslationModelTests(TestCase):
 
     def _task_payload(self, **overrides):
         data = {
-            "project": None,
-            "task": self.task_1,
+            "scope": "task",
+            "scope_id": self.task_1.id,
             "field_name": "name",
             "source_language": "en",
             "target_language": "ja",
@@ -111,77 +117,75 @@ class TranslationModelTests(TestCase):
         data.update(overrides)
         return data
 
-    # create translation
-    def test_create_translation_with_project_only(self):
+    # -------------------------
+    # Create translation tests
+    # -------------------------
+    def test_create_translation_with_project_scope(self):
         translation = Translation.objects.create(
             **self._project_payload(field_name="description")
         )
 
         self.assertIsNotNone(translation.id)
-        self.assertEqual(translation.project, self.project_1)
-        self.assertIsNone(translation.task)
+        self.assertEqual(translation.scope, "project")
+        self.assertEqual(translation.scope_id, self.project_1.id)
         self.assertEqual(translation.field_name, "description")
 
-    def test_create_translation_with_task_only(self):
+    def test_create_translation_with_task_scope(self):
         translation = Translation.objects.create(
             **self._task_payload(field_name="summary")
         )
 
-        self.assertEqual(translation.task, self.task_1)
-        self.assertIsNone(translation.project)
+        self.assertEqual(translation.scope, "task")
+        self.assertEqual(translation.scope_id, self.task_1.id)
 
-    def test_create_translation_with_both_project_and_task_null_fails(self):
-        translation = Translation(**self._project_payload(project=None, task=None))
-
-        with self.assertRaises(ValidationError):
-            translation.full_clean()
-
-        with self.assertRaises(IntegrityError):
-            Translation.objects.create(**self._project_payload(project=None, task=None))
-
-    def test_create_translation_with_both_project_and_task_set_fails(self):
-        translation = Translation(**self._task_payload(project=self.project_1, task=self.task_1))
+    # -------------------------
+    # Invalid scope tests
+    # -------------------------
+    def test_create_translation_with_missing_scope_fails(self):
+        translation = Translation(
+            **self._project_payload(scope=None, scope_id=None)
+        )
 
         with self.assertRaises(ValidationError):
             translation.full_clean()
 
-        with self.assertRaises(IntegrityError):
-            Translation.objects.create(**self._task_payload(project=self.project_1, task=self.task_1))
+    def test_create_translation_with_invalid_scope_value_fails(self):
+        translation = Translation(
+            **self._project_payload(scope="invalid_scope")
+        )
 
-    # reference generation
+        with self.assertRaises(ValidationError):
+            translation.full_clean()
+
+    # -------------------------
+    # Reference generation
+    # -------------------------
     def test_reference_auto_generated(self):
-        translation = Translation.objects.create(**self._project_payload())
+        translation = Translation.objects.create(
+            **self._project_payload()
+        )
 
         self.assertIsNotNone(translation.reference)
         self.assertTrue(translation.reference.startswith("TRN"))
 
-    # language choice validation
+    # -------------------------
+    # Language validation
+    # -------------------------
     def test_invalid_language_choice_fails(self):
         translation = Translation(**self._project_payload(source_language="xx"))
 
         with self.assertRaises(ValidationError):
             translation.full_clean()
 
-    # unique(project, field_name, target_language)
-    def test_unique_constraint_project_field_target_language(self):
+    # -------------------------
+    # Unique constraint (NEW SYSTEM)
+    # -------------------------
+    def test_unique_constraint_scope_field_target_language(self):
         Translation.objects.create(**self._project_payload())
 
         with self.assertRaises(IntegrityError):
             Translation.objects.create(
                 **self._project_payload(
-                    original_text="Where you are going",
-                    translated_text="どこへ行きますか？",
-                    intended_text="Where are you going?",
-                )
-            )
-
-    # unique(task, field_name, target_language)
-    def test_unique_constraint_task_field_target_language(self):
-        Translation.objects.create(**self._task_payload())
-
-        with self.assertRaises(IntegrityError):
-            Translation.objects.create(
-                **self._task_payload(
                     original_text="Where you are going",
                     translated_text="どこへ行きますか？",
                     intended_text="Where are you going?",

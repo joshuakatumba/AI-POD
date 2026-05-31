@@ -9,11 +9,11 @@ from orchestrator.core import TranslationAgentRunner
 from sysadmin.models import AIWorkflow
 
 
-SCOPE_MODEL_FIELD = {
-    "project": "project",
-    "task": "task",
-    "report": "report",
-}
+SCOPE_MODEL_FIELD = (
+    "project",
+    "task",
+    "report"
+)
 
 
 def extract_entity_fields(entity, field_names: list[str]) -> dict:
@@ -27,14 +27,17 @@ def extract_entity_fields(entity, field_names: list[str]) -> dict:
     }
 
 
-def build_translation_objects(entity, translations: list, created_by=None) -> list[Translation]:
+def build_translation_objects(scope, entity, translations: list, created_by=None) -> list[Translation]:
     """
     Convert agent output into Translation model instances.
     """
-    entity_field = entity._meta.model_name
+    if scope not in SCOPE_MODEL_FIELD:
+        raise ValueError(f"Invalid scope: {scope}")
+    
     return [
         Translation(**{
-            entity_field: entity,
+            "scope": scope,
+            "scope_id": entity.id,
             "field_name": item.field_name,
             "target_language": item.target_language,
             "source_language": item.source_language,
@@ -54,22 +57,22 @@ def build_translation_objects(entity, translations: list, created_by=None) -> li
     ]
 
 
-def bulk_upsert_translations(objects: list[Translation], scope: str):
+def bulk_upsert_translations(objects: list[Translation]):
     """
-    Insert or update translations in bulk.
+    Insert or update translations in bulk using polymorphic scope system.
     """
     if not objects:
         return
 
-    if scope not in SCOPE_MODEL_FIELD:
-        raise ValueError(f"Invalid scope: {scope}")
-
-    unique_field = SCOPE_MODEL_FIELD[scope]
-
     Translation.objects.bulk_create(
         objects,
         update_conflicts=True,
-        unique_fields=[unique_field, "field_name", "target_language"],
+        unique_fields=[
+            "scope",
+            "scope_id",
+            "field_name",
+            "target_language",
+        ],
         update_fields=[
             "source_language",
             "original_text",
@@ -79,11 +82,11 @@ def bulk_upsert_translations(objects: list[Translation], scope: str):
     )
 
 
-def trigger_translation(entity, target_languages: list[str], field_names: list[str]) -> list[Translation]:
+def trigger_translation(entity, target_languages: list[str], field_names: list[str], scope: str) -> list[Translation]:
     """
     Run translation workflow and return Translation objects (not persisted).
     """
-    workflow = AIWorkflow.objects.get(category="translation")
+    workflow = AIWorkflow.objects.get(category="translation", is_active=True)
     agent_runner = TranslationAgentRunner(workflow=workflow)
 
     input_data = {
@@ -95,6 +98,7 @@ def trigger_translation(entity, target_languages: list[str], field_names: list[s
     translations = result.output or []
 
     return build_translation_objects(
+        scope=scope,
         entity=entity,
         translations=translations,
         created_by=getattr(entity, "created_by", None),
@@ -105,4 +109,4 @@ def persist_translations(scope: str, objects: list[Translation]):
     """
     Persist translation objects with conflict resolution.
     """
-    bulk_upsert_translations(objects, scope)
+    bulk_upsert_translations(objects)

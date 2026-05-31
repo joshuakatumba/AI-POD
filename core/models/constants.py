@@ -132,3 +132,9 @@ NOTIFICATION_SCOPE_CHOICES = [
     ("organization", _("Organization")),
     ("all_users", _("All Users")),
 ]
+
+TRANSLATION_SCOPE_CHOICES = [
+    ("project", _("Project")),
+    ("task", _("Task")),
+    ("report", _("Report")),
+]
