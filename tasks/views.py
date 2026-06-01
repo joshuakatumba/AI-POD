@@ -50,7 +50,11 @@ class AllTasksView(generics.GenericAPIView):
                 "organisation",
                 "project",
                 "reported_by",
+                "reported_by__membership",
+                "reported_by__membership__user",
                 "assigned_to",
+                "assigned_to__membership",
+                "assigned_to__membership__user",
                 "created_by",
             )
             .prefetch_related(
@@ -137,7 +141,11 @@ class TasksView(generics.GenericAPIView):
             "organisation",
             "project",
             "reported_by",
+            "reported_by__membership",
+            "reported_by__membership__user",
             "assigned_to",
+            "assigned_to__membership",
+            "assigned_to__membership__user",
             "created_by",
         ).prefetch_related(
             Prefetch(

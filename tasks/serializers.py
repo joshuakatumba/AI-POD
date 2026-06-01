@@ -65,7 +65,8 @@ class TaskReadSerializer(serializers.ModelSerializer):
         if obj.assigned_to and getattr(obj.assigned_to, "membership", None):
             return {
                 "id": obj.assigned_to.id,
-                "name": obj.assigned_to.membership.display_name
+                "name": obj.assigned_to.membership.display_name,
+                "email": obj.assigned_to.membership.user.email,
             }
         return None
 
@@ -73,7 +74,8 @@ class TaskReadSerializer(serializers.ModelSerializer):
         if obj.reported_by and getattr(obj.reported_by, "membership", None):
             return {
                 "id": obj.reported_by.id,
-                "name": obj.reported_by.membership.display_name
+                "name": obj.reported_by.membership.display_name,
+                "email": obj.reported_by.membership.user.email,
             }
         return None
 

@@ -261,3 +261,19 @@ class TaskListViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["name"], "Match")
+
+    def test_assigned_to_contains_email(self):
+        self._create_task(assigned_to=self.project_member)
+        self.authenticate(self.user)
+        response = self.client.get(self.url)
+        assigned_to = response.data[0]["assigned_to"]
+        self.assertIn("email", assigned_to)
+        self.assertEqual(assigned_to["email"], self.user.email)
+
+    def test_reported_by_contains_email(self):
+        self._create_task()
+        self.authenticate(self.user)
+        response = self.client.get(self.url)
+        reported_by = response.data[0]["reported_by"]
+        self.assertIn("email", reported_by)
+        self.assertEqual(reported_by["email"], self.user.email)
