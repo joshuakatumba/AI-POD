@@ -379,7 +379,7 @@ class ReportCommentReadSerializer(serializers.ModelSerializer):
     def get_replies(self, obj):
         if obj.parent is not None:
             return []
-        qs = obj.replies.filter(is_deleted=False).order_by("created_at")
+        qs = obj.replies.order_by("created_at")
         return ReportCommentReadSerializer(qs, many=True).data
 
 

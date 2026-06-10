@@ -116,10 +116,75 @@ class CanEditReportComment(BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return bool(user and user.is_authenticated)
+        if not user or not user.is_authenticated:
+            return False
+
+        if request.method not in ("PATCH", "PUT"):
+            return True
+
+        auth = getattr(request, "auth", {}) or {}
+        organisation_id = auth.get("organisation_id")
+        report_id = view.kwargs.get("report_id")
+        comment_id = view.kwargs.get("comment_id")
+
+        if not organisation_id or not report_id or not comment_id:
+            return False
+
+        # Let the view return 404 when the comment does not exist in scope.
+        comment = ReportComment.objects.filter(
+            id=comment_id,
+            report_id=report_id,
+            organisation_id=organisation_id,
+            is_deleted=False,
+        ).first()
+        if comment is None:
+            return True
+
+        return getattr(comment, "created_by_id", None) == request.user.id
 
     def has_object_permission(self, request, view, obj):
-        if request.method in ("PATCH", "PUT"):
-            return getattr(obj, "created_by_id", None) == request.user.id
-
         return True
+
+
+class CanDeleteReportComment(BasePermission):
+    message = "Only the comment author or an organisation admin can delete this report comment."
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+
+        if request.method != "DELETE":
+            return True
+
+        if user.is_superuser:
+            return True
+
+        auth = getattr(request, "auth", {}) or {}
+        organisation_id = auth.get("organisation_id")
+        membership_id = auth.get("membership_id")
+        report_id = view.kwargs.get("report_id")
+        comment_id = view.kwargs.get("comment_id")
+
+        if not organisation_id or not membership_id or not report_id or not comment_id:
+            return False
+
+        is_org_admin = Membership.objects.filter(
+            id=membership_id,
+            user=user,
+            organization_id=organisation_id,
+            role="admin",
+        ).exists()
+        if is_org_admin:
+            return True
+
+        comment = ReportComment.objects.filter(
+            id=comment_id,
+            report_id=report_id,
+            organisation_id=organisation_id,
+            is_deleted=False,
+        ).first()
+        if comment is None:
+            return True
+
+        return getattr(comment, "created_by_id", None) == request.user.id
