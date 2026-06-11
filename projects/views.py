@@ -2,7 +2,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from projects.helpers import queue_project_translation, queue_report_comment_translation
 from projects.models import Project, Report, ReportComment
-from projects.pagination import ProjectPagination
+from projects.pagination import ProjectPagination, ReportPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import generics, status
@@ -201,7 +201,7 @@ class ProjectDetailApiView(generics.GenericAPIView):
 class ReportsApiView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ReportDetailSerializer
-    pagination_class = ProjectPagination
+    pagination_class = ReportPagination
 
     def get_queryset(self):
         auth = self.request.auth or {}

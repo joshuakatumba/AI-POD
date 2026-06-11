@@ -390,18 +390,24 @@ class TestListReports(MockAuthMixin, APITestCase):
         self.assertIn("month", response.data)
 
     def test_list_reports_pagination(self):
-        """GET should paginate reports with default page_size=10."""
+        """GET should return all reports when no page_size is provided."""
         for _ in range(15):
             self.create_report()
 
         response = self.get_reports(auth=self.admin_auth)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Without page_size, all reports are returned as a plain list
+        self.assertEqual(len(response.data["results"]), 15)
+
+        # With explicit page_size, pagination is applied
+        response = self.get_reports(auth=self.admin_auth, params={"page_size": 10})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 10)
         self.assertEqual(response.data["count"], 15)
         self.assertIsNotNone(response.data["next"])
         self.assertIsNone(response.data["previous"])
 
-        response = self.get_reports(auth=self.admin_auth, params={"page": 2})
+        response = self.get_reports(auth=self.admin_auth, params={"page_size": 10, "page": 2})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 5)
         self.assertIsNone(response.data["next"])
