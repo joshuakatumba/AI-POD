@@ -36,6 +36,7 @@ class Task(CommonField):
         related_name="assigned_tasks",
     )
     closed_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "tasks"
@@ -56,6 +57,11 @@ class Task(CommonField):
             self.closed_at = timezone.now()
         elif self.status != "closed":
             self.closed_at = None
+
+        if self.status == "cancelled" and not self.cancelled_at:
+            self.cancelled_at = timezone.now()
+        elif self.status != "cancelled":
+            self.cancelled_at = None
 
         super().save(*args, **kwargs)
 

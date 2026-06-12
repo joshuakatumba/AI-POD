@@ -166,7 +166,7 @@ class TaskListViewTests(APITestCase):
         expected_fields = {
             "id", "reference", "name", "description", "due_date", "category",
             "expected_hours", "status", "organisation", "project", "priority",
-            "assigned_to", "reported_by", "created_by", "created_at", "closed_at", "translations", "attachments",
+            "assigned_to", "reported_by", "created_by", "created_at", "closed_at", "cancelled_at", "translations", "attachments",
         }
         self.assertEqual(set(task_data.keys()), expected_fields)
 

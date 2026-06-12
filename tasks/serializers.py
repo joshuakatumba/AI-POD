@@ -40,6 +40,7 @@ class TaskReadSerializer(serializers.ModelSerializer):
             "created_by",
             "created_at",
             "closed_at",
+            "cancelled_at",
         ]
 
     def get_project(self, obj):
@@ -204,8 +205,6 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         
     @transaction.atomic
     def update(self, instance, validated_data):
-        if validated_data.get("status") == "cancelled" and not instance.cancelled_at:
-            instance.cancelled_at = timezone.now()
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

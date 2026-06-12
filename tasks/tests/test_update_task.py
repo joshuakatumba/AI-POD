@@ -253,6 +253,40 @@ class TaskPatchAPITests(APITestCase):
         self.task.refresh_from_db()
         self.assertIsNone(self.task.closed_at)
 
+    def test_patch_status_to_cancelled_sets_cancelled_at(self):
+        self.authenticate(self.creator_user)
+
+        response = self.client.patch(
+            self.url,
+            {"status": "cancelled"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.task.refresh_from_db()
+        self.assertEqual(self.task.status, "cancelled")
+        self.assertIsNotNone(self.task.cancelled_at)
+        self.assertIsNotNone(response.data["cancelled_at"])
+
+    def test_patch_status_from_cancelled_resets_cancelled_at(self):
+        self.task.status = "cancelled"
+        self.task.cancelled_at = timezone.now()
+        self.task.save()
+
+        self.authenticate(self.creator_user)
+
+        response = self.client.patch(
+            self.url,
+            {"status": "backlog"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.task.refresh_from_db()
+        self.assertIsNone(self.task.cancelled_at)
+
     def test_patch_invalid_status_rejected(self):
         self.authenticate(self.creator_user)
 
