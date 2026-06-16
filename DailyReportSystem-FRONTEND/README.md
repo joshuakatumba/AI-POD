@@ -137,3 +137,5 @@ For other platforms or Docker-based deployments, a production-ready multi-stage 
 * This repository is designed to scale from **solo development to full teams**.
 * CI/CD, monitoring (Sentry), and production Docker builds can be added as needed.
 # AI-POD-Front-end
+
+# YOU MUST SEE ME MAN
