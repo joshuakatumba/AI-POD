@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Hello World! — SES Test{% endblock %}
+
+{% block content %}
+  <h1 style="margin:0 0 16px;color:#1f2937;font-size:22px;font-weight:700;">Hello World!</h1>
+  <p style="margin:0 0 16px;color:#4b5563;font-size:15px;line-height:1.6;">
+    This is a test email to verify that the AWS SES integration is working correctly.
+  </p>
+  <p style="margin:0;color:#4b5563;font-size:15px;line-height:1.6;">
+    If you received this, the connection to SES is live.
+  </p>
+{% endblock %}

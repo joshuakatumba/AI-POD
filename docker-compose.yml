@@ -1,0 +1,99 @@
+# docker-compose.yml
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: postgres
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    container_name: backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DEBUG=0
+      - PYTHONPATH=/usr/src/app
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    command: >
+      gunicorn core.asgi:application
+      -k uvicorn.workers.UvicornWorker
+      --bind 0.0.0.0:8000
+      --reload
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DEBUG=0
+      - PYTHONPATH=/usr/src/app
+      - REDIS_URL=redis://redis:6379/0
+    command: celery -A core worker -l info
+    restart: always
+
+  flower:
+    build: .
+    container_name: flower
+    depends_on:
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    command: celery -A core flower --port=5555
+    ports:
+      - "5555:5555"
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:

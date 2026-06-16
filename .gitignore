@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.cov
+.coverage
+db.sqlite3
+
+# Django static & media
+staticfiles/
+media/
