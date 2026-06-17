@@ -123,6 +123,65 @@ class ChatApiTests(MockAuthMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("organisation", response.data)
 
+    def test_create_requirements_session_without_task_ids_succeeds(self):
+        self.authenticate()
+
+        payload = {
+            "project_id": str(self.project.id),
+            "workflow_id": str(self.workflow.id),
+            "task_ids": [],
+            "session_type": "requirements",
+        }
+
+        with self.mock_auth(self._auth_payload()):
+            response = self.client.post(self.sessions_url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        session = Session.objects.get(id=response.data["id"])
+        self.assertEqual(session.session_type, "requirements")
+        self.assertEqual(ReportTask.objects.filter(session=session).count(), 0)
+
+    def test_create_report_session_without_task_ids_fails(self):
+        self.authenticate()
+
+        payload = {
+            "project_id": str(self.project.id),
+            "workflow_id": str(self.workflow.id),
+            "task_ids": [],
+            "session_type": "report_generation",
+        }
+
+        with self.mock_auth(self._auth_payload()):
+            response = self.client.post(self.sessions_url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("task_ids", response.data)
+
+    def test_list_sessions_filtered_by_session_type(self):
+        self.authenticate()
+
+        with self.mock_auth(self._auth_payload()):
+            self.client.post(self.sessions_url, {
+                "project_id": str(self.project.id),
+                "workflow_id": str(self.workflow.id),
+                "task_ids": [str(self.task.id)],
+                "session_type": "report_generation",
+            }, format="json")
+            self.client.post(self.sessions_url, {
+                "project_id": str(self.project.id),
+                "workflow_id": str(self.workflow.id),
+                "task_ids": [],
+                "session_type": "requirements",
+            }, format="json")
+
+        with self.mock_auth(self._auth_payload()):
+            response = self.client.get(f"{self.sessions_url}?session_type=requirements")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        session = Session.objects.get(id=response.data[0]["id"])
+        self.assertEqual(session.session_type, "requirements")
+
     def test_stream_rejects_invalid_payload(self):
         self.authenticate()
 

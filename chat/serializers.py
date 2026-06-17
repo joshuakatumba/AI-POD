@@ -13,13 +13,14 @@ class CreateSessionSerializer(serializers.Serializer):
     """The 'Input' Schema for creating a session"""
     project_id = serializers.UUIDField()
     workflow_id = serializers.UUIDField()
-    
-    # The list of Tasks the AI will focus on
+
+    # task_ids required for report sessions; optional (empty list ok) for requirements sessions
     task_ids = serializers.ListField(
-        child=serializers.UUIDField(), 
-        min_length=1
+        child=serializers.UUIDField(),
+        required=False,
+        default=list,
     )
-    
+
     session_type = serializers.CharField(default="report_generation")
 
     def validate(self, attrs):
@@ -52,6 +53,11 @@ class CreateSessionSerializer(serializers.Serializer):
         except Membership.DoesNotExist:
             raise ValidationError({"membership": "Invalid membership."})
 
+        # Report sessions must have at least one task
+        session_type = attrs.get("session_type", "report_generation")
+        if session_type != "requirements" and not attrs.get("task_ids"):
+            raise ValidationError({"task_ids": "At least one task is required for this session type."})
+
         attrs["organisation"] = organisation
         attrs["membership"] = membership
         attrs["created_by"] = request.user
@@ -60,14 +66,14 @@ class CreateSessionSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         # 1. Extract validated data
-        user = self.context['request'].user
         project_id = validated_data['project_id']
         workflow_id = validated_data['workflow_id']
-        task_ids = validated_data['task_ids']
+        task_ids = validated_data.get('task_ids', [])
+        session_type = validated_data.get('session_type', 'report_generation')
         organisation = validated_data['organisation']
         created_by = validated_data['created_by']
         membership = validated_data['membership']
-        
+
         # Fetch actual instances (standard practice)
         project = get_object_or_404(Project, id=project_id)
         workflow = get_object_or_404(AIWorkflow, id=workflow_id)
@@ -79,23 +85,24 @@ class CreateSessionSerializer(serializers.Serializer):
             membership=membership,
             project=project,
             workflow=workflow,
-            session_type=validated_data.get('session_type', 'report_gen'),
+            session_type=session_type,
             status='ingesting',
             title=f"Inspection: {project.name}"
         )
 
-        # 3. Attach the Tasks the engineer is working on
-        tasks = Task.objects.filter(id__in=task_ids)
-        report_tasks = [
-            ReportTask(
-                session=session, 
-                task=task, 
-                organisation=session.organisation,
-                created_by=created_by
-            ) 
-            for task in tasks
-        ]
-        ReportTask.objects.bulk_create(report_tasks)
+        # 3. Attach tasks (only for non-requirements sessions)
+        if task_ids:
+            tasks = Task.objects.filter(id__in=task_ids)
+            report_tasks = [
+                ReportTask(
+                    session=session,
+                    task=task,
+                    organisation=session.organisation,
+                    created_by=created_by
+                )
+                for task in tasks
+            ]
+            ReportTask.objects.bulk_create(report_tasks)
 
         return session
 

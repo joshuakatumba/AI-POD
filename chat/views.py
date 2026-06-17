@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from chat.models import Session, SessionMessage
 from chat.serializers import CreateSessionSerializer, SessionDetailSerializer, SessionMessageCreateSerializer, SessionResponseSerializer
-from orchestrator.core import ReportAgentRunner, EngineeringDeps
+from orchestrator.core import EngineeringDeps, ReportAgentRunner
 from orchestrator.utils import seed_session_ai
 from sysadmin.models import AIWorkflow
 from sysadmin.serializers import AIWorkflowDetailSerializer
@@ -45,6 +45,10 @@ class SessionsApiView(generics.GenericAPIView):
 
         if membership_id:
             queryset = queryset.filter(membership_id=membership_id)
+
+        session_type = self.request.query_params.get("session_type")
+        if session_type:
+            queryset = queryset.filter(session_type=session_type)
 
         # --- Manual Filter: created_at logic ---
         # Note: Mimicking your previous filterset_fields behavior
@@ -187,7 +191,6 @@ class StreamApiView(generics.GenericAPIView):
 
         # 4. Prepare Dependencies
         deps = EngineeringDeps(session=session, user=request.user)
-
         inspector_agent = ReportAgentRunner(workflow=session.workflow)
 
         # 5. Streaming Generator
