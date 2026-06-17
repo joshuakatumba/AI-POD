@@ -31,13 +31,14 @@ class SessionsApiView(generics.GenericAPIView):
         organisation_id = auth.get("organisation_id")
         membership_id = auth.get("membership_id")
         project_id = self.kwargs.get("project_id")
-        user = self.request.user
 
         # Base filtering: organisation, project, ownership, and soft-delete
         queryset = Session.objects.filter(
             organisation_id=organisation_id,
             is_deleted=False, # Standard practice in this style
-        ).order_by("-created_at")
+            final_report__status="draft",
+            final_report__is_deleted=False,
+        )
 
         project_id = self.kwargs.get("project_id") or self.request.query_params.get("project_id")
         if project_id:
@@ -62,6 +63,14 @@ class SessionsApiView(generics.GenericAPIView):
         if created_at_lte:
             queryset = queryset.filter(created_at__lte=created_at_lte)
 
+        report_status = self.request.query_params.get("report_status")
+        if report_status:
+            queryset = queryset.filter(final_report__status=report_status)
+
+        session_type = self.request.query_params.get("session_type")
+        if session_type:
+            queryset = queryset.filter(session_type=session_type)
+
         return queryset
     
     @swagger_auto_schema(
@@ -70,6 +79,8 @@ class SessionsApiView(generics.GenericAPIView):
             openapi.Parameter("project_id", openapi.IN_QUERY, description="Filter sessions from this project", type=openapi.TYPE_STRING),
             openapi.Parameter("created_at__gte", openapi.IN_QUERY, description="Filter sessions from this date (ISO 8601)", type=openapi.TYPE_STRING),
             openapi.Parameter("created_at__lte", openapi.IN_QUERY, description="Filter sessions up to this date (ISO 8601)", type=openapi.TYPE_STRING),
+            openapi.Parameter("report_status", openapi.IN_QUERY, description="Filter sessions by their final report status (e.g. 'draft', 'unfinalized')", type=openapi.TYPE_STRING),
+            openapi.Parameter("session_type", openapi.IN_QUERY, description="Filter sessions by session type (e.g. 'report_generation')", type=openapi.TYPE_STRING),
         ],
         responses={
             200: SessionResponseSerializer(many=True),

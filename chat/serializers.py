@@ -111,7 +111,7 @@ class SessionResponseSerializer(serializers.ModelSerializer):
     """The 'Output' Schema to send back to React"""
     class Meta:
         model = Session
-        fields = ['id', 'reference', 'title', 'status']
+        fields = ['id', 'reference', 'title', 'status', 'modified_at']
 
 
 class SessionMessageDetailSerializer(serializers.ModelSerializer):
