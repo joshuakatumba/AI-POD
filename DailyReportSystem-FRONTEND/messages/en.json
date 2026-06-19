@@ -1697,6 +1697,23 @@
         },
         "deleting": "Marking report as invalid..."
       }
+    },
+    "unfinalizedReport": {
+      "title": "Unfinalized Reports",
+      "subtitle": "Continue working on reports that have not yet been finalized.",
+      "buttons": {
+        "continue": "Continue Editing",
+        "discard": "Discard and Start New",
+        "showMore": "Show {count} more unfinalized {count, plural, one {report} other {reports}}",
+        "showLess": "Show less"
+      },
+      "state": {
+        "loading": "Loading unfinalized reports...",
+        "fetchError": "Unable to load unfinalized reports. Please try again.",
+        "noReport": "No unfinalized reports found.",
+        "reportsFinalized": "All reports have already been finalized."
+      },
+      "lastUpdated": "Last updated"
     }
   },
   "reset-password": {

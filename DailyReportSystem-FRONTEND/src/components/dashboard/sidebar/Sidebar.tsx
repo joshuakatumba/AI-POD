@@ -17,6 +17,7 @@ import { ProjectMemberType } from '@/_types/projectMembers';
 import { organisationMemberResponseType, organisationMemberType } from '@/_types/organisation';
 import { OrganisationMembership } from '@/_types/auth';
 import { useTranslations } from 'next-intl';
+import UnfinalizedReportButton from '@/components/dashboard/sidebar/UnfinalizedReportButton';
 
 const DRAWER_WIDTH = 280;
 const COLLAPSED_WIDTH = 88;
@@ -184,6 +185,10 @@ export default function Sidebar() {
       <NavContainer>
         <NavItems isCollapsed={isCollapsed} isAdminMode={isAdminMode} />
       </NavContainer>
+
+      <Box sx={{ mb: 0 }}>
+        <UnfinalizedReportButton isCollapsed={isCollapsed} />
+      </Box>
 
       {!isAdminMode && (
         <Box sx={{ mt: 'auto' }}>

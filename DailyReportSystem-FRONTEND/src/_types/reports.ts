@@ -123,3 +123,10 @@ export type ReportCommentThreadNode = {
   isDeletedPlaceholder: boolean;
   createdAtMs: number;
 };
+
+export type UnfinalizedReportSessionType = {
+  id: string;
+  report_name: string;
+  project_name: string;
+  updated_at: string;
+}

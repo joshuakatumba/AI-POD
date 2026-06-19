@@ -473,6 +473,7 @@ export default function ReportDetailsPage() {
 
   const tasks: ReportTaskType[] = report.report_tasks;
   const reportMeta = buildReportMeta(report);
+  const isReportOwner = user?.membership === report?.membership?.id;
 
   return (
     <Box sx={{ height: '100%' }}>
@@ -529,7 +530,7 @@ export default function ReportDetailsPage() {
               variant="contained"
               size="small"
               color="error"
-              disabled={isinvalidating}
+              disabled={isinvalidating || !isReportOwner}
               onClick={handleInvalidReport}
               sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, boxShadow: 'none' }}
             >

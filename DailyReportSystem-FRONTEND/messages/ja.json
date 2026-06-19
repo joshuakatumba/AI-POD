@@ -1696,6 +1696,23 @@
           "delete": "無効としてマーク"
         }
       }
+    },
+    "unfinalizedReport": {
+      "title": "未完成のレポート",
+      "subtitle": "まだ最終確定されていないレポートの編集を続けます。",
+      "buttons": {
+        "continue": "編集を続ける",
+        "discard": "破棄して新規作成",
+        "showMore": "未確定のレポートがあと{count}件あります 表示する",
+        "showLess": "表示を減らす"
+      },
+      "state": {
+        "loading": "未完成のレポートを読み込み中...",
+        "fetchError": "未完成のレポートを読み込めませんでした。もう一度お試しください。",
+        "noReport": "未完成のレポートは見つかりませんでした。",
+        "reportsFinalized": "すべてのレポートは既に最終確定されています。"
+      },
+      "lastUpdated": "最終更新"
     }
   },
   "reset-password": {
