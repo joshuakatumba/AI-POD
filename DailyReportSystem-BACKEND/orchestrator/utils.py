@@ -15,7 +15,8 @@ def seed_session_ai(session):
 
     # Get the specific seeder or fall back to a default
     handler = seed_handlers.get(session.session_type)
-    return handler(session)
+    if handler:
+        return handler(session)
 
 # --- Specific Handlers ---
 def _seed_report_generation(session):
