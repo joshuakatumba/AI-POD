@@ -9,3 +9,8 @@ db.sqlite3
 # Django static & media
 staticfiles/
 media/
+
+# Docker
+docker-compose.dev.yml
+docker-compose.production.yml
+docker-compose.staging.yml

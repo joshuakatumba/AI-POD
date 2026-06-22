@@ -11,8 +11,9 @@ services:
       - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - static_volume:/usr/src/app/staticfiles
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,9 +26,9 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: ["redis-server", "--appendonly", "yes"]
+    command: [ "redis-server", "--appendonly", "yes" ]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -49,13 +50,10 @@ services:
     ports:
       - "8000:8000"
     command: >
-      gunicorn core.asgi:application
-      -k uvicorn.workers.UvicornWorker
-      --bind 0.0.0.0:8000
-      --reload
+      gunicorn core.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --reload
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/healthz/" ]
       interval: 30s
       timeout: 5s
       retries: 3
