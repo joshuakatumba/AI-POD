@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box, AppBar, Toolbar, Container,
   styled, alpha, Breadcrumbs, Link, Typography, Stack,
   ContainerProps,
-  keyframes
+  keyframes,
+  IconButton
 } from '@mui/material';
 import {
   NavigateNext as NextIcon,
-  HomeOutlined as HomeIcon
+  HomeOutlined as HomeIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import { usePathname, useRouter } from 'next/navigation';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -42,7 +44,7 @@ const layoutConfig: Record<DashboardMode, LayoutConfig> = {
   default: {
     maxWidth: "xl",
     disableGutters: false,
-    py: { xs: 3, md: 5 },
+    py: { xs: 2, md: 5 },
   },
   chat: {
     maxWidth: false,
@@ -68,6 +70,7 @@ export default function DashboardShell({ children, mode = "default" }: Dashboard
   const pathname = usePathname();
   const router = useRouter();
   const config = layoutConfig[mode];
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const locale = useMemo(() => pathname.split('/')[1], [pathname]);
 
@@ -107,9 +110,13 @@ export default function DashboardShell({ children, mode = "default" }: Dashboard
     });
   }, [pathname, t]);
 
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
   return (
     <MainWrapper>
-      <Sidebar />
+      <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
       <MainContent>
         <AppBar
           position="sticky"
@@ -124,11 +131,22 @@ export default function DashboardShell({ children, mode = "default" }: Dashboard
             zIndex: (theme) => theme.zIndex.drawer - 1,
           }}
         >
-          <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 4 } }}>
-            <Breadcrumbs
-              separator={<NextIcon sx={{ fontSize: 16, color: 'text.disabled' }} />}
-              aria-label="breadcrumb"
-            >
+          <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 1, sm: 2, md: 4 } }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 1, display: { md: 'none' } }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Breadcrumbs
+                separator={<NextIcon sx={{ fontSize: 16, color: 'text.disabled' }} />}
+                aria-label="breadcrumb"
+                sx={{ display: { xs: 'none', sm: 'block' } }}
+              >
               <Link
                 underline="hover"
                 onClick={() => router.push(`/${locale}/dashboard`)}
@@ -162,6 +180,7 @@ export default function DashboardShell({ children, mode = "default" }: Dashboard
                 )
               ))}
             </Breadcrumbs>
+            </Stack>
 
             <Stack direction="row" spacing={0} alignItems="center">
               <LanguageToggle />

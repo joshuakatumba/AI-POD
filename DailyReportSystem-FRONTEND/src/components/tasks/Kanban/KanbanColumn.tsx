@@ -23,8 +23,8 @@ export default function KanbanColumn({
     <Box
       ref={setNodeRef}
       sx={{
-        minWidth: 320,
-        width: 320,
+        minWidth: { xs: 280, sm: 320 },
+        width: { xs: 280, sm: 320 },
         flexShrink: 0,
         display: "flex",
         flexDirection: "column",

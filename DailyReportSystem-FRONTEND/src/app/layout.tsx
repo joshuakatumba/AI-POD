@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { NextIntlClientProvider } from 'next-intl';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import Providers from './providers';
 import { UserProvider } from './_contexts/AuthContext';
 import { ToastProvider } from './_providers/ToastProvider';
@@ -29,13 +30,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ToastProvider>
-          <UserProvider>
-            <Providers>
-              <NextIntlClientProvider>{children}</NextIntlClientProvider>
-            </Providers>
-          </UserProvider>
-        </ToastProvider>
+        <AppRouterCacheProvider>
+          <ToastProvider>
+            <UserProvider>
+              <Providers>
+                <NextIntlClientProvider>{children}</NextIntlClientProvider>
+              </Providers>
+            </UserProvider>
+          </ToastProvider>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

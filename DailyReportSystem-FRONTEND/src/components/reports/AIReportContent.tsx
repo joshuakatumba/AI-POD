@@ -57,8 +57,8 @@ export function AIReportContent({
         py={2}
         sx={{ borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}
       >
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <Typography variant="subtitle1" fontWeight={800} sx={{ letterSpacing: '-0.3px' }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="subtitle1" fontWeight={800} sx={{ letterSpacing: '-0.3px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {t('reportTitles.daily')}
           </Typography>
           <Chip
@@ -68,7 +68,7 @@ export function AIReportContent({
             variant="outlined"
             sx={{ fontWeight: 700, fontSize: 11, borderRadius: 1.5, height: 20 }}
           />
-          <Typography variant="caption" color="text.disabled" sx={{ fontSize: 11 }}>
+          <Typography variant="caption" color="text.disabled" sx={{ fontSize: 11, wordBreak: 'break-all' }}>
             {reportId}
           </Typography>
         </Stack>

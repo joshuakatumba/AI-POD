@@ -110,7 +110,7 @@ export default function ChatInterface({ sessionId, originalMessages, modelName }
   return (
     <Box
       sx={{
-        height: '100vh',
+        height: { xs: '100dvh', md: '100vh' },
         width: '100%',
         display: 'flex',
         flexDirection: 'column',

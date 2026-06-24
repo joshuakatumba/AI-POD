@@ -480,7 +480,7 @@ export default function ReportDetailsPage() {
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={3}
-        sx={{ height: '93vh', p: 2 }}
+        sx={{ height: { xs: 'auto', md: '93vh' }, minHeight: { xs: '93vh', md: 'auto' }, p: 2 }}
       >
         {/* Generated Report Area - Left column */}
         <Paper
