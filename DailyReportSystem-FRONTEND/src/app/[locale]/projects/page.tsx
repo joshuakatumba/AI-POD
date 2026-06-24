@@ -289,7 +289,9 @@ export default function ProjectsPage() {
             borderRadius: 2.5,
             textTransform: 'none',
             fontWeight: 600,
-            px: 3,
+            px: { xs: 2, sm: 3 },
+            py: { xs: 0.8, sm: 1 },
+            fontSize: { xs: '0.8rem', sm: '0.875rem' },
             boxShadow: 0,
           }}
           onClick={openCreate}

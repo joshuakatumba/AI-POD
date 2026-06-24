@@ -228,7 +228,7 @@ export default function ProjectDetailsPage() {
       <Stack
         direction={{ xs: 'column', lg: 'row' }}
         spacing={3}
-        sx={{ width: '100%', display: 'flex', alignItems: 'stretch', flexDirection: 'row' }}
+        sx={{ width: '100%', alignItems: 'stretch' }}
       >
         {/* LEFT COLUMN: Project Overview & Actions */}
         <Stack spacing={3} sx={{ flex: 1, width: '100%' }}>

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import dayjs, { Dayjs, locale } from 'dayjs';
-import { Box, Typography, Stack, IconButton, alpha, Button, Collapse, Popover, Divider } from '@mui/material';
-import { MenuOpen as SidebarIcon, ChevronLeft, ChevronRight, Close as CloseIcon } from '@mui/icons-material';
+import { Box, Typography, Stack, IconButton, alpha, Button, Collapse, Popover, Divider, Drawer, Fab } from '@mui/material';
+import { MenuOpen as SidebarIcon, ChevronLeft, ChevronRight, Close as CloseIcon, Menu as MenuIcon } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { getProjectsAPI } from '@/app/[locale]/projects/index';
@@ -139,26 +139,58 @@ export default function ReportsCalendar() {
     router.push(`/${locale}/reports/${reportId}`);
   };
 
+  const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        {/* SIDEBAR */}
-        <Collapse orientation="horizontal" in={isSidebarOpen} sx={{ zIndex: 1, flexShrink: 0 }}>
+        {/* DESKTOP SIDEBAR */}
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <Collapse orientation="horizontal" in={isSidebarOpen} sx={{ zIndex: 1, flexShrink: 0 }}>
+            <ReportSideBar
+              projects={projects}
+              selectedProjectId={selectedProjectId}
+              onProjectSelect={setSelectedProjectId}
+              selectedMemberEmail={selectedMemberEmail}
+              onMemberSelect={setSelectedMemberEmail}
+            />
+          </Collapse>
+        </Box>
+
+        {/* MOBILE SIDEBAR DRAWER */}
+        <Drawer
+          variant="temporary"
+          open={isMobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+          ModalProps={{
+            keepMounted: true,
+          }}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 320 },
+          }}
+        >
           <ReportSideBar
             projects={projects}
             selectedProjectId={selectedProjectId}
-            onProjectSelect={setSelectedProjectId}
+            onProjectSelect={(id) => {
+              setSelectedProjectId(id);
+              setMobileSidebarOpen(false);
+            }}
             selectedMemberEmail={selectedMemberEmail}
-            onMemberSelect={setSelectedMemberEmail}
+            onMemberSelect={(email) => {
+              setSelectedMemberEmail(email);
+              setMobileSidebarOpen(false);
+            }}
           />
-        </Collapse>
+        </Drawer>
 
         {/* MAIN CALENDAR */}
         <Box
           sx={{
             flexGrow: 1,
             display: 'flex',
-            Width: '100%',
+            width: '100%',
             minWidth: 0,
             flexDirection: 'column',
             height: '100%',
@@ -173,7 +205,10 @@ export default function ReportsCalendar() {
             sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider' }}
           >
             <Stack direction="row" alignItems="center" spacing={1}>
-              <IconButton onClick={() => setSidebarOpen(!isSidebarOpen)}>
+              <IconButton
+                onClick={() => setSidebarOpen(!isSidebarOpen)}
+                sx={{ display: { xs: 'none', md: 'flex' } }}
+              >
                 <SidebarIcon />
               </IconButton>
               <Typography variant="h6" sx={{ minWidth: 150 }}>
@@ -208,9 +243,10 @@ export default function ReportsCalendar() {
             sx={{
               flexGrow: 1,
               display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
+              gridTemplateColumns: { xs: 'repeat(7, minmax(60px, 1fr))', md: 'repeat(7, 1fr)' },
               height: '100%',
-              overflow: 'hidden',
+              overflowX: 'auto',
+              overflowY: 'hidden',
               border: '1px solid',
               borderColor: 'divider',
             }}
@@ -440,6 +476,22 @@ export default function ReportsCalendar() {
             </Box>
           )}
         </Popover>
+        {/* MOBILE SIDEBAR FAB */}
+        <Fab
+          color="primary"
+          size="medium"
+          onClick={() => setMobileSidebarOpen(!isMobileSidebarOpen)}
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            display: { xs: 'flex', md: 'none' },
+            zIndex: 1000,
+            boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+          }}
+        >
+          <MenuIcon />
+        </Fab>
       </LocalizationProvider>
     </Box>
   );

@@ -38,19 +38,24 @@ interface NavItemConfig {
   children?: NavItemConfig[];
 }
 
-const NavEntry = ({ item, isCollapsed, depth = 0 }: { item: NavItemConfig; isCollapsed: boolean; depth?: number }) => {
+const NavEntry = ({ item, isCollapsed, depth = 0, onMobileClose }: { item: NavItemConfig; isCollapsed: boolean; depth?: number; onMobileClose?: () => void }) => {
   const t = useTranslations('dashboard.NavItems');
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const hasChildren = Boolean(item.children && item.children.length > 0);
-  const isActive = item.href ? pathname.startsWith(item.href) : false;
+  const locale = pathname.split('/')[1];
+  const itemFullPath = `/${locale}${item.href}`;
+  const isActive = item.href ? pathname === itemFullPath || pathname.startsWith(`${itemFullPath}/`) : false;
   const label = t(item.labelKey);
 
   const handleClick = () => {
     if (hasChildren && !isCollapsed) setOpen(!open);
-    else if (item.href) router.push(`/${pathname.split('/')[1]}${item.href}`);
+    else if (item.href) {
+      router.push(`/${pathname.split('/')[1]}${item.href}`);
+      if (onMobileClose) onMobileClose();
+    }
   };
 
   const content = (
@@ -113,7 +118,7 @@ const NavEntry = ({ item, isCollapsed, depth = 0 }: { item: NavItemConfig; isCol
         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {item.children!.map((child) => (
-              <NavEntry key={child.key} item={child} isCollapsed={isCollapsed} depth={depth + 1} />
+              <NavEntry key={child.key} item={child} isCollapsed={isCollapsed} depth={depth + 1} onMobileClose={onMobileClose} />
             ))}
           </List>
         </Collapse>
@@ -122,7 +127,7 @@ const NavEntry = ({ item, isCollapsed, depth = 0 }: { item: NavItemConfig; isCol
   );
 };
 
-export default function NavItems({ isCollapsed, isAdminMode }: { isCollapsed: boolean; isAdminMode: boolean; }) {
+export default function NavItems({ isCollapsed, isAdminMode, onMobileClose }: { isCollapsed: boolean; isAdminMode: boolean; onMobileClose?: () => void }) {
   const menuConfig: NavItemConfig[] = useMemo(() => {
     if (isAdminMode) {
       return [
@@ -193,7 +198,7 @@ export default function NavItems({ isCollapsed, isAdminMode }: { isCollapsed: bo
   return (
     <Box component="nav" sx={{ p: 1 }}>
       <List disablePadding>
-        {menuConfig.map((item) => <NavEntry key={item.key} item={item} isCollapsed={isCollapsed} />)}
+        {menuConfig.map((item) => <NavEntry key={item.key} item={item} isCollapsed={isCollapsed} onMobileClose={onMobileClose} />)}
       </List>
     </Box>
   );

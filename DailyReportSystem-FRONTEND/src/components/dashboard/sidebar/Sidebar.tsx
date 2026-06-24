@@ -56,7 +56,12 @@ const NavContainer = styled(Box)({
   '&:hover::-webkit-scrollbar-thumb': { backgroundColor: 'rgba(0,0,0,0.1)' },
 });
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const t = useTranslations('dashboard.switcher'); 
   const [isCollapsed, setIsCollapsed] = useState(() => getSidebarCollapseFromCookie() ?? false);
   const { user, memberships } = useAuth()
@@ -71,9 +76,8 @@ export default function Sidebar() {
     (membership: OrganisationMembership) => membership.is_current);
   const userCanChat = !isAdminMode && !!currentUserMembership;
 
-  return (
-    <StyledDrawer variant="permanent" open={!isCollapsed}>
-
+  const drawerContent = (
+    <>
       {/* --- Sidebar Header Area --- */}
       <Box
         sx={{
@@ -125,14 +129,12 @@ export default function Sidebar() {
           </Typography>
         </Stack>
 
-        {/* If collapsed, maybe show just the Logo as the toggle trigger, 
-            or keep the IconButton as you have it */}
         <IconButton
           onClick={() => setIsCollapsed(!isCollapsed)}
           size="small"
           sx={{
+            display: { xs: 'none', md: 'inline-flex' }, // Hide collapse toggle on mobile
             bgcolor: isCollapsed ? 'transparent' : alpha('#000', 0.02),
-            // Use the function syntax to access theme colors safely
             '&:hover': {
               bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08)
             }
@@ -144,11 +146,10 @@ export default function Sidebar() {
 
       <Box sx={{ p: 0.5 }}>
         {isAdminMode ? (
-          // Optional: A non-interactive "Global" header to keep the layout stable
           <Box sx={{ p: isCollapsed ? 0.5 : 1 }}>
             <Box
               sx={{
-                height: 48, // Match the height of your Org Switcher
+                height: 48,
                 display: 'flex',
                 alignItems: 'center',
                 px: isCollapsed ? 0 : 2,
@@ -160,8 +161,6 @@ export default function Sidebar() {
               }}
             >
               <Avatar variant="rounded" sx={{ width: 24, height: 24, fontSize: 12 }}><AdminPanelSettings /></Avatar>
-
-              {/* <AdminPanelSettings sx={{ color: 'secondary.main' }} /> */}
               {!isCollapsed && (
                 <Typography variant="subtitle2" sx={{ ml: 1.5, fontWeight: 700, p: isCollapsed ? 0.5 : 1, }}>
                   {t('systemAdmin')}
@@ -183,7 +182,7 @@ export default function Sidebar() {
       <Divider sx={{ mx: isCollapsed ? 1 : 2, my: 1, opacity: 0.6 }} />
 
       <NavContainer>
-        <NavItems isCollapsed={isCollapsed} isAdminMode={isAdminMode} />
+        <NavItems isCollapsed={isCollapsed} isAdminMode={isAdminMode} onMobileClose={onMobileClose} />
       </NavContainer>
 
       <Box sx={{ mb: 0 }}>
@@ -200,6 +199,48 @@ export default function Sidebar() {
         <Divider sx={{ mx: isCollapsed ? 1 : 2, my: 1, opacity: 0.6 }} />
         <UserSection isCollapsed={isCollapsed} />
       </Box>
-    </StyledDrawer>
+    </>
   );
+
+  return (
+    <Box component="nav" sx={{ width: { md: isCollapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH }, flexShrink: { md: 0 } }}>
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box', 
+            width: DRAWER_WIDTH,
+            background: (theme) => theme.palette.mode === 'light' ? '#ffffff' : alpha(theme.palette.background.default, 0.8),
+            backdropFilter: 'blur(10px)',
+          },
+        }}
+      >
+        {/* We force isCollapsed to false for the mobile drawer's copy of drawerContent */}
+        <MobileContentOverride setCollapsed={setIsCollapsed}>
+          {drawerContent}
+        </MobileContentOverride>
+      </Drawer>
+      
+      {/* Desktop Drawer */}
+      <StyledDrawer variant="permanent" open={!isCollapsed} sx={{ display: { xs: 'none', md: 'block' } }}>
+        {drawerContent}
+      </StyledDrawer>
+    </Box>
+  );
+}
+
+// Helper component to force isCollapsed=false while rendering inside the mobile drawer
+function MobileContentOverride({ children, setCollapsed }: { children: React.ReactNode, setCollapsed: any }) {
+  useEffect(() => {
+    // Ensuring that if someone opens mobile drawer, it doesn't stay collapsed.
+    setCollapsed(false);
+  }, [setCollapsed]);
+  return <>{children}</>;
 }

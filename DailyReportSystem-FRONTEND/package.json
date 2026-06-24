@@ -11,7 +11,7 @@
     "format:fix": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm lint",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"
@@ -21,11 +21,13 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
+    "@mui/material-nextjs": "^9.1.1",
     "@mui/x-charts": "^8.27.4",
     "@mui/x-date-pickers": "^8.27.2",
     "date-fns": "^4.1.0",
@@ -72,6 +74,14 @@
     "*.{ts,tsx,js,jsx}": [
       "next eslint --fix",
       "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@swc/core",
+      "sharp",
+      "unrs-resolver"
     ]
   }
 }

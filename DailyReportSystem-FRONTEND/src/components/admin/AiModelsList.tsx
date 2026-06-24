@@ -140,7 +140,7 @@ export default function AiModelsList({
   return (
     <Box sx={{ width: '100%' }}>
       {/* Section Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-end" mb={4}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'flex-end' }} spacing={2} mb={4}>
         <Box>
           <Typography variant="h5" fontWeight={900} sx={{ letterSpacing: '-1px' }}>
             {t('title')}

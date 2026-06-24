@@ -20,7 +20,11 @@ import { getProjectsAPI } from "@/app/[locale]/projects";
 import { useAuth } from "@/app/_contexts/AuthContext";
 
 
-export default function projectSidebar() {
+interface ProjectSidebarProps {
+  onMobileClose?: () => void;
+}
+
+export default function projectSidebar({ onMobileClose }: ProjectSidebarProps = {}) {
   const t = useTranslations('projects.sidebar');
   const { user } = useAuth();
   const router = useRouter()
@@ -93,7 +97,7 @@ export default function projectSidebar() {
     <Box
       sx={{
         minHeight: `calc(100vh - 64px)`,
-        width: 320,
+        width: { xs: '100%', md: 320 },
         display: "flex",
         flexDirection: "column",
         borderRight: (theme) => `1px solid ${theme.palette.divider}`,
@@ -181,11 +185,12 @@ export default function projectSidebar() {
                           },
                         }}
                         selected={isActive}
-                        onClick={() =>
+                        onClick={() => {
                           router.push(
                             `/${pathname.split("/")[1]}/projects/${project.id}/${item.path}`
-                          )
-                        }
+                          );
+                          if (onMobileClose) onMobileClose();
+                        }}
                       >
                         <ListItemText
                           primary={item.label}

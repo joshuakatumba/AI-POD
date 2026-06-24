@@ -828,6 +828,9 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
           <Tabs
             value={tabIndex}
             onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{ px: 2, borderBottom: '1px solid', borderColor: 'divider' }}
           >
             {[

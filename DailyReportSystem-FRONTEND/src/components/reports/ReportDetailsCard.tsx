@@ -39,7 +39,7 @@ export function ReportDetailsCard({ report }: ReportDetailsCardProps) {
               variant="caption"
               fontWeight={700}
               color="text.primary"
-              sx={{ fontSize: 12 }}
+              sx={{ fontSize: 12, wordBreak: 'break-word', textAlign: 'right', pl: 2 }}
             >
               {row.value}
             </Typography>
