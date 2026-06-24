@@ -14,3 +14,6 @@ media/
 docker-compose.dev.yml
 docker-compose.production.yml
 docker-compose.staging.yml
+.env.dev
+.env.production
+.env.staging
