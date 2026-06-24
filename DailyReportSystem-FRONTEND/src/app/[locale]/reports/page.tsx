@@ -89,10 +89,10 @@ export default function ReportsCalendar() {
     try {
       const data = await getReportsAPI({ project: projectId, month: month });
 
-      const translatedReports = data.map((report) => 
+      const translatedReports = data.map((report) =>
         applyTranslations(
           report,
-          (report as any).translations || [], 
+          (report as any).translations || [],
           selectedLanguage
         )
       );
@@ -134,7 +134,7 @@ export default function ReportsCalendar() {
         report.membership?.email?.toLowerCase().trim() ===
         selectedMemberEmail.toLowerCase().trim()
     )
-  : reports;
+    : reports;
   const handleViewReportDetails = (reportId: string) => {
     router.push(`/${locale}/reports/${reportId}`);
   };
@@ -175,10 +175,12 @@ export default function ReportsCalendar() {
             selectedProjectId={selectedProjectId}
             onProjectSelect={(id) => {
               setSelectedProjectId(id);
+              setMobileSidebarOpen(false);
             }}
             selectedMemberEmail={selectedMemberEmail}
             onMemberSelect={(email) => {
               setSelectedMemberEmail(email);
+              setMobileSidebarOpen(false);
             }}
           />
         </Drawer>
