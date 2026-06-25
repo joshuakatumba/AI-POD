@@ -57,7 +57,6 @@ export default function ReportSideBar({
   const fetchMembers = async (projectId: string) => {
     try {
       setLoading((prev) => ({ ...prev, members: true }));
-
       const project = await getProjectByIdAPI(projectId);
       setMembers(project.members ?? []);
     } catch (error) {
@@ -75,7 +74,7 @@ export default function ReportSideBar({
   const visibleMembers = members.slice(0, memberLimit);
 
   return (
-    <Box sx={{ display: 'flex', height: '92vh', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       <Box
         sx={{
           width: 280,
@@ -88,12 +87,13 @@ export default function ReportSideBar({
           overflow: 'hidden',
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        {/* Calendar — pinned at top, never scrolls away */}
+        <Box sx={{ flexShrink: 0 }}>
           <DateCalendar
             value={selectedDate}
             onChange={(val) => val && setSelectedDate(val)}
             sx={{ width: '100%', height: 'auto' }}
-            showDaysOutsideCurrentMonth 
+            showDaysOutsideCurrentMonth
             fixedWeekNumber={6}
           />
           {/* Search */}
@@ -115,34 +115,27 @@ export default function ReportSideBar({
                 '& fieldset': { border: '1px solid', borderColor: 'divider' },
               },
             }}
-            sx={{ p: 1.5 }}
+            sx={{ px: 1.5, pb: 1.5 }}
           />
         </Box>
 
+        {/* ── Scrollable region: projects + members ── */}
         <Box
           sx={{
-            p: 1.5,
+            px: 1.5,
+            pb: 2,
             flexGrow: 1,
+            minHeight: 0,
+            overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            minHeight: 0,
-            overflow: 'hidden',
           }}
         >
           {/* Projects */}
           <Typography variant="overline" fontWeight={700} color="text.secondary">
             {t('myProjects')}
           </Typography>
-          <Stack
-            spacing={0.5}
-            mt={1}
-            sx={{
-              flexShrink: 0,
-              maxHeight: '35%',
-              overflowY: 'auto',
-              mb: 1,
-            }}
-          >
+          <Stack spacing={0.5} mt={1} mb={1}>
             {visibleProjects.map((project) => {
               const isSelected = selectedProjectId === project.id;
               return (
@@ -161,9 +154,7 @@ export default function ReportSideBar({
                     transition: '0.2s',
                   }}
                 >
-                  <Box
-                    sx={{ color: isSelected ? 'primary.main' : 'text.disabled', display: 'flex' }}
-                  >
+                  <Box sx={{ color: isSelected ? 'primary.main' : 'text.disabled', display: 'flex' }}>
                     {isSelected ? (
                       <CheckBoxIcon sx={{ fontSize: 18 }} />
                     ) : (
@@ -201,25 +192,21 @@ export default function ReportSideBar({
               </Button>
             )}
           </Stack>
+
           {/* Members */}
           {members.length > 0 && (
             <>
-              <Typography variant="overline" fontWeight={700} color="text.secondary">
+              <Typography
+                variant="overline"
+                fontWeight={700}
+                color="text.secondary"
+                sx={{ mt: 1 }}
+              >
                 {t('member')}
               </Typography>
-              <Stack
-                spacing={1.5}
-                mt={1}
-                mb={2}
-                sx={{
-                  flex: '1 1 0',
-                  minHeight: 0,
-                  overflowY: 'auto',
-                }}
-              >
+              <Stack spacing={1.5} mt={1} mb={2}>
                 {visibleMembers.map((member: ProjectMemberType) => {
                   const isSelected = selectedMemberEmail === member.member_email;
-
                   return (
                     <Stack
                       key={member.member_email}
@@ -267,7 +254,6 @@ export default function ReportSideBar({
                         >
                           {member.member_name || member.member_email}
                         </Typography>
-
                         <Typography
                           variant="caption"
                           color="text.secondary"
@@ -306,7 +292,7 @@ export default function ReportSideBar({
                       fontSize: '0.75rem',
                       alignSelf: 'flex-start',
                       color: 'text.secondary',
-                       mt: 0.5
+                      mt: 0.5,
                     }}
                   >
                     {memberLimit >= members.length
