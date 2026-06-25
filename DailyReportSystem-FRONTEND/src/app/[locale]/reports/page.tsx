@@ -175,12 +175,10 @@ export default function ReportsCalendar() {
             selectedProjectId={selectedProjectId}
             onProjectSelect={(id) => {
               setSelectedProjectId(id);
-              setMobileSidebarOpen(false);
             }}
             selectedMemberEmail={selectedMemberEmail}
             onMemberSelect={(email) => {
               setSelectedMemberEmail(email);
-              setMobileSidebarOpen(false);
             }}
           />
         </Drawer>
