@@ -1,5 +1,6 @@
 services:
   app:
+    entrypoint: ["sh", "/usr/src/app/entrypoint.sh"]
     command: >
       gunicorn --chdir /usr/src/app core.asgi:application
       -k uvicorn.workers.UvicornWorker
@@ -15,6 +16,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
 
   celery_worker:
+    entrypoint: ["sh", "/usr/src/app/entrypoint.sh"]
     command: celery -A core worker -l info
     volumes:
       - ./:/usr/src/app
@@ -24,6 +26,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
 
   flower:
+    entrypoint: ["sh", "/usr/src/app/entrypoint.sh"]
     command: celery -A core flower --port=5555
     volumes:
       - ./:/usr/src/app

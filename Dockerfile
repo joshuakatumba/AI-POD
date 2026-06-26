@@ -28,7 +28,9 @@ RUN mkdir -p /usr/src/app/core/staticfiles \
 # Switch to non-root user
 USER django
 
-ENTRYPOINT ["./entrypoint.sh"]
+RUN chmod +x /usr/src/app/entrypoint.sh
+
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
 
 # Default = ASGI (Uvicorn worker)
 CMD ["gunicorn", "--chdir", "/usr/src/app", "core.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--workers", "4", "--reload"]

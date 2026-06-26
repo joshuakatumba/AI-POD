@@ -1,22 +1,6 @@
 # docker-compose.yml
-
 version: "3.9"
-
 services:
-  db:
-    image: postgres:16
-    container_name: postgres
-    restart: always
-    env_file:
-      - .env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -31,13 +15,10 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
   app:
     build: .
     container_name: backend
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     env_file:
@@ -46,6 +27,8 @@ services:
       - DEBUG=0
       - PYTHONPATH=/usr/src/app
       - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=core.settings.development
+      - RUN_MIGRATIONS=1
     ports:
       - "8000:8000"
     command: >
@@ -59,14 +42,11 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-
   celery_worker:
     build: .
     container_name: celery_worker
     depends_on:
       redis:
-        condition: service_healthy
-      db:
         condition: service_healthy
     env_file:
       - .env
@@ -74,9 +54,9 @@ services:
       - DEBUG=0
       - PYTHONPATH=/usr/src/app
       - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=core.settings.development
     command: celery -A core worker -l info
     restart: always
-
   flower:
     build: .
     container_name: flower
@@ -89,11 +69,10 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=core.settings.development
     command: celery -A core flower --port=5555
     ports:
       - "5555:5555"
     restart: always
-
 volumes:
-  postgres_data:
   redis_data:
