@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.cov
+.coverage
+db.sqlite3
+
+# Django static & media
+staticfiles/
+media/
+
+# Docker
+docker-compose.dev.yml
+docker-compose.production.yml
+docker-compose.staging.yml
