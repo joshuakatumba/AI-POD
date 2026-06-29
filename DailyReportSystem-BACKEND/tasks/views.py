@@ -38,14 +38,19 @@ class AllTasksView(generics.GenericAPIView):
         organisation_id = auth.get("organisation_id")
         user = self.request.user
 
-        visible_project_ids = filter_projects_by_visibility(
+        visible_project_ids = (
             Project.objects.filter(
                 organization_id=organisation_id,
                 is_deleted=False,
                 is_active=True,
-            ),
-            user,
-        ).values_list("id", flat=True)
+            )
+            .filter(
+                Q(visibility="organisation")
+                | Q(visibility="team", members__membership__user__id=user.id)
+            )
+            .distinct()
+            .values_list("id", flat=True)
+        )
 
         attachments_qs = TaskAttachment.objects.filter(is_deleted=False).select_related(
             "membership",
