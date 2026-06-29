@@ -83,11 +83,6 @@ export default function DashboardPage() {
       setTasksLoading(true)
       const data = await getAllTasksAPI({
         assigned_to: user_id,
-<<<<<<< HEAD
-=======
-        reported_by: user_id,
-        high_priority: true,
->>>>>>> origin/jm-commits
         limit: 5,
       });
 

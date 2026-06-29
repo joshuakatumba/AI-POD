@@ -2,7 +2,7 @@ from django.db import transaction
 from translation.tasks import trigger_translation_task
 
 
-def queue_project_translation(project):
+def queue_task_translation(task):
     field_names = [
         "name",
         "description"
@@ -12,30 +12,14 @@ def queue_project_translation(project):
 
     transaction.on_commit(
         lambda: trigger_translation_task.delay(
-            scope="project",
-            scope_id=project.id,
+            scope="task",
+            scope_id=task.id,
             target_languages=target_languages,
             field_names=field_names,
         )
     )
 
-def queue_report_translation(report):
-    field_names = [
-        "generated_text",
-    ]
-
-    target_languages = ["en", "ja"]
-
-    transaction.on_commit(
-        lambda: trigger_translation_task.delay(
-            scope="report",
-            scope_id=report.id,
-            target_languages=target_languages,
-            field_names=field_names,
-        )
-    )
-
-def queue_report_comment_translation(report_comment):
+def queue_task_comment_translation(task_comment):
     field_names = [
         "content",
     ]
@@ -44,8 +28,8 @@ def queue_report_comment_translation(report_comment):
 
     transaction.on_commit(
         lambda: trigger_translation_task.delay(
-            scope="report_comment",
-            scope_id=report_comment.id,
+            scope="task_comment",
+            scope_id=task_comment.id,
             target_languages=target_languages,
             field_names=field_names,
         )

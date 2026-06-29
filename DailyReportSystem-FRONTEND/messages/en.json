@@ -920,16 +920,13 @@
       "allCategories": "All Categories",
       "all": "All",
       "allStatuses": "All Statuses",
-<<<<<<< HEAD
       "allAssignees": "All Assignees",
       "quickFilters": "Quick Filters:",
       "assignedToMe": "Assigned to Me",
       "highPriority": "High Priority",
       "inProgress": "In Progress",
       "clearAll": "Clear All"
-=======
       "allAssignees": "All Assignees"
->>>>>>> origin/jm-commits
     }
   },
   "onboarding": {
@@ -1706,8 +1703,6 @@
         },
         "deleting": "Marking report as invalid..."
       }
-<<<<<<< HEAD
-=======
     },
     "unfinalizedReport": {
       "title": "Unfinalized Reports",
@@ -1725,7 +1720,6 @@
         "reportsFinalized": "All reports have already been finalized."
       },
       "lastUpdated": "Last updated"
->>>>>>> origin/jm-commits
     }
   },
   "reset-password": {

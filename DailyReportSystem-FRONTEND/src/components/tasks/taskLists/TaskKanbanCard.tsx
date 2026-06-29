@@ -9,7 +9,12 @@ import {
   Typography,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-<<<<<<< HEAD
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+
+import { TaskResponseType } from "@/_types/task";
+import { useTranslations } from "next-intl";
+import { getPriorityColor } from "@/components/priorityUtility";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 
@@ -18,19 +23,7 @@ import { useTranslations } from "next-intl";
 import { TaskPriority } from "@/_types/task";
 import { PRIORITY_CONFIG } from "@/utils/priorityUtility";
 import { getDeadlineInfo } from "@/utils/deadlineUtils";
-=======
 
-import { TaskResponseType } from "@/_types/task";
-import { useTranslations } from "next-intl";
-import { TaskCategory, TaskPriority } from "@/_types/task";
-
-const PRIORITY_CONFIG: Record<TaskPriority, { color: string; labelKey: string }> = {
-  low: { color: 'success.main', labelKey: 'form.priority.options.low' },
-  medium: { color: 'info.main', labelKey: 'form.priority.options.medium' },
-  high: { color: 'warning.main', labelKey: 'form.priority.options.high' },
-  critical: { color: 'error.main', labelKey: 'form.priority.options.critical' },
-};
->>>>>>> origin/jm-commits
 
 interface TaskKanbanCardProps {
   task: TaskResponseType;
@@ -50,7 +43,6 @@ export default function TaskKanbanCard({
 
   const t = useTranslations('tasks');
 
-<<<<<<< HEAD
   /* ── ENH-4.1: Priority badge from shared utility ── */
   const priorityStyle = task.priority
     ? PRIORITY_CONFIG[task.priority as TaskPriority]
@@ -58,53 +50,6 @@ export default function TaskKanbanCard({
 
   /* ── ENH-4.2: Live deadline countdown from shared utility ── */
   const deadline = getDeadlineInfo(task.due_date);
-=======
-  const formatDueDate = (date?: string | null) => {
-    if (!date) return "No due date";
-
-    return new Date(date).toLocaleDateString();
-  }
-
-  const getDueDateMeta = (date?: string | null) => {
-    if (!date) {
-      return {
-        label: "No due date",
-        borderColor: "divider",
-      };
-    }
-
-    const today = new Date();
-    const due = new Date(date);
-
-    today.setHours(0, 0, 0, 0);
-    due.setHours(0, 0, 0, 0);
-
-    const diff =
-      (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-
-    if (diff < 0) {
-      return {
-        label: t("kanban.state.overdue"),
-        borderColor: "error.main",
-      };
-    }
-
-    if (diff === 0) {
-      return {
-        label: t("kanban.state.dueToday"),
-        borderColor: "warning.main",
-      };
-    }
-
-    return {
-      label: formatDueDate(date),
-      borderColor: "info.main",
-    };
-  }
-
-  const dueDateMeta = getDueDateMeta(task.due_date);
-  const priorityStyle = task.priority ? PRIORITY_CONFIG[task.priority as TaskPriority] : null;
->>>>>>> origin/jm-commits
 
   return (
     <Card
@@ -166,11 +111,9 @@ export default function TaskKanbanCard({
             {task.name}
           </Typography>
 
-<<<<<<< HEAD
           {/* HOURS + PRIORITY + STATUS */}
-=======
-          {/* HOURS + STATUS */}
->>>>>>> origin/jm-commits
+          {/* HOURS + PRIORITY + STATUS */}
+
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -183,7 +126,7 @@ export default function TaskKanbanCard({
               {task.expected_hours}h
             </Typography>
             <Stack direction="row" spacing={0.75} alignItems="center">
-<<<<<<< HEAD
+              {/* ENH-4.1: Color-coded priority badge */}
               {/* ENH-4.1: Color-coded priority badge */}
               {task.priority && priorityStyle && (
                 <Chip
@@ -191,33 +134,28 @@ export default function TaskKanbanCard({
                   size="small"
                   variant="filled"
                   color={priorityStyle.color as any}
-=======
               {task.priority && priorityStyle && (
                 <Chip
-                  label={t(`create.form.priority.options.${task.priority}`)}
+                  label={t(`create.${priorityStyle.labelKey}`)}
                   size="small"
                   variant="filled"
-                  color={priorityStyle.color.split('.')[0] as any}
->>>>>>> origin/jm-commits
+                  color={priorityStyle.color as any}
+
                   sx={(theme) => ({
                     fontSize: 11,
                     fontWeight: 600,
                     bgcolor: alpha(
-<<<<<<< HEAD
                       theme.palette[priorityStyle.color as "success"].main,
                       0.20
                     ),
                     color:
                       theme.palette[priorityStyle.color as "success"].main,
-=======
-                      theme.palette[priorityStyle.color.split(".")[0] as "success"].main,
+                      theme.palette[priorityStyle.color as "success"].main,
                       0.20
                     ),
                     color:
-                      theme.palette[
-                        priorityStyle.color.split(".")[0] as "success"
-                      ].main,
->>>>>>> origin/jm-commits
+                      theme.palette[priorityStyle.color as "success"].main,
+
                   })}              
                 />
               )}
@@ -233,7 +171,6 @@ export default function TaskKanbanCard({
               />
             </Stack>
           </Stack>
-<<<<<<< HEAD
           {/* ACTIVITY INDICATORS */}
           {((task.comments_count && task.comments_count > 0) || 
             (task.attachments_count && task.attachments_count > 0)) && (
@@ -254,10 +191,7 @@ export default function TaskKanbanCard({
           )}
 
           {/* ASSIGNEE + DEADLINE */}
-=======
 
-          {/* ASSIGNEE + Dude Date */}
->>>>>>> origin/jm-commits
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -295,32 +229,27 @@ export default function TaskKanbanCard({
               </Typography>
             </Stack>
 
-<<<<<<< HEAD
             {/* ENH-4.2: Live deadline countdown */}
             <Stack
               direction="row"
               spacing={0.5}
-=======
+            {/* ENH-4.2: Live deadline countdown */}
             <Stack
               direction="row"
-              spacing={1}
->>>>>>> origin/jm-commits
+              spacing={0.5}
+
               alignItems="center"
             >
               <CalendarTodayIcon
                 sx={{
                   fontSize: 14,
-<<<<<<< HEAD
                   color: deadline.color,
-=======
-                  color: "text.secondary",
->>>>>>> origin/jm-commits
+                  color: deadline.color,
                 }}
               />
 
               <Typography
                 variant="caption"
-<<<<<<< HEAD
                 fontWeight={600}
                 sx={{
                   color: deadline.color,
@@ -334,12 +263,20 @@ export default function TaskKanbanCard({
                 }}
               >
                 {deadline.label}
-=======
-                color="text.secondary"
                 fontWeight={600}
+                sx={{
+                  color: deadline.color,
+                  ...(deadline.isOverdue && {
+                    animation: "pulse 2s ease-in-out infinite",
+                    "@keyframes pulse": {
+                      "0%, 100%": { opacity: 1 },
+                      "50%": { opacity: 0.6 },
+                    },
+                  }),
+                }}
               >
-                {dueDateMeta.label}
->>>>>>> origin/jm-commits
+                {deadline.label}
+
               </Typography>
             </Stack>
           </Stack>

@@ -26,10 +26,9 @@ import {
   SvgIconTypeMap,
 } from '@mui/material';
 import { ArrowUpward, Close as CloseIcon } from '@mui/icons-material';
-<<<<<<< HEAD
 import ReactMarkdown from 'react-markdown';
-=======
->>>>>>> origin/jm-commits
+import ReactMarkdown from 'react-markdown';
+
 import {
   Tag as TagIcon,
   AccountTree as AccountTreeIcon,
@@ -42,10 +41,9 @@ import {
   ShareOutlined as ShareOutlinedIcon,
   Flag as FlagIcon,
   Category as CategoryIcon,
-<<<<<<< HEAD
   DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
-=======
->>>>>>> origin/jm-commits
+  DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
+
 } from '@mui/icons-material';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -65,10 +63,8 @@ interface TaskDetailDrawerProps {
   onClose: () => void;
   task: TaskType | null;
   onEdit: (task: TaskType) => void;
-<<<<<<< HEAD
   onDelete?: (task: TaskType) => void;
-=======
->>>>>>> origin/jm-commits
+  onDelete?: (task: TaskType) => void;
 }
 
 const THREAD_PARENT_PREFIX = '[drs-parent:';
@@ -137,11 +133,9 @@ const sortThreadNodes = (nodes: CommentThreadNode[]): CommentThreadNode[] => {
   return nodes;
 };
 
-<<<<<<< HEAD
 export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete }: TaskDetailDrawerProps) {
-=======
-export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDetailDrawerProps) {
->>>>>>> origin/jm-commits
+export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete }: TaskDetailDrawerProps) {
+
   const { user } = useAuth();
   const t = useTranslations('tasks');
   const pathname = usePathname();
@@ -810,14 +804,12 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
             <IconButton size="small" onClick={() => task && onEdit(task)}>
               <ModeEditOutlineOutlinedIcon fontSize="small" />
             </IconButton>
-<<<<<<< HEAD
             {onDelete && (
               <IconButton size="small" onClick={() => task && onDelete(task)} color="error">
                 <DeleteOutlineOutlinedIcon fontSize="small" />
               </IconButton>
             )}
-=======
->>>>>>> origin/jm-commits
+
             <IconButton size="small">
               <ShareOutlinedIcon fontSize="small" />
             </IconButton>
@@ -852,12 +844,6 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
           <Tabs
             value={tabIndex}
             onChange={handleTabChange}
-<<<<<<< HEAD
-=======
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
->>>>>>> origin/jm-commits
             sx={{ px: 2, borderBottom: '1px solid', borderColor: 'divider' }}
           >
             {[
@@ -875,7 +861,6 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
 
           <Box sx={{ flex: 1, overflowY: 'auto', p: 3, '&::-webkit-scrollbar': { width: 5 } }}>
             {tabIndex === 0 && (
-<<<<<<< HEAD
               <Box
                 sx={{
                   color: 'text.secondary',
@@ -897,15 +882,6 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
                   </Typography>
                 )}
               </Box>
-=======
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}
-              >
-                {task.description ?? t('detailDrawer.descriptionEmpty')}
-              </Typography>
->>>>>>> origin/jm-commits
             )}
 
             {tabIndex === 1 && (
