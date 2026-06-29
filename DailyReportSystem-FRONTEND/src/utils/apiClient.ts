@@ -2,9 +2,10 @@
 
 import { isTokenExpired } from './jwt';
 
-const BASE_URL = typeof window === 'undefined'
-  ? process.env.SERVER_API_URL || 'http://backend:8000'
-  : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const BASE_URL =
+  typeof window === 'undefined'
+    ? process.env.SERVER_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 function getClientToken() {
   if (typeof document === 'undefined') {
