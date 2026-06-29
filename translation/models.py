@@ -1,12 +1,10 @@
 import uuid
 
 from django.db import models
-from django.db.models import Q
+
 from core.models.base import CommonField
 from core.models.constants import LANGUAGE_CHOICES, TRANSLATION_SCOPE_CHOICES
 from core.utils import generate_reference
-from projects.models import Project, Report
-from tasks.models import Task
 
 class Translation(CommonField):
 
