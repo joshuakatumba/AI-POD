@@ -149,20 +149,6 @@ class TestGetReportComment(MockAuthMixin, APITestCase):
         self.assertIn(str(self.comment_2.id), returned_ids)
         self.assertNotIn(str(self.other_report_comment.id), returned_ids)
 
-    def test_list_includes_soft_deleted_comments(self):
-        self.comment_1.is_deleted = True
-        self.comment_1.is_active = False
-        self.comment_1.save(update_fields=["is_deleted", "is_active", "modified_at"])
-
-        self.client.force_authenticate(self.member_user)
-        with self.mock_auth(self.member_auth):
-            response = self.client.get(self.list_url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        returned = {item["id"]: item for item in response.data}
-        self.assertIn(str(self.comment_1.id), returned)
-        self.assertTrue(returned[str(self.comment_1.id)]["is_deleted"])
-
     def test_list_comments_report_not_found(self):
         self.client.force_authenticate(self.member_user)
         with self.mock_auth(self.member_auth):
@@ -180,19 +166,6 @@ class TestGetReportComment(MockAuthMixin, APITestCase):
         self.assertEqual(response.data["id"], str(self.comment_1.id))
         self.assertEqual(response.data["content"], self.comment_1.content)
         self.assertEqual(str(response.data["report"]["id"]), str(self.report.id))
-
-    def test_get_soft_deleted_comment_as_org_member_success(self):
-        self.comment_1.is_deleted = True
-        self.comment_1.is_active = False
-        self.comment_1.save(update_fields=["is_deleted", "is_active", "modified_at"])
-
-        self.client.force_authenticate(self.member_user)
-        with self.mock_auth(self.member_auth):
-            response = self.client.get(self.detail_url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], str(self.comment_1.id))
-        self.assertTrue(response.data["is_deleted"])
 
     def test_get_comment_requires_authentication(self):
         response = self.client.get(self.detail_url)

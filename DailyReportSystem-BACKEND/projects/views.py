@@ -17,7 +17,6 @@ from datetime import datetime
 from organizations.models import Membership, Organization
 from projects.permissions import (
     CanCreateProject,
-    CanDeleteReportComment,
     CanDeleteProject,
     CanEditReportComment,
     CanUpdateProject,
@@ -409,6 +408,7 @@ class ReportCommentsView(generics.GenericAPIView):
         organisation_id = request.auth.get("organisation_id")
         comments = ReportComment.objects.filter(
             report_id=report_id,
+            is_deleted=False,
             organisation_id=organisation_id,
         ).select_related(
             "report",
@@ -452,9 +452,7 @@ class ReportCommentDetailView(generics.GenericAPIView):
 
     def get_permissions(self):
         if self.request.method == "PATCH":
-            return [IsAuthenticated(), IsReportOrgMember(), CanEditReportComment()]
-        if self.request.method == "DELETE":
-            return [IsAuthenticated(), IsReportOrgMember(), CanDeleteReportComment()]
+            return [IsAuthenticated(), IsReportOrgMember(),CanEditReportComment()]
         return [IsAuthenticated(), IsReportOrgMember()]
 
     @swagger_auto_schema(
@@ -479,6 +477,7 @@ class ReportCommentDetailView(generics.GenericAPIView):
             id=comment_id,
             report_id=report_id,
             organisation_id=organisation_id,
+            is_deleted=False,
         )
 
         return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
@@ -522,65 +521,3 @@ class ReportCommentDetailView(generics.GenericAPIView):
         queue_report_comment_translation(comment)
 
         return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
-
-    @swagger_auto_schema(
-        operation_description=(
-            "Soft delete a report comment. Only organisation admins or the comment author can delete."
-        ),
-        responses={
-            200: openapi.Response(
-                description="Comment deleted",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "message": openapi.Schema(type=openapi.TYPE_STRING),
-                        "comment_id": openapi.Schema(type=openapi.TYPE_STRING),
-                        "removed_by": openapi.Schema(type=openapi.TYPE_STRING),
-                    },
-                ),
-            ),
-            401: openapi.Response(description="Authentication required"),
-            403: openapi.Response(description="Not an organisation member or not allowed to delete"),
-            404: openapi.Response(description="Report or Comment not found"),
-        },
-        tags=["Report Comments"],
-    )
-    def delete(self, request, report_id, comment_id):
-        organisation_id = request.auth.get("organisation_id")
-        comment = get_object_or_404(
-            ReportComment.objects.select_related(
-                "report",
-                "parent",
-                "membership",
-                "membership__user",
-            ),
-            id=comment_id,
-            report_id=report_id,
-            organisation_id=organisation_id,
-            is_deleted=False,
-        )
-
-        auth = getattr(request, "auth", {}) or {}
-        membership_id = auth.get("membership_id")
-        is_org_admin = Membership.objects.filter(
-            id=membership_id,
-            user=request.user,
-            organization_id=organisation_id,
-            role="admin",
-        ).exists()
-
-        comment.is_active = False
-        comment.is_deleted = True
-        comment.is_deleted_at = timezone.now()
-        comment.is_deleted_by_email = request.user.email
-        comment.is_deleted_reason = "Removed by admin" if is_org_admin else "Removed by author"
-        comment.save()
-
-        return Response(
-            {
-                "message": "Comment successfully removed from report.",
-                "comment_id": str(comment.id),
-                "removed_by": request.user.email,
-            },
-            status=status.HTTP_200_OK,
-        )
