@@ -5,22 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from organizations.models import Organization, Membership
-import os
-
-from notifications.tasks import send_email_task
-
-
-def send_invite_member_email(*, user, organization_name: str, preferred_language=None):
-    frontend_base_url = (os.getenv("FRONTEND_BASE_URL") or "").rstrip("/")
-    login_link = f"{frontend_base_url}/login" if frontend_base_url else "/login"
-
-    send_email_task.delay(
-        "invite_member",
-        user_id=user.id,
-        organization_name=organization_name,
-        login_link=login_link,
-        preferred_language=preferred_language,
-    )
+from organizations.helpers import send_invite_member_email
 
 User = get_user_model()
 

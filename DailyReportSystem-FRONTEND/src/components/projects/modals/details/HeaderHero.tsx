@@ -2,7 +2,7 @@ import { User } from '@/_types/auth';
 import { ProjectResponseType } from '@/_types/project';
 import { ProjectMemberType } from '@/_types/projectMembers';
 import { FolderOutlined, EditOutlined, DeleteOutline } from '@mui/icons-material';
-import { Stack, Avatar, Typography, Button, Box } from '@mui/material';
+import { Stack, Avatar, Typography, Button, Box, Chip } from '@mui/material';
 
 
 export default function HeaderHero({
@@ -23,7 +23,6 @@ export default function HeaderHero({
   openDeleteModal: () => void;
 }) {
 
-  
   const currentProjectMember = members?.find(
     (member) => member.member_id === user.membership
   );
@@ -52,15 +51,43 @@ export default function HeaderHero({
               <FolderOutlined fontSize="small" />
             </Avatar>
             <Box>
-              <Typography variant="h5" fontWeight={800}>
-                {project?.name}
-              </Typography>
+              {/* ── CHANGED: split into two rows so reference sits under the name ── */}
+
+              {/* ROW 1: project name + reference chip side by side */}
+              <Stack direction="row" spacing={1.5} alignItems="center" mb={0.5}>
+                <Typography variant="h5" fontWeight={800}>
+                  {project?.name}
+                </Typography>
+
+                {/* ── NEW: reference chip ── */}
+                {project?.reference && (
+                  <Chip
+                    label={project.reference}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.05em',
+                      color: 'primary.main',
+                      borderColor: 'primary.light',
+                      bgcolor: 'primary.lighter',
+                      height: 22,
+                      '& .MuiChip-label': { px: 1 },
+                    }}
+                  />
+                )}
+              </Stack>
+
+              {/* ROW 2: owner text — moved to its own row below */}
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography variant="body2" color="text.secondary">
                   {t('details.info.owner') || 'Created by'}{' '}
                   <b>{project?.owner_name || 'Unknown'}</b>
                 </Typography>
               </Stack>
+
             </Box>
           </Stack>
         </Box>

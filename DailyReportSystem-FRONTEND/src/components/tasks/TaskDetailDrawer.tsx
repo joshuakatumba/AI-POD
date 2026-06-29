@@ -27,6 +27,8 @@ import {
 } from '@mui/material';
 import { ArrowUpward, Close as CloseIcon } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
+
 import {
   Tag as TagIcon,
   AccountTree as AccountTreeIcon,
@@ -40,6 +42,8 @@ import {
   Flag as FlagIcon,
   Category as CategoryIcon,
   DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
+  DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
+
 } from '@mui/icons-material';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -59,6 +63,7 @@ interface TaskDetailDrawerProps {
   onClose: () => void;
   task: TaskType | null;
   onEdit: (task: TaskType) => void;
+  onDelete?: (task: TaskType) => void;
   onDelete?: (task: TaskType) => void;
 }
 
@@ -129,6 +134,8 @@ const sortThreadNodes = (nodes: CommentThreadNode[]): CommentThreadNode[] => {
 };
 
 export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete }: TaskDetailDrawerProps) {
+export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete }: TaskDetailDrawerProps) {
+
   const { user } = useAuth();
   const t = useTranslations('tasks');
   const pathname = usePathname();
@@ -802,6 +809,7 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete
                 <DeleteOutlineOutlinedIcon fontSize="small" />
               </IconButton>
             )}
+
             <IconButton size="small">
               <ShareOutlinedIcon fontSize="small" />
             </IconButton>

@@ -15,6 +15,15 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { TaskResponseType } from "@/_types/task";
 import { useTranslations } from "next-intl";
 import { getPriorityColor } from "@/components/priorityUtility";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+
+import { TaskResponseType } from "@/_types/task";
+import { useTranslations } from "next-intl";
+import { TaskPriority } from "@/_types/task";
+import { PRIORITY_CONFIG } from "@/utils/priorityUtility";
+import { getDeadlineInfo } from "@/utils/deadlineUtils";
+
 
 interface TaskKanbanCardProps {
   task: TaskResponseType;
@@ -103,6 +112,8 @@ export default function TaskKanbanCard({
           </Typography>
 
           {/* HOURS + PRIORITY + STATUS */}
+          {/* HOURS + PRIORITY + STATUS */}
+
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -116,12 +127,20 @@ export default function TaskKanbanCard({
             </Typography>
             <Stack direction="row" spacing={0.75} alignItems="center">
               {/* ENH-4.1: Color-coded priority badge */}
+              {/* ENH-4.1: Color-coded priority badge */}
               {task.priority && priorityStyle && (
                 <Chip
                   label={t(`create.${priorityStyle.labelKey}`)}
                   size="small"
                   variant="filled"
                   color={priorityStyle.color as any}
+              {task.priority && priorityStyle && (
+                <Chip
+                  label={t(`create.${priorityStyle.labelKey}`)}
+                  size="small"
+                  variant="filled"
+                  color={priorityStyle.color as any}
+
                   sx={(theme) => ({
                     fontSize: 11,
                     fontWeight: 600,
@@ -131,6 +150,12 @@ export default function TaskKanbanCard({
                     ),
                     color:
                       theme.palette[priorityStyle.color as "success"].main,
+                      theme.palette[priorityStyle.color as "success"].main,
+                      0.20
+                    ),
+                    color:
+                      theme.palette[priorityStyle.color as "success"].main,
+
                   })}              
                 />
               )}
@@ -166,6 +191,7 @@ export default function TaskKanbanCard({
           )}
 
           {/* ASSIGNEE + DEADLINE */}
+
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -207,11 +233,17 @@ export default function TaskKanbanCard({
             <Stack
               direction="row"
               spacing={0.5}
+            {/* ENH-4.2: Live deadline countdown */}
+            <Stack
+              direction="row"
+              spacing={0.5}
+
               alignItems="center"
             >
               <CalendarTodayIcon
                 sx={{
                   fontSize: 14,
+                  color: deadline.color,
                   color: deadline.color,
                 }}
               />
@@ -231,6 +263,20 @@ export default function TaskKanbanCard({
                 }}
               >
                 {deadline.label}
+                fontWeight={600}
+                sx={{
+                  color: deadline.color,
+                  ...(deadline.isOverdue && {
+                    animation: "pulse 2s ease-in-out infinite",
+                    "@keyframes pulse": {
+                      "0%, 100%": { opacity: 1 },
+                      "50%": { opacity: 0.6 },
+                    },
+                  }),
+                }}
+              >
+                {deadline.label}
+
               </Typography>
             </Stack>
           </Stack>

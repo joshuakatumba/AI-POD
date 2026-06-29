@@ -14,7 +14,7 @@ import {
   Select,
   MenuItem,
   Grid,
-  Chip,
+
 } from '@mui/material';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
@@ -488,7 +488,7 @@ export default function TasksPage() {
           </Button>
         )}
       </Stack>
-
+      
       {/* FILTERS */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
         <TextField
