@@ -1,0 +1,1758 @@
+{
+  "login": {
+    "title": "アカウントにサインイン",
+    "subtitle": "ダッシュボードにアクセスするために資格情報を入力してください",
+    "form": {
+      "email": {
+        "label": "メールアドレス",
+        "placeholder": "メールアドレスを入力してください"
+      },
+      "password": {
+        "label": "パスワード",
+        "placeholder": "パスワードを入力してください"
+      },
+      "validations": {
+        "email": {
+          "required": "メールアドレスは必須です",
+          "invalid": "有効なメールアドレスを入力してください"
+        },
+        "password": {
+          "required": "パスワードは必須です",
+          "minLength": "パスワードは6文字以上である必要があります"
+        }
+      },
+      "remember-me": "ログイン状態を保持する",
+      "forgot-password": "パスワードをお忘れですか？",
+      "buttons": {
+        "sign-in": "サインイン",
+        "loading": "サインイン中..."
+      }
+    },
+    "dont-have-account": "アカウントをお持ちでないですか？",
+    "create-account": "アカウントを作成",
+    "toast": {
+      "error": {
+        "defaultMessage": "サインインに失敗しました。もう一度お試しください。",
+        "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
+        "notInvited": "組織に招待されていないため、システムにアクセスできません。管理者にお問い合わせください。",
+        "serverError": "サーバーエラーが発生しました。しばらくしてから再度お試しください。"
+      },
+      "success": {
+        "message": "ログインに成功しました！"
+      }
+    }
+  },
+  "register": {
+    "title": "アカウントを作成",
+    "subtitle": "世界中で共同作業を始めましょう、すべて一箇所で",
+    "form": {
+      "fullName": {
+        "label": "氏名",
+        "placeholder": "氏名を入力してください"
+      },
+      "email": {
+        "label": "メールアドレス",
+        "placeholder": "メールアドレスを入力してください"
+      },
+      "preferredLanguage": {
+        "label": "希望言語",
+        "placeholder": "希望する言語を選択してください",
+        "options": {
+          "en": "英語",
+          "ja": "日本語"
+        }
+      },
+      "password": {
+        "label": "パスワード",
+        "placeholder": "パスワードを入力してください"
+      },
+      "confirm-password": {
+        "label": "パスワード確認",
+        "placeholder": "もう一度パスワードを入力してください"
+      },
+      "buttons": {
+        "signUp": "サインアップ",
+        "loading": "ユーザー登録中"
+      },
+      "validations": {
+        "password": {
+          "minLength": "パスワードは8文字以上である必要があります"
+        }
+      }
+    },
+    "toast": {
+      "success": {
+        "message": "ユーザー登録に成功しました！"
+      },
+      "error": {
+        "defaultMessage": "ユーザー登録に失敗しました",
+        "passwordMismatch": "入力されたパスワードが一致しません"
+      }
+    },
+    "already-have-account": "すでにアカウントをお持ちですか？",
+    "login": "サインイン"
+  },
+  "verify-account": {
+    "title": "アカウントを確認",
+    "subtitle": "メールに送信された4桁のコードを入力してください",
+    "form": {
+      "buttons": {
+        "verify": "確認"
+      }
+    }
+  },
+  "forgot-password": {
+    "title": "パスワードを忘れましたか？",
+    "subtitle": "メールアドレスを入力すると、安全なリンクを送信します。メールの受信箱（迷惑メールも含む）を必ずご確認ください。",
+    "form": {
+      "email": {
+        "label": "メールアドレス",
+        "placeholder": "メールアドレスを入力してください"
+      },
+      "buttons": {
+        "send": "リセットリンクを送信",
+        "sending": "送信中..."
+      }
+    },
+    "already-have-account": "すでにアカウントをお持ちですか？",
+    "login": "サインイン",
+    "success": {
+      "title": "メールを確認してください",
+      "message": "パスワードリセットリンクを送信しました：",
+      "instruction": "迷惑メールフォルダもご確認ください。",
+      "already-have-account": "すでにアカウントをお持ちですか？",
+      "login": "サインイン",
+      "toast": "メール内のリンクをクリックして新しいパスワードを作成してください。"
+    },
+    "errors": {
+      "emailRequired": "メールアドレスは必須です",
+      "emailInvalid": "有効なメールアドレスを入力してください"
+    }
+  },
+  "dashboard": {
+    "NavItems": {
+      "messages": "メッセージ",
+      "notifications": "通知",
+      "settings": "設定",
+      "members": "メンバー",
+      "projects": "プロジェクト",
+      "tasks": "タスク",
+      "dashboard": "ダッシュボード",
+      "reports": "レポート",
+      "detail": "レポート詳細",
+      "general": "一般",
+      "organisation": "組織",
+      "create": "作成",
+      "admin": "システム管理者",
+      "admin-dashboard": "管理者ダッシュボード",
+      "users": "ユーザーアカウント",
+      "organisations": "組織",
+      "configuration": "AI設定",
+      "workflows": "ワークフロー",
+      "chat": "チャット",
+      "details": "プロジェクト詳細"
+    },
+    "userSection": {
+      "online": "オンライン",
+      "signOut": "サインアウト"
+    },
+    "Content": {
+      "welcome": "ダッシュボードへようこそ"
+    },
+    "switcher": {
+      "createOrganisation": "組織を作成する",
+      "currentOrganisation": "現在の組織",
+      "myOrganisations": "所属組織",
+      "roles": {
+        "admin": "管理者",
+        "member": "メンバー"
+      },
+      "ariaLabels": {
+        "trigger": "組織切り替えメニューを開く",
+        "menu": "組織切り替えメニュー"
+      },
+      "toast": {
+        "success": {
+          "message": "組織の切り替えに成功しました！"
+        },
+        "error": {
+          "defaultMessage": "組織の切り替えに失敗しました"
+        }
+      },
+      "systemAdmin": "システム管理者",
+      "adminConsole": "管理コンソール",
+      "exitAdmin": "管理者モードを終了する"
+    },
+    "profile": {
+      "title": "プロフィールを完成させてください",
+      "english": "英語",
+      "japanese": "日本語",
+      "subtitle": "続行する前に、組織内で使用する名前を入力してください。",
+      "pleaseLetUsKnowName": "ご希望の言語をお知らせください",
+      "form": {
+        "email": {
+          "label": "メールアドレス",
+          "helpText": "メールアドレスは管理者によって管理されています"
+        },
+        "displayName": {
+          "label": "表示名",
+          "placeholder": "例：山田 太郎"
+        },
+        "preferredLanguage": {
+          "label": "希望言語",
+          "placeholder": "希望する言語を選択してください"
+        },
+        "buttons": {
+          "save": "保存",
+          "saving": "保存中..."
+        }
+      },
+      "toast": {
+        "success": {
+          "message": "あなたの情報が正常に更新されました。"
+        },
+        "error": {
+          "defaultMessage": "エラーが発生しました。もう一度お試しください。"
+        }
+      },
+      "details": {
+        "editTitle": "プロフィール編集",
+        "unnamed": "未設定ユーザー",
+        "toast": {
+          "success": "プロフィールが正常に更新されました",
+          "error": "プロフィールの更新に失敗しました"
+        },
+        "form": {
+          "displayName": {
+            "label": "表示名",
+            "placeholder": "表示名を入力してください",
+            "error": "表示名は2文字以上である必要があります"
+          },
+          "language": {
+            "label": "優先言語",
+            "english": "英語",
+            "japanese": "日本語"
+          },
+          "email": {
+            "label": "メールアドレス",
+            "hint": "メールアドレスは変更できません"
+          },
+          "role": {
+            "label": "役割"
+          },
+          "buttons": {
+            "edit": "プロフィール編集",
+            "save": "変更を保存",
+            "cancel": "キャンセル",
+            "saving": "保存中..."
+          }
+        }
+      }
+    },
+    "home": {
+      "title": "ダッシュボード",
+      "subtitle": "プロジェクト全体で対応が必要なタスクを見逃さないようにしましょう。",
+      "activeProjects": {
+        "title": "アクティブなプロジェクト",
+        "empty": {
+          "title": "アクティブなプロジェクトはありません",
+          "description": "プロジェクトは作成されるとここに表示されます。"
+        },
+        "activeTasks": "アクティブなタスク"
+      },
+      "actions": {
+        "progress": "進捗",
+        "autoSync": "自動同期",
+        "open": "開く",
+        "browseArchive": "アーカイブを閲覧"
+      },
+      "recentTasks": "最近のタスク",
+      "table": {
+        "headers": {
+          "task": "タスク",
+          "project": "プロジェクト",
+          "status": "ステータス",
+          "dueDate": "期限",
+          "assignee": "担当者"
+        },
+        "state": {
+          "noTasks": "タスクはありません"
+        },
+        "status": {
+          "backlog": "バックログ",
+          "ready": "準備完了",
+          "in_progress": "進行中",
+          "blocked": "ブロック中",
+          "review": "レビュー",
+          "testing": "テスト中",
+          "done": "完了",
+          "deployed": "デプロイ済み",
+          "cancelled": "キャンセル済み",
+          "closed": "クローズ済み"
+        }
+      },
+      "status": {
+        "unassigned": "未割り当て"
+      },
+      "reports": {
+        "workflowEfficiency": "ワークフロー効率",
+        "pulseTitle": "パルス＆レポート",
+        "recentTitle": "最近のレポート",
+        "empty": {
+          "title": "まだレポートはありません",
+          "description": "レポートが生成されるとここに表示されます。"
+        }
+      }
+    }
+  },
+  "modals": {
+    "deactivateOrganisationMember": {
+      "title": "メンバーを非アクティブ化",
+      "message": "この操作により、このメンバーの組織へのアクセスが削除されます。データは削除されず、再アクティブ化時に復元できます。続行してもよろしいですか？",
+      "buttons": {
+        "cancel": "キャンセル",
+        "deactivate": "非アクティブ化"
+      },
+      "deleting": "非アクティブ化中"
+    },
+    "editOrganisationMember": {
+      "title": "ユーザーを編集",
+      "cancel": "キャンセル",
+      "save": "変更を保存",
+      "email": "メールアドレス",
+      "display_name": "氏名",
+      "editing": "ユーザーを編集中",
+      "role": {
+        "label": "役割を変更",
+        "title": "役割"
+      },
+      "saving": "変更を保存中...",
+      "error": "自分の表示名のみ更新できます。",
+      "changeRole": "役割を変更するには管理者に連絡してください。",
+      "editProfile": "プロフィールを編集",
+      "editingProfile": "プロフィールを編集中",
+      "toast": {
+        "success": {
+          "message": "メンバー情報が正常に更新されました！"
+        },
+        "error": {
+          "defaultMessage": "メンバー情報の更新に失敗しました"
+        }
+      }
+    }
+  },
+  "projects": {
+    "title": "プロジェクト一覧",
+    "subtitle": "実行中およびアーカイブ済みの全プロジェクトの概要",
+    "projectDetails": "プロジェクト詳細",
+    "noProjectMembers": "プロジェクトメンバーがいない",
+    "description": {
+      "label": "説明"
+    },
+    "state": {
+      "loading": "プロジェクトを読み込んでいます...",
+      "noProjects": "プロジェクトはありません"
+    },
+    "details": {
+      "fetchError": "プロジェクトの読み込みに失敗しました",
+      "notFound": "プロジェクトが見つかりません",
+      "members": {
+        "count": "メンバー",
+        "link": "すべてのメンバーを表示",
+        "admins": "管理者",
+        "contributors": "コントリビューター",
+        "roleAdmin": "管理者",
+        "roleContributor": "コントリビューター"
+      },
+      "roles": {
+        "contributor": "コントリビューター",
+        "admin": "管理者"
+      },
+      "info": {
+        "title": "プロジェクトタイトル",
+        "startDate": "開始日",
+        "dueDate": "期限日",
+        "owner": "プロジェクト作成者",
+        "status": "状態"
+      },
+      "stats": {
+        "total": "総タスク数",
+        "inProgress": "進行中",
+        "blocked": "ブロック中",
+        "completed": "完了",
+        "progress": "プロジェクト進捗",
+        "team": "メンバー"
+      },
+      "pieChart": {
+        "title": "タスク進捗状況",
+        "subTitle": "プロジェクトのリアルタイム指標",
+        "tasks": "タスク",
+        "emptyState": "このプロジェクトに利用可能なタスクはありません",
+        "legend": {
+          "completed": "完了",
+          "deployed": "デプロイ済み",
+          "closed": "クローズ済み",
+          "inProgress": "進行中",
+          "inReview": "レビュー中",
+          "testing": "テスト中",
+          "ready": "準備完了",
+          "backlog": "バックログ",
+          "pending": "保留",
+          "blocked": "ブロック中",
+          "cancelled": "キャンセル",
+          "active": "アクティブ",
+          "upcoming": "今後のタスク"
+        }
+      }
+    },
+    "adminActions": {
+      "title": "プロジェクトアクション",
+      "edit": "プロジェクトを編集",
+      "delete": "プロジェクトを削除",
+      "editSuccess": "プロジェクトが正常に更新されました",
+      "editError": "プロジェクトの更新に失敗しました",
+      "deleteSuccess": "プロジェクトが正常に削除されました",
+      "deleteError": "プロジェクトの削除に失敗しました",
+      "cancelled": "このプロジェクトはキャンセルされており、編集できません",
+      "fetchError": "プロジェクトの読み込みに失敗しました"
+    },
+    "buttons": {
+      "createProject": "新規プロジェクト作成"
+    },
+    "table": {
+      "headers": {
+        "project": "プロジェクト名",
+        "creator": "作成者",
+        "team": "担当チーム",
+        "progress": "進捗状況",
+        "status": "状態",
+        "actions": "操作"
+      },
+      "state": {
+        "loading": "プロジェクトを読み込んでいます...",
+        "noProjects": "プロジェクトはありません"
+      }
+    },
+    "tabs": {
+      "overview": "概要",
+      "tasks": "タスク",
+      "team": "チーム",
+      "documents": "ドキュメント"
+    },
+    "status": {
+      "completed": "完了済み",
+      "paused": "一時停止",
+      "active": "実行中",
+      "cancelled": "キャンセル",
+      "inactive": "非アクティブ",
+      "pending": "保留中",
+      "closed": "クローズ済み"
+    },
+    "tooltips": {
+      "edit": "編集する",
+      "delete": "削除する",
+      "addTask": "タスクを追加"
+    },
+    "modals": {
+      "createProject": {
+        "title": "プロジェクトを作成",
+        "subtitle": "新しいプロジェクトを作成するには詳細を入力してください",
+        "cancel": "キャンセル",
+        "confirm": "プロジェクトを作成",
+        "creating": "作成中...",
+        "fields": {
+          "name": "プロジェクト名",
+          "description": "説明",
+          "start_date": "開始日",
+          "end_date": "締切日",
+          "visibility": {
+            "label": "公開範囲",
+            "options": {
+              "team": "チーム内",
+              "organisation": "組織内"
+            }
+          }
+        },
+        "toasts": {
+          "create": {
+            "success": "新しいプロジェクトが正常に作成されました。",
+            "error": "プロジェクトの作成に失敗しました。"
+          }
+        }
+      },
+      "editProject": {
+        "title": "プロジェクト詳細の編集",
+        "subtitle": "プロジェクトの詳細を更新します。",
+        "buttons": {
+          "cancel": "キャンセル",
+          "saveChanges": "変更を保存",
+          "saving": "変更を保存中..."
+        },
+        "toasts": {
+          "success": "プロジェクトの詳細が正常に更新されました。",
+          "error": "プロジェクトの詳細を更新できませんでした。"
+        }
+      },
+      "deleteProject": {
+        "title": "プロジェクトを削除",
+        "subtitle": "このプロジェクトを削除します",
+        "message": "本当にこのプロジェクトを削除してもよろしいですか？",
+        "confirm": "削除",
+        "cancel": "キャンセル",
+        "deleteSuccess": "プロジェクトが正常に削除されました",
+        "deleteError": "プロジェクトの削除に失敗しました",
+        "buttons": {
+          "cancel": "キャンセル",
+          "delete": "削除"
+        },
+        "deleting": "プロジェクトを削除中..."
+      }
+    },
+    "manageMembers": "チームを管理",
+    "manageTasks": "タスクを管理",
+    "sidebar": {
+      "allProjects": "すべてのプロジェクト",
+      "search": {
+        "placeholder": "プロジェクトを検索..."
+      },
+      "nav": {
+        "overview": "概要",
+        "tasks": "タスク",
+        "members": "メンバー"
+      }
+    }
+  },
+  "projectMembers": {
+    "title": "プロジェクトメンバー",
+    "subtitle": "ダッシュボードにアクセスするために資格情報を入力してください",
+    "buttons": {
+      "addMember": "メンバーを追加"
+    },
+    "table": {
+      "member": "氏名",
+      "email": "メールアドレス",
+      "role": "役割",
+      "actions": "アクション",
+      "status": {
+        "label": "ステータス",
+        "active": "アクティブ",
+        "inactive": "非アクティブ",
+        "pending": "保留中"
+      },
+      "state": {
+        "loading": "メンバーを読み込み中...",
+        "noProjectMembers": "プロジェクトメンバーが見つかりません"
+      }
+    },
+    "roles": {
+      "contributor": "コントリビューター",
+      "admin": "管理者"
+    },
+    "toast": {
+      "success": {
+        "message": "メンバーの役割を正常に更新しました！"
+      },
+      "error": {
+        "message": "メンバーの役割の更新に失敗しました"
+      },
+      "delete": {
+        "success": {
+          "message": "プロジェクトからメンバーを正常に削除しました！"
+        },
+        "error": {
+          "message": "プロジェクトからメンバーの削除に失敗しました"
+        }
+      }
+    },
+    "addMember": {
+      "title": "メンバーを追加",
+      "description": "メールアドレスを入力し、役割を割り当てて、新しいメンバーをプロジェクトに招待します。",
+      "form": {
+        "name": {
+          "label": "氏名",
+          "placeholder": "氏名を入力してください"
+        },
+        "email": {
+          "label": "メールアドレス",
+          "placeholder": "メールアドレスを入力してください"
+        },
+        "role": {
+          "placeholder": "役割を選択してください"
+        },
+        "buttons": {
+          "addMember": "メンバーを追加",
+          "cancel": "キャンセル"
+        }
+      },
+      "roles": {
+        "admin": "管理者",
+        "contributor": "コントリビューター"
+      },
+      "toast": {
+        "success": {
+          "message": "メンバーが正常に追加されました！"
+        },
+        "error": {
+          "message": "メンバーの追加に失敗しました"
+        }
+      },
+      "validation": {
+        "email": {
+          "required": "メールアドレスは必須です",
+          "invalid": "有効なメールアドレスを入力してください"
+        },
+        "role": {
+          "required": "役割は必須です"
+        },
+        "general": "入力内容を確認して、もう一度お試しください。"
+      },
+      "loading": "メンバーを追加中...",
+      "adding": "メンバーを追加中..."
+    },
+    "updateMemberRole": {
+      "title": "メンバーの役割を更新",
+      "currentRole": "現在の役割",
+      "selectNewRole": "新しい役割を選択",
+      "message": "この操作により、このメンバーのプロジェクト内での役割が変更されます。続行してもよろしいですか？",
+      "roles": {
+        "admin": "管理者",
+        "contributor": "コントリビューター"
+      },
+      "buttons": {
+        "cancel": "キャンセル",
+        "update": "役割を更新"
+      },
+      "updating": "役割を更新中...",
+      "toast": {
+        "success": {
+          "message": "メンバーの役割が正常に更新されました！"
+        },
+        "error": {
+          "message": "メンバーの役割の更新に失敗しました"
+        }
+      }
+    },
+    "deleteProjectMember": {
+      "title": "プロジェクトからメンバーを削除",
+      "message": "この操作により、このメンバーはプロジェクトから完全に削除されます。続行してもよろしいですか？",
+      "buttons": {
+        "cancel": "キャンセル",
+        "remove": "削除"
+      },
+      "deleting": "メンバーを削除中",
+      "toast": {
+        "success": {
+          "message": "プロジェクトからメンバーを正常に削除しました！"
+        },
+        "error": {
+          "message": "プロジェクトからメンバーの削除に失敗しました"
+        }
+      }
+    }
+  },
+  "tasks": {
+    "title": "タスク",
+    "subtitle": "すべての進行中およびアーカイブ済みタスクの概要。",
+    "noAssignee": "未割り当て",
+    "buttons": {
+      "createTask": "タスクを作成"
+    },
+    "kanban": {
+      "state": {
+        "dueToday": "本日期限",
+        "overdue": "期限超過"
+      }
+    },
+    "table": {
+      "headers": {
+        "name": "タスク名",
+        "project": "プロジェクト",
+        "dueDate": "期限",
+        "status": "ステータス",
+        "hours": "作業時間",
+        "reportedBy": "報告者",
+        "assignedTo": "担当者",
+        "actions": "操作",
+        "category": "カテゴリー"
+      },
+      "state": {
+        "loading": "タスクを読み込み中...",
+        "noTasks": "タスクが見つかりません",
+        "fetchTasksError": "タスクの読み込みに失敗しました",
+        "fetchProjectsError": "プロジェクトの読み込みに失敗しました",
+        "fetchReportsError": "レポートの読み込みに失敗しました"
+      }
+    },
+    "status": {
+      "backlog": "バックログ",
+      "ready": "準備完了",
+      "in_progress": "進行中",
+      "blocked": "ブロック中",
+      "review": "レビュー中",
+      "testing": "テスト中",
+      "done": "完了",
+      "deployed": "展開済み",
+      "cancelled": "キャンセル済み"
+    },
+    "toasts": {
+      "create": {
+        "success": "タスクが正常に作成されました！",
+        "error": "タスクの作成に失敗しました",
+        "fetchMembersError": "プロジェクトメンバーの取得に失敗しました"
+      },
+      "delete": {
+        "success": "タスクを削除しました！",
+        "error": "タスクの削除に失敗しました"
+      },
+      "drag": {
+        "success": "タスクのステータスを正常に更新しました",
+        "error": "タスクのステータスを更新できませんでした"
+      }
+    },
+    "deleteTask": {
+      "title": "タスクを削除",
+      "subtitle": "このタスクを削除",
+      "message": "このタスクを削除してもよろしいですか？",
+      "buttons": {
+        "cancel": "キャンセル",
+        "delete": "タスクを削除"
+      },
+      "deleting": "タスクを削除中..."
+    },
+    "tooltips": {
+      "edit": "編集",
+      "delete": "消去",
+      "display": {
+        "table": "テーブル表示",
+        "kanban": "カンバン表示"
+      },
+      "notProjectMember": "タスクを作成するにはプロジェクトメンバーである必要があります"
+    },
+    "detailDrawer": {
+      "descriptionEmpty": "説明はありません。",
+      "fields": {
+        "reference": "参照",
+        "project": "プロジェクト",
+        "dueDate": "期限日",
+        "expectedHours": "予定時間",
+        "hoursSuffix": "時間",
+        "assignedTo": "担当者",
+        "status": "ステータス",
+        "priority": "優先度",
+        "category": "カテゴリー"
+      },
+      "tabs": {
+        "description": "説明",
+        "comments": "コメント ({count})",
+        "attachments": "添付ファイル ({count})"
+      },
+      "attachments": {
+        "empty": "添付ファイルはまだありません。",
+        "loading": "添付ファイルを読み込み中...",
+        "addButton": "添付ファイルを追加",
+        "addFirst": "最初の添付ファイルを追加",
+        "types": {
+          "link": "リンク",
+          "github": "ギットハブ",
+          "file": "ファイル",
+          "document": "ドキュメント"
+        },
+        "actions": {
+          "open": "開く",
+          "copyUrl": "URLをコピー",
+          "edit": "編集",
+          "delete": "削除"
+        },
+        "addDialog": {
+          "title": "添付ファイルを追加",
+          "subtitle": "ドキュメント、GitHub PR、またはファイルへのリンクを追加してください",
+          "adding": "追加中...",
+          "titleLabel": "タイトル",
+          "titlePlaceholder": "例：設計仕様書",
+          "urlLabel": "URL",
+          "urlPlaceholder": "https://example.com/document.pdf",
+          "typeLabel": "種類",
+          "cancel": "キャンセル",
+          "add": "追加"
+        }
+      },
+      "comments": {
+        "loading": "コメントを読み込み中...",
+        "empty": "コメントはまだありません。会話を始めましょう！",
+        "actions": {
+          "reply": "返信",
+          "edit": "編集",
+          "delete": "削除"
+        },
+        "time": {
+          "justNow": "たった今"
+        },
+        "thread": {
+          "viewReplies": "返信を表示 ({count})",
+          "hideReplies": "返信を隠す",
+          "replyPlaceholder": "返信を入力...",
+          "addReply": "返信",
+          "deletedParentAuthor": "削除されたコメント",
+          "deletedParentBody": "このコメントは削除されました。返信は引き続き表示されます。"
+        },
+        "deleteModal": {
+          "title": "コメントを削除",
+          "message": "このコメントを削除してもよろしいですか？",
+          "cancel": "キャンセル",
+          "confirm": "削除",
+          "deleting": "削除中..."
+        },
+        "editor": {
+          "placeholder": "コメントを追加...",
+          "save": "保存",
+          "cancel": "キャンセル",
+          "deleteConfirm": "このコメントを削除しますか？",
+          "replyingTo": "{name} に返信中"
+        }
+      }
+    },
+    "editTask": {
+      "title": "タスクを編集",
+      "subtitle": "タスクの要件と割り当てを変更します。",
+      "description": "説明",
+      "buttons": {
+        "cancel": "キャンセル",
+        "save": "変更を保存",
+        "saving": "変更を保存中..."
+      },
+      "toasts": {
+        "success": "タスクの詳細が正常に更新されました。",
+        "error": "タスクの詳細を更新できませんでした。"
+      }
+    },
+    "create": {
+      "creating": "作成中...",
+      "title": "新しいタスクを作成",
+      "subtitle": "新しいタスクを作成するために詳細を入力してください",
+      "form": {
+        "title": {
+          "label": "タスク名",
+          "placeholder": "タスク名を入力してください"
+        },
+        "priority": {
+          "label": "優先度",
+          "options": {
+            "low": "低",
+            "medium": "中",
+            "high": "高",
+            "critical": "緊急"
+          }
+        },
+        "category": {
+          "label": "カテゴリー",
+          "options": {
+            "feature": "機能",
+            "bug": "バグ",
+            "improvement": "改善",
+            "documentation": "ドキュメント",
+            "other": "その他"
+          }
+        },
+        "description": {
+          "label": "説明",
+          "placeholder": "タスクの詳細を入力してください"
+        },
+        "status": {
+          "label": "ステータス",
+          "options": {
+            "backlog": "バックログ",
+            "ready": "準備完了",
+            "in_progress": "進行中",
+            "blocked": "ブロック中",
+            "review": "レビュー中",
+            "testing": "テスト中",
+            "done": "完了",
+            "deployed": "デプロイ済み",
+            "cancelled": "キャンセル"
+          }
+        },
+        "assignees": {
+          "label": "担当者",
+          "none": "なし"
+        },
+        "dueDate": {
+          "label": "期限日"
+        },
+        "estimatedHours": {
+          "label": "予定時間",
+          "placeholder": "例：4"
+        },
+        "tags": {
+          "label": "タグ",
+          "placeholder": "タグを追加",
+          "helper": "Enterキーを押してタグを追加（最大5つまで）"
+        },
+        "cancel": "キャンセル",
+        "submit": "タスクを作成"
+      },
+      "validation": {
+        "required": "この項目は必須です",
+        "undefined": "この項目は必須です",
+        "min": "最小0時間である必要があります",
+        "max": "1000時間を超えることはできません"
+      }
+    },
+    "priority": {
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "critical": "最優先"
+    },
+    "category": {
+      "feature": "機能追加",
+      "bug": "バグ修正",
+      "improvement": "改善",
+      "documentation": "ドキュメント",
+      "other": "その他"
+    },
+    "filters": {
+      "searchPlaceholder": "タスク名で検索...",
+      "status": "ステータス",
+      "assignee": "担当者",
+      "priority": "優先度",
+      "category": "カテゴリー",
+      "allPriorities": "すべての優先度",
+      "allCategories": "すべてのカテゴリー",
+      "all": "すべて",
+      "allStatuses": "すべてのステータス",
+      "allAssignees": "すべての担当者"
+    }
+  },
+  "onboarding": {
+    "title": "組織へようこそ！",
+    "subtitle": "フルネームを入力してください",
+    "form": {
+      "fullName": {
+        "label": "氏名",
+        "placeholder": "氏名を入力してください"
+      },
+      "buttons": {
+        "acceptInvitation": "組織に参加する"
+      }
+    }
+  },
+  "organisation": {
+    "create": {
+      "title": "組織を作成",
+      "subtitle": "他の人と協力するために組織を設定します",
+      "form": {
+        "name": {
+          "label": "組織名",
+          "placeholder": "SheWolf Media"
+        },
+        "type": {
+          "label": "組織の種類",
+          "placeholder": "組織の種類を選択",
+          "options": {
+            "company": "会社",
+            "ngo": "NGO / 非営利団体",
+            "startup": "スタートアップ",
+            "community": "コミュニティ",
+            "school": "学校 / アカデミー"
+          }
+        },
+        "description": {
+          "label": "説明",
+          "placeholder": "あなたの組織は何をしていますか？"
+        },
+        "email": {
+          "label": "組織のメールアドレス",
+          "placeholder": "info@example.com"
+        },
+        "country": {
+          "label": "国",
+          "placeholder": "ウガンダ"
+        },
+        "inviteMembers": {
+          "label": "メンバーを招待しますか？",
+          "yes": "はい",
+          "no": "いいえ"
+        },
+        "inviteEmails": {
+          "label": "メールでメンバーを招待",
+          "placeholder": "user1@example.com, user2@example.com",
+          "helper": "カンマで区切ったメールアドレスを入力してください",
+          "emails": "入力したメールアドレス"
+        },
+        "submit": "組織を作成"
+      },
+      "success": {
+        "organisationCreated": "組織が正常に作成されました！",
+        "membersInvited": "メンバーが招待されました",
+        "membersInvitedSuccess": "{count} {count, plural, one {メンバー} other {メンバーたち}}が正常に招待されました"
+      },
+      "errors": {
+        "name": {
+          "required": "組織名は必須です"
+        },
+        "type": {
+          "required": "組織タイプは必須です"
+        },
+        "description": {
+          "required": "説明は必須です"
+        },
+        "email": {
+          "invalid": "有効なメールアドレスを入力してください"
+        },
+        "inviteEmails": {
+          "required": "少なくとも1つのメールアドレスを入力してください",
+          "invalid": "1つ以上のメールアドレスが無効です"
+        },
+        "general": "組織の作成に失敗しました。もう一度お試しください。",
+        "unauthorized": "セッションの有効期限が切れています。再度ログインしてください。",
+        "server": "サーバーエラーが発生しました。もう一度試すか、サポートにお問い合わせください。",
+        "duplicate": "この名前の組織はすでに存在します。",
+        "validation": "入力内容を確認して再度お試しください。",
+        "someInvitesFailed": "{count}件の招待送信に失敗しました"
+      }
+    },
+    "invite": {
+      "title": "メンバーを招待",
+      "subtitle": "新しいユーザーを組織に招待します",
+      "form": {
+        "email": {
+          "label": "メールアドレス",
+          "invalidEmail": "有効なメールアドレスを入力してください",
+          "placeholder": "有効なメールアドレスを入力してください"
+        },
+        "role": {
+          "label": "役割",
+          "options": {
+            "admin": "管理者",
+            "member": "メンバー"
+          },
+          "placeholder": "役割を選択してください"
+        },
+        "buttons": {
+          "invite": "招待",
+          "cancel": "キャンセル",
+          "inviting": "招待中..."
+        }
+      }
+    },
+    "Members": {
+      "title": "メンバー",
+      "subtitle": "チームを招待、管理、共同作業できます",
+      "table": {
+        "name": "メンバー",
+        "email": "メールアドレス",
+        "role": "役割",
+        "status": "ステータス",
+        "date": "参加日",
+        "actions": "アクション"
+      },
+      "deactivatedSuccess": "メンバーが正常に非アクティブ化されました！",
+      "deactivateError": "メンバーの非アクティブ化に失敗しました",
+      "loadingMessage": "メンバーを取得中...",
+      "roles": {
+        "admin": "管理者",
+        "member": "メンバー"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "empty": "メンバーが見つかりません",
+      "buttons": {
+        "inviteMember": "メンバーを招待"
+      },
+      "toast": {
+        "success": {
+          "message": "メンバーの役割が正常に更新されました。"
+        },
+        "error": {
+          "message": "メンバーの役割を更新できませんでした。"
+        },
+        "delete": {
+          "success": {
+            "message": "メンバーをプロジェクトから削除しました。"
+          },
+          "error": {
+            "message": "メンバーをプロジェクトから削除できませんでした。"
+          }
+        },
+        "invite": {
+          "success": {
+            "message": "メンバーを正常に招待しました。"
+          },
+          "error": {
+            "defaultMessage": "メンバーの招待に失敗しました。"
+          }
+        }
+      }
+    }
+  },
+  "admin": {
+    "welcome": "管理者ダッシュボードへようこそ",
+    "dashboard": {
+      "title": "管理者ダッシュボードは準備中です",
+      "description": "管理者が安心してプラットフォームを管理できるよう、現在ダッシュボードを構築しています。"
+    },
+    "users": {
+      "title": "ユーザー",
+      "subtitle": "プラットフォーム全体のすべてのユーザーを表示および管理します。",
+      "organisations": "件の組織",
+      "search": "メールアドレスまたは組織で検索...",
+      "table": {
+        "headers": {
+          "user": "ユーザー",
+          "role": "役割",
+          "organisation": "組織",
+          "status": "ステータス",
+          "date_joined": "登録日",
+          "last_login": "最終ログイン",
+          "actions": "操作"
+        },
+        "state": {
+          "loading": "ユーザーを読み込み中...",
+          "noUsers": "ユーザーが見つかりません。",
+          "never": "未設定"
+        },
+        "tooltips": {
+          "editUser": "ユーザーを編集",
+          "deactivateUser": "ユーザーを無効化",
+          "reactivateUser": "ユーザーを再有効化",
+          "editUserDisabled": "無効なユーザーは編集できません"
+        }
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "roles": {
+        "admin": "管理者",
+        "member": "メンバー",
+        "staff": "スタッフ",
+        "superuser": "スーパーユーザー"
+      },
+      "modal": {
+        "title": "ユーザー詳細",
+        "fields": {
+          "role": "役割",
+          "status": "ステータス",
+          "organization": "組織",
+          "dateJoined": "登録日",
+          "lastLogin": "最終ログイン"
+        },
+        "buttons": {
+          "close": "閉じる"
+        }
+      },
+      "editModal": {
+        "title": "ユーザーを編集",
+        "editingUser": "編集中のユーザー",
+        "changeRole": "役割を変更",
+        "roles": {
+          "member": "メンバー",
+          "staff": "スタッフ",
+          "superuser": "スーパーユーザー"
+        },
+        "message": "この操作により、このメンバーのプロジェクト内での役割が変更されます。続行してもよろしいですか？",
+        "buttons": {
+          "cancel": "キャンセル",
+          "save": "変更を保存"
+        },
+        "saving": "保存中...",
+        "toast": {
+          "success": "ユーザーを更新しました！",
+          "error": "ユーザーの更新に失敗しました。"
+        }
+      },
+      "deactivateModal": {
+        "title": "ユーザーを無効化",
+        "message": "このユーザーは無効化され、プラットフォームにアクセスできなくなります。いつでも再有効化できます。",
+        "buttons": {
+          "cancel": "キャンセル",
+          "deactivate": "ユーザーを無効化"
+        },
+        "deactivating": "無効化中...",
+        "toast": {
+          "success": "ユーザーを無効化しました！",
+          "error": "ユーザーの無効化に失敗しました。"
+        }
+      },
+      "reactivateModal": {
+        "title": "ユーザーを再有効化",
+        "message": "このユーザーは再有効化され、プラットフォームへのアクセスを回復します。いつでも再度無効化できます。",
+        "buttons": {
+          "cancel": "キャンセル",
+          "reactivate": "ユーザーを再有効化"
+        },
+        "reactivating": "再有効化中...",
+        "toast": {
+          "success": "ユーザーが正常に再有効化されました！",
+          "error": "ユーザーの再有効化に失敗しました。"
+        }
+      }
+    },
+    "workflows": {
+      "title": "AIアシスタントワークフロー",
+      "subTitle": "専用ワークフローで生産性を最大化しましょう。",
+      "launch": "ワークフローを起動",
+      "aiTranslations": {
+        "title": "AI翻訳",
+        "description": "プロジェクト文書やタスク説明を30以上の言語に瞬時にローカライズします。",
+        "category": "多言語"
+      },
+      "aiRequirements": {
+        "title": "要件AI",
+        "description": "プロジェクト概要から技術要件やユーザーストーリーを自動生成します。",
+        "category": "スマートロジック"
+      },
+      "executiveReports": {
+        "title": "エグゼクティブレポート",
+        "description": "ステークホルダー向けの高度なAI要約。進捗速度やプロジェクトの健全性を追跡します。",
+        "category": "自動化"
+      },
+      "emptyState": {
+        "title": "ワークフローがまだありません",
+        "description": "最初のワークフローを作成して、AIでタスクの自動化を始めましょう。"
+      },
+      "categories": {
+        "translation": "翻訳",
+        "requirements": "要件",
+        "report": "レポート",
+        "general": "全般 "
+      },
+      "createWorkflow": {
+        "title": "AIワークフローを作成",
+        "basicInformation": {
+          "title": "ワークフロー名",
+          "placeholder": "ワークフロー名（例：コードレビュー）"
+        },
+        "description": {
+          "title": "説明",
+          "placeholder": "このワークフローは何を行いますか？"
+        },
+        "systemPrompt": {
+          "title": "システムプロンプト",
+          "placeholder": "AIはどのように振る舞うべきですか？"
+        },
+        "category": {
+          "title": "カテゴリー",
+          "automated": "自動化",
+          "smartLogic": "スマートロジック",
+          "multilingual": "多言語",
+          "general": "一般"
+        },
+        "model": "AIモデル",
+        "livePreview": "ライブプレビュー",
+        "liveName": "ワークフロー名",
+        "liveDescription": "説明はここに表示されます...",
+        "buttons": {
+          "create": "ワークフローを作成",
+          "deploy": "ワークフローをデプロイ"
+        },
+        "toasts": {
+          "success": "ワークフローが正常に作成されました！",
+          "error": "ワークフローの作成に失敗しました。"
+        }
+      },
+      "updateWorkflow": {
+        "title": "ワークフロー設定",
+        "agentName": "ワークフロー名",
+        "description": "説明",
+        "systemPrompt": "システムプロンプト",
+        "model": "AIモデル",
+        "buttons": {
+          "edit": "ワークフローを編集",
+          "update": "ワークフローを更新",
+          "archive": "ワークフローをアーカイブ"
+        },
+        "category": {
+          "title": "カテゴリー",
+          "automated": "自動化",
+          "smartLogic": "スマートロジック",
+          "multilingual": "多言語",
+          "general": "一般"
+        },
+        "toasts": {
+          "success": "ワークフローが正常に更新されました！",
+          "error": "ワークフローの更新に失敗しました。"
+        }
+      },
+      "archiveWorkflow": {
+        "title": "ワークフローをアーカイブ",
+        "subtitle": "このワークフローをアーカイブします。",
+        "message": "この操作により、ワークフローがアクティブリストから削除されますが、必要に応じて後で復元することができます。",
+        "buttons": {
+          "cancel": "キャンセル",
+          "archive": "ワークフローをアーカイブ"
+        },
+        "archiving": "アーカイブ中...",
+        "toast": {
+          "success": "ワークフローが正常にアーカイブされました！",
+          "error": "ワークフローのアーカイブに失敗しました。"
+        }
+      }
+    },
+    "organisations": {
+      "title": "組織一覧",
+      "subtitle": "登録済みのすべての組織の一覧です。",
+      "filters": {
+        "searchPlaceholder": "名前・作成者・メールアドレス・国で検索...",
+        "status": "ステータス",
+        "all": "すべて"
+      },
+      "status": {
+        "active": "アクティブ",
+        "inactive": "非アクティブ"
+      },
+      "table": {
+        "headers": {
+          "organisation": "組織",
+          "country": "国",
+          "owner": "作成者",
+          "members": "メンバー",
+          "status": "ステータス",
+          "created": "作成日",
+          "actions": "操作"
+        }
+      },
+      "state": {
+        "loading": "組織を読み込み中...",
+        "noOrganisations": "組織が見つかりません",
+        "noResults": "フィルターに一致する結果がありません",
+        "showing": "{total}件中{count}件を表示中",
+        "fetchError": "組織の読み込みに失敗しました。"
+      },
+      "tooltips": {
+        "edit": "編集",
+        "delete": "削除"
+      },
+      "modals": {
+        "delete": {
+          "title": "組織を削除",
+          "message": "この組織を削除してもよろしいですか？この操作は取り消せず、関連するすべてのデータが完全に削除されます。",
+          "buttons": {
+            "cancel": "キャンセル",
+            "delete": "削除"
+          },
+          "toast": {
+            "success": "組織を削除しました。",
+            "error": "組織の削除に失敗しました。"
+          },
+          "deleting": "削除中..."
+        },
+        "edit": {
+          "title": "組織を編集",
+          "subtitle": "組織の詳細を更新します。",
+          "fields": {
+            "name": "組織名",
+            "email": "組織メールアドレス",
+            "country": "国",
+            "status": "ステータス"
+          },
+          "toast": {
+            "success": "組織情報を更新しました。",
+            "error": "組織情報の更新に失敗しました。"
+          },
+          "buttons": {
+            "cancel": "キャンセル",
+            "save": "変更を保存",
+            "saving": "保存中..."
+          }
+        }
+      },
+      "detail": {
+        "title": "組織",
+        "subtitle": "組織をクリックすると、その詳細とメンバーを表示できます。",
+        "breadcrumb": {
+          "organisations": "組織",
+          "detail": "詳細"
+        },
+        "status": {
+          "active": "有効",
+          "inactive": "無効"
+        },
+        "state": {
+          "loading": "組織を読み込み中...",
+          "noOrganisations": "組織が見つかりません",
+          "fetchError": "組織の読み込みに失敗しました。",
+          "fetchMembersError": "メンバーの読み込みに失敗しました。",
+          "deleteOrganisation": "組織が正常に削除されました",
+          "failedDeleteOrganisation": "組織の削除に失敗しました"
+        },
+        "table": {
+          "headers": {
+            "organisation": "組織",
+            "owner": "作成者",
+            "members": "メンバー",
+            "status": "ステータス",
+            "created": "作成日",
+            "member": "メンバー",
+            "role": "役割",
+            "joined": "参加日"
+          },
+          "empty": "メンバーが見つかりません"
+        }
+      },
+      "drawer": {
+        "title": "組織の詳細",
+        "id": "ID",
+        "totalMembers": "合計メンバー数",
+        "info": {
+          "email": "組織メールアドレス",
+          "description": "説明",
+          "country": "国",
+          "owner": "作成者",
+          "members": "メンバー",
+          "created": "作成日",
+          "actions": "操作"
+        },
+        "tabs": {
+          "members": "メンバー",
+          "activity": "アクティビティ",
+          "activityComingSoon": "アクティビティログは近日公開予定です",
+          "viewAllMembers": "組織の全メンバーを表示",
+          "showLess": "表示を減らす",
+          "headers": {
+            "user": "ユーザー",
+            "role": "役割",
+            "status": "ステータス"
+          },
+          "roles": {
+            "admin": "管理者",
+            "member": "メンバー"
+          }
+        },
+        "buttons": {
+          "edit": "編集",
+          "delete": "削除"
+        },
+        "status": {
+          "active": "有効",
+          "inactive": "無効"
+        },
+        "table": {
+          "empty": "メンバーが見つかりません"
+        }
+      }
+    },
+    "aiModels": {
+      "title": "AIモデル",
+      "subTitle": "専用エージェントで生産性をさらに高めましょう。",
+      "noModelsFound": "モデルが見つかりません",
+      "noAIProviders": "まだAIプロバイダーが設定されていません。開始するにはサービスを接続してください。",
+      "buttons": {
+        "addAiModel": "モデルを設定"
+      },
+      "aiModelCard": {
+        "online": "オンライン",
+        "offline": "オフライン"
+      },
+      "modals": {
+        "createModel": {
+          "title": "AIモデルを作成",
+          "subtitle": "ワークフローを強化するために、新しいAIプロバイダーを接続します。",
+          "confirm": "モデルを作成",
+          "creating": "作成中...",
+          "cancel": "キャンセル",
+          "fields": {
+            "name": "名前",
+            "provider": "プロバイダー",
+            "api_key": "APIキー",
+            "providers": {
+              "openai": "OpenAI",
+              "anthropic": "Anthropic",
+              "cohere": "Cohere",
+              "gemini": "Google Gemini"
+            }
+          }
+        },
+        "editModel": {
+          "title": "AIモデルを編集",
+          "subtitle": "このAIモデルの設定を更新します。",
+          "cancel": "キャンセル",
+          "saving": "保存中...",
+          "saveChanges": "変更を保存",
+          "apiKeyPlaceholder": "APIキーを更新"
+        },
+        "deleteModel": {
+          "title": "AIモデルを削除",
+          "subtitle": "AIモデル設定",
+          "message": "このAIモデルの設定は完全に削除されます。この操作は元に戻せません。",
+          "deleting": "削除中...",
+          "buttons": {
+            "cancel": "キャンセル",
+            "delete": "モデルを削除"
+          }
+        }
+      },
+      "toasts": {
+        "create": {
+          "success": "AIモデルが正常に作成されました。",
+          "error": "AIモデルの作成に失敗しました。"
+        },
+        "edit": {
+          "success": "AIモデルが正常に更新されました。",
+          "error": "AIモデルの更新に失敗しました。"
+        },
+        "delete": {
+          "success": "AIモデルが正常に削除されました。",
+          "error": "AIモデルの削除に失敗しました。"
+        }
+      }
+    }
+  },
+  "chat": {
+    "title": "レポートセッションを開始",
+    "button": "レポートを開始",
+    "chatBox": {
+      "subtitle": "文化的な違いを理解するAIメディエーターです。",
+      "bannerOne": "をご利用中です **",
+      "bannerTwo": "**。残りクレジット数: 150",
+      "textField": {
+        "placeholder": "今日は何について話したいですか？",
+        "reply": "AI Podに返信..."
+      },
+      "analyzing": "AI Pod が分析中です...",
+      "footer": "AI Pod Mediator 提供 • v1.0.4"
+    },
+    "tasksArea": "タスクコンポーネントがここに配置されます",
+    "taskSelection": {
+      "title": "タスクを選択",
+      "subtitle": "AIチャットセッションに含めるタスクを選択してください",
+      "noAssignee": "未割り当て",
+      "search": {
+        "placeholder": "タスク・担当者・年を検索"
+      },
+      "selectAll": {
+        "selectAll": "すべて選択",
+        "deselectAll": "すべて解除",
+        "selectedCount": "{count}件選択中"
+      },
+      "status": {
+        "backlog": "バックログ",
+        "ready": "準備完了",
+        "in_progress": "進行中",
+        "blocked": "ブロック中",
+        "review": "レビュー中",
+        "testing": "テスト中",
+        "done": "完了",
+        "deployed": "デプロイ済み",
+        "cancelled": "キャンセル済み"
+      },
+      "empty": {
+        "noResults": "「{search}」に一致するタスクはありません",
+        "clearSearch": "検索をクリア",
+        "noTasks": "利用可能なタスクがありません",
+        "fetchError": "タスクの読み込みに失敗しました。"
+      },
+      "cta": {
+        "active": "チャットセッションを開始 ({count})",
+        "inactive": "タスクを選択してください",
+        "loading": "セッションを開始中..."
+      }
+    },
+    "state": {
+      "loadingProjects": "プロジェクトを読み込み中...",
+      "selectProject": "プロジェクトを選択",
+      "selectProjectPrompt": "プロジェクトを選択してタスクを表示",
+      "fetchProjectsError": "プロジェクトの読み込みに失敗しました。",
+      "fetchAiWorkflowError": "AIワークフローの読み込みに失敗しました。"
+    },
+    "toasts": {
+      "create": {
+        "success": "レポートセッションを正常に開始しました。",
+        "error": "レポートセッションの開始に失敗しました。"
+      }
+    },
+    "session": {
+      "project": "プロジェクト",
+      "status": {
+        "ingesting": "取り込み中",
+        "interviewing": "インタビュー中",
+        "drafting": "下書き作成中",
+        "review": "レビュー中",
+        "archived": "アーカイブ済み"
+      }
+    }
+  },
+  "report": {
+    "today": "本日",
+    "sidebar": {
+      "myProjects": "マイプロジェクト",
+      "searchBar": "プロジェクトを検索",
+      "member": "メンバー",
+      "show": "表示",
+      "more": "もっと見る",
+      "showLess": "表示を減らす"
+    },
+    "daysOfWeek": {
+      "sun": "日",
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土"
+    },
+    "more": "もっと",
+    "reportsDetails": {
+      "title": "レポート詳細カード",
+      "reportTasks": "レポートタスクの詳細",
+      "id": "レポートID",
+      "owner": "レポート作成者",
+      "project": "プロジェクト名",
+      "organisation": "組織",
+      "date": "日付",
+      "reportTitles": {
+        "daily": "日次レポート"
+      },
+      "taskStatus": {
+        "done": "完了",
+        "blocked": "ブロック中",
+        "pending": "保留中",
+        "backlog": "バックログ",
+        "ready": "準備完了",
+        "in_progress": "進行中",
+        "review": "レビュー中",
+        "testing": "テスト中",
+        "deployed": "展開済み",
+        "cancelled": "キャンセル済み"
+      },
+      "tabs": {
+        "tasks": "タスク ({count})",
+        "comments": "コメント ({count})"
+      },
+      "comments": {
+        "loading": "コメントを読み込んでいます...",
+        "empty": "まだコメントはありません。会話を始めましょう！",
+        "actions": {
+          "reply": "返信",
+          "edit": "編集",
+          "delete": "削除"
+        },
+        "editor": {
+          "cancel": "キャンセル",
+          "save": "保存",
+          "placeholder": "コメントを追加..."
+        },
+        "thread": {
+          "deletedParentAuthor": "削除されたコメント",
+          "deletedParentBody": "このコメントは削除されました。返信は引き続き表示されます。",
+          "addReply": "返信",
+          "viewReplies": "{count}件の返信を表示",
+          "hideReplies": "返信を非表示",
+          "replyPlaceholder": "返信を書く..."
+        },
+        "deleteModal": {
+          "title": "コメントを削除",
+          "message": "このコメントを削除してもよろしいですか？",
+          "cancel": "キャンセル",
+          "confirm": "削除",
+          "deleting": "削除中..."
+        },
+        "time": {
+          "justNow": "たった今"
+        }
+      },
+      "sidebar": {
+        "reportDetails": "レポート詳細",
+        "reportId": "レポートID",
+        "type": "種類",
+        "date": "日付"
+      },
+      "actions": {
+        "copyLink": "リンクをコピー"
+      },
+      "sections": {
+        "whatIDid": "過去24時間の活動",
+        "whatIWillDo": "今後24時間の予定",
+        "blockers": "ブロッカー",
+        "noBlockers": "ブロッカーはありません"
+      },
+      "status": {
+        "submitted": "提出済み",
+        "draft": "下書き",
+        "pending": "保留中"
+      },
+      "loading": {
+        "report": "レポートを読み込んでいます...",
+        "suspense": "読み込み中..."
+      },
+      "error": {
+        "generic": "問題が発生しました。もう一度お試しください。",
+        "retry": "再試行"
+      },
+      "toasts": {
+        "invalidate": {
+          "success": "レポートが正常に無効としてマークされました",
+          "error": "`レポートの無効化に失敗しました"
+        }
+      },
+      "invalidReport": {
+        "title": "無効としてマーク",
+        "subtitle": "このレポートを無効としてマークします",
+        "message": "本当にこのレポートを無効としてマークしますか？この操作は元に戻せません。",
+        "buttons": {
+          "cancel": "キャンセル",
+          "delete": "無効としてマーク"
+        }
+      }
+    },
+    "unfinalizedReport": {
+      "title": "未完成のレポート",
+      "subtitle": "まだ最終確定されていないレポートの編集を続けます。",
+      "buttons": {
+        "continue": "編集を続ける",
+        "discard": "破棄して新規作成",
+        "showMore": "未確定のレポートがあと{count}件あります 表示する",
+        "showLess": "表示を減らす"
+      },
+      "state": {
+        "loading": "未完成のレポートを読み込み中...",
+        "fetchError": "未完成のレポートを読み込めませんでした。もう一度お試しください。",
+        "noReport": "未完成のレポートは見つかりませんでした。",
+        "reportsFinalized": "すべてのレポートは既に最終確定されています。"
+      },
+      "lastUpdated": "最終更新"
+    }
+  },
+  "reset-password": {
+    "title": "新しいパスワードを作成",
+    "subtitle": "アカウント用の新しいパスワードを設定してください。安全で、覚えやすいものを選んでください。",
+    "form": {
+      "newPassword": {
+        "label": "新しいパスワード",
+        "placeholder": "新しいパスワードを入力してください",
+        "helperText": "8文字以上である必要があります"
+      },
+      "confirmPassword": {
+        "label": "新しいパスワード（確認）",
+        "placeholder": "新しいパスワードを確認してください"
+      },
+      "buttons": {
+        "submit": "パスワードをリセット",
+        "submitting": "リセット中..."
+      }
+    },
+    "success": {
+      "title": "パスワードが正常にリセットされました！",
+      "message": "パスワードが正常にリセットされました。新しいパスワードでサインインできます。",
+      "button": "サインインへ"
+    },
+    "errors": {
+      "passwordRequired": "パスワードは必須です",
+      "passwordMinLength": "パスワードは8文字以上である必要があります",
+      "confirmPasswordRequired": "パスワードを確認してください",
+      "passwordsDoNotMatch": "パスワードが一致しません",
+      "invalidToken": "無効またはリセットリンクが見つかりません。新しいリンクをリクエストしてください。",
+      "generic": "パスワードのリセットに失敗しました。リンクの有効期限が切れている可能性があります。"
+    },
+    "requirements": {
+      "title": "パスワードの要件：",
+      "length": "8文字以上である必要があります",
+      "mix": "文字、数字、記号を組み合わせて使用してください"
+    },
+    "already-have-account": "すでにアカウントをお持ちですか？",
+    "login": "サインイン",
+    "loading": "読み込み中..."
+  }
+}
