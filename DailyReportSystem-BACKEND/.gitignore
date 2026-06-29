@@ -1,5 +1,5 @@
 venv/
-__pycache__/
+_pycache_/
 *.pyc
 .env
 .cov
@@ -14,3 +14,5 @@ media/
 docker-compose.dev.yml
 docker-compose.production.yml
 docker-compose.staging.yml
+
+.env

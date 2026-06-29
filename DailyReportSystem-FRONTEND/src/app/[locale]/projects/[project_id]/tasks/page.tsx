@@ -14,6 +14,7 @@ import {
   Select,
   MenuItem,
   Grid,
+  Chip,
 } from '@mui/material';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
@@ -437,6 +438,57 @@ export default function TasksPage() {
         </Stack>
       </Stack>
 
+      {/* QUICK FILTERS */}
+      <Stack direction="row" spacing={1} mb={2} alignItems="center" sx={{ overflowX: 'auto' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mr: 1, fontWeight: 600 }}>
+          {t('filters.quickFilters')}
+        </Typography>
+        <Chip 
+          label={t('filters.assignedToMe')} 
+          onClick={() => {
+            const myMemberId = projectMembers.find(m => m.member_id === user?.membership)?.id;
+            if (myMemberId) {
+              setAssigneeFilter(assigneeFilter === myMemberId ? 'all' : myMemberId);
+            }
+          }} 
+          color={projectMembers.find(m => m.member_id === user?.membership)?.id && assigneeFilter === projectMembers.find(m => m.member_id === user?.membership)?.id ? "primary" : "default"}
+          variant={projectMembers.find(m => m.member_id === user?.membership)?.id && assigneeFilter === projectMembers.find(m => m.member_id === user?.membership)?.id ? "filled" : "outlined"}
+          clickable
+          size="small"
+        />
+        <Chip 
+          label={t('filters.inProgress')} 
+          onClick={() => setStatusFilter(statusFilter === 'in_progress' ? 'all' : 'in_progress')}
+          color={statusFilter === 'in_progress' ? "primary" : "default"}
+          variant={statusFilter === 'in_progress' ? "filled" : "outlined"}
+          clickable
+          size="small"
+        />
+        <Chip 
+          label={t('filters.highPriority')} 
+          onClick={() => setPriorityFilter(priorityFilter === 'high' ? 'all' : 'high')}
+          color={priorityFilter === 'high' ? "primary" : "default"}
+          variant={priorityFilter === 'high' ? "filled" : "outlined"}
+          clickable
+          size="small"
+        />
+        {(assigneeFilter !== 'all' || statusFilter !== 'all' || priorityFilter !== 'all' || categoryFilter !== 'all' || search !== '') && (
+          <Button 
+            size="small" 
+            onClick={() => {
+              setAssigneeFilter('all');
+              setStatusFilter('all');
+              setPriorityFilter('all');
+              setCategoryFilter('all');
+              setSearch('');
+            }}
+            sx={{ textTransform: 'none', ml: 'auto' }}
+          >
+            {t('filters.clearAll')}
+          </Button>
+        )}
+      </Stack>
+
       {/* FILTERS */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
         <TextField
@@ -605,6 +657,10 @@ export default function TasksPage() {
         onClose={handleCloseTaskDrawer}
         task={selectedTask}
         onEdit={handleEditTaskDrawerDetails}
+        onDelete={(task) => {
+          handleCloseTaskDrawer();
+          handleDeleteClick(task);
+        }}
       />
     </Box>
   );

@@ -26,6 +26,7 @@ import {
   SvgIconTypeMap,
 } from '@mui/material';
 import { ArrowUpward, Close as CloseIcon } from '@mui/icons-material';
+import ReactMarkdown from 'react-markdown';
 import {
   Tag as TagIcon,
   AccountTree as AccountTreeIcon,
@@ -38,6 +39,7 @@ import {
   ShareOutlined as ShareOutlinedIcon,
   Flag as FlagIcon,
   Category as CategoryIcon,
+  DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
 } from '@mui/icons-material';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
@@ -57,6 +59,7 @@ interface TaskDetailDrawerProps {
   onClose: () => void;
   task: TaskType | null;
   onEdit: (task: TaskType) => void;
+  onDelete?: (task: TaskType) => void;
 }
 
 const THREAD_PARENT_PREFIX = '[drs-parent:';
@@ -125,7 +128,7 @@ const sortThreadNodes = (nodes: CommentThreadNode[]): CommentThreadNode[] => {
   return nodes;
 };
 
-export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDetailDrawerProps) {
+export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete }: TaskDetailDrawerProps) {
   const { user } = useAuth();
   const t = useTranslations('tasks');
   const pathname = usePathname();
@@ -794,6 +797,11 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
             <IconButton size="small" onClick={() => task && onEdit(task)}>
               <ModeEditOutlineOutlinedIcon fontSize="small" />
             </IconButton>
+            {onDelete && (
+              <IconButton size="small" onClick={() => task && onDelete(task)} color="error">
+                <DeleteOutlineOutlinedIcon fontSize="small" />
+              </IconButton>
+            )}
             <IconButton size="small">
               <ShareOutlinedIcon fontSize="small" />
             </IconButton>
@@ -828,9 +836,6 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
           <Tabs
             value={tabIndex}
             onChange={handleTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
             sx={{ px: 2, borderBottom: '1px solid', borderColor: 'divider' }}
           >
             {[
@@ -848,13 +853,27 @@ export default function TaskDetailDrawer({ open, onClose, task, onEdit }: TaskDe
 
           <Box sx={{ flex: 1, overflowY: 'auto', p: 3, '&::-webkit-scrollbar': { width: 5 } }}>
             {tabIndex === 0 && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ whiteSpace: 'pre-line', lineHeight: 1.7 }}
+              <Box
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.7,
+                  '& p': { mt: 0, mb: 1.5 },
+                  '& a': { color: 'primary.main', textDecoration: 'none' },
+                  '& a:hover': { textDecoration: 'underline' },
+                  '& ul, & ol': { mt: 0, mb: 1.5, pl: 3 },
+                  '& pre': { bgcolor: 'action.hover', p: 1.5, borderRadius: 1, overflowX: 'auto' },
+                  '& code': { bgcolor: 'action.hover', px: 0.5, py: 0.25, borderRadius: 0.5, fontFamily: 'monospace' },
+                }}
               >
-                {task.description ?? t('detailDrawer.descriptionEmpty')}
-              </Typography>
+                {task.description ? (
+                  <ReactMarkdown>{task.description}</ReactMarkdown>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('detailDrawer.descriptionEmpty')}
+                  </Typography>
+                )}
+              </Box>
             )}
 
             {tabIndex === 1 && (

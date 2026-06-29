@@ -1,3 +1,4 @@
+# pyrefly: ignore-file [missing-import]
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from urllib.parse import urlparse
@@ -18,6 +19,8 @@ class TaskReadSerializer(serializers.ModelSerializer):
     reported_by = serializers.SerializerMethodField()
     translations = serializers.SerializerMethodField()
     attachments = serializers.SerializerMethodField()
+    comments_count = serializers.IntegerField(read_only=True, required=False)
+    attachments_count = serializers.IntegerField(read_only=True, required=False)
 
     class Meta:
         model = Task
@@ -41,6 +44,8 @@ class TaskReadSerializer(serializers.ModelSerializer):
             "created_at",
             "closed_at",
             "cancelled_at",
+            "comments_count",
+            "attachments_count",
         ]
 
     def get_project(self, obj):
@@ -118,8 +123,14 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_due_date(self, value):
-        if value and value <= timezone.now():
-            raise serializers.ValidationError("Due date must be in the future.")
+        """
+        Ensures the task deadline is not in the past.
+        Today is allowed; only strictly past dates are rejected.
+        FR-04.2: Tasks shall include a valid Deadline field.
+        BUG-003 fix.
+        """
+        if value and value.date() < timezone.now().date():
+            raise serializers.ValidationError("Due date cannot be in the past.")
         return value
 
     def validate(self, data):
@@ -189,8 +200,8 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         return value
         
     def validate_due_date(self, value):
-        if value and value <= timezone.now():
-            raise serializers.ValidationError("Due date must be in the future.")
+        if value and value.date() < timezone.now().date():
+            raise serializers.ValidationError("Due date cannot be in the past.")
         return value
         
     def validate(self, data):
