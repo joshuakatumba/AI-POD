@@ -14,9 +14,7 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 import { TaskResponseType } from "@/_types/task";
 import { useTranslations } from "next-intl";
-import { TaskPriority } from "@/_types/task";
-import { PRIORITY_CONFIG } from "@/utils/priorityUtility";
-import { getDeadlineInfo } from "@/utils/deadlineUtils";
+import { getPriorityColor } from "@/components/priorityUtility";
 
 interface TaskKanbanCardProps {
   task: TaskResponseType;
