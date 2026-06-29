@@ -1,0 +1,1759 @@
+{
+  "login": {
+    "title": "Sign in to your account",
+    "subtitle": "Enter your credentials to access your dashboard",
+    "form": {
+      "email": {
+        "label": "Email",
+        "placeholder": "Add your email address"
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Add your password"
+      },
+      "validations": {
+        "email": {
+          "required": "Email is required",
+          "invalid": "Please enter a valid email address"
+        },
+        "password": {
+          "required": "Password is required",
+          "minLength": "Password must be at least 6 characters"
+        }
+      },
+      "remember-me": "Remember me",
+      "forgot-password": "Forgot password?",
+      "buttons": {
+        "sign-in": "Sign in",
+        "loading": "Signing in..."
+      }
+    },
+    "dont-have-account": "Don’t have an account?",
+    "create-account": "Create an account",
+    "toast": {
+      "error": {
+        "defaultMessage": "Sign in failed. Please try again.",
+        "invalidCredentials": "Invalid email or password.",
+        "notInvited": "You have not been invited to an organization and cannot access the system. Please contact your administrator.",
+        "serverError": "A server error occurred. Please try again later."
+      },
+      "success": {
+        "message": "Successfully logged in!"
+      }
+    }
+  },
+  "register": {
+    "title": "Create your account",
+    "subtitle": "Start collaborating across the world all in one place",
+    "form": {
+      "fullName": {
+        "label": "Full Name",
+        "placeholder": "Enter your full name"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter your email"
+      },
+      "preferredLanguage": {
+        "label": "Preferred Language",
+        "placeholder": "Select your preferred language",
+        "options": {
+          "en": "English",
+          "ja": "Japanese"
+        }
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Enter your password"
+      },
+      "confirm-password": {
+        "label": "Confirm Password",
+        "placeholder": "Re-enter your password"
+      },
+      "buttons": {
+        "signUp": "Sign Up",
+        "loading": "Registering User"
+      },
+      "validations": {
+        "password": {
+          "minLength": "Password must be at least 8 characters"
+        }
+      }
+    },
+    "toast": {
+      "success": {
+        "message": "Successfully registered user!"
+      },
+      "error": {
+        "defaultMessage": "User registration failed",
+        "passwordMismatch": "Provided password do not match"
+      }
+    },
+    "already-have-account": "Already have an account?",
+    "login": "Sign in"
+  },
+  "verify-account": {
+    "title": "Verify your account",
+    "subtitle": "Enter the 4-digit code sent to your email",
+    "form": {
+      "buttons": {
+        "verify": "Verify"
+      }
+    }
+  },
+  "forgot-password": {
+    "title": "Forgot Password?",
+    "subtitle": "Enter your email address and we'll send you a secure link to reset your password. Make sure to check your inbox (and spam folder) for the email.",
+    "form": {
+      "email": {
+        "label": "Email",
+        "placeholder": "Enter your email"
+      },
+      "buttons": {
+        "send": "Send Reset Link",
+        "sending": "Sending..."
+      }
+    },
+    "already-have-account": "Already have an account?",
+    "login": "Sign in",
+    "success": {
+      "title": "Check Your Email",
+      "message": "We've sent a password reset link to:",
+      "instruction": "Make sure to check your inbox (and spam folder) for the email.",
+      "already-have-account": "Already have an account?",
+      "login": "Sign in",
+      "toast": "Click the link in the email to create a new password."
+    },
+    "errors": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address"
+    }
+  },
+  "dashboard": {
+    "NavItems": {
+      "messages": "Messages",
+      "notifications": "Notifications",
+      "settings": "Settings",
+      "members": "Members",
+      "projects": "Projects",
+      "tasks": "Tasks",
+      "dashboard": "Dashboard",
+      "reports": "Reports",
+      "detail": "Report Details",
+      "general": "General",
+      "organisation": "Organisation",
+      "create": "Create",
+      "admin": "System Admin",
+      "admin-dashboard": "Admin Dashboard",
+      "users": "User Accounts",
+      "organisations": "Organisations",
+      "configuration": "AI Configuration",
+      "workflows": "Workflows",
+      "chat": "Chat",
+      "details": "Project Details"
+    },
+    "userSection": {
+      "online": "Online",
+      "signOut": "Sign Out"
+    },
+    "Content": {
+      "welcome": "Welcome to your dashboard"
+    },
+    "switcher": {
+      "createOrganisation": "Create organisation",
+      "currentOrganisation": "Current organisation",
+      "myOrganisations": "My organisations",
+      "roles": {
+        "admin": "Admin",
+        "member": "Member"
+      },
+      "ariaLabels": {
+        "trigger": "Switch organisation",
+        "menu": "Organisation selection menu"
+      },
+      "toast": {
+        "success": {
+          "message": "Successfully switched organisation!"
+        },
+        "error": {
+          "defaultMessage": "Failed to switch organisation"
+        }
+      },
+      "systemAdmin": "System Admin",
+      "adminConsole": "Admin Console",
+      "exitAdmin": "Exit Admin Mode"
+    },
+    "profile": {
+      "title": "Complete Your Profile",
+      "english": "English",
+      "japanese": "Japanese",
+      "subtitle": "Before you continue, please let us know what name you'd like to use in the organization.",
+      "pleaseLetUsKnowName": "Please let us know your preferred language",
+      "form": {
+        "email": {
+          "label": "Email Address",
+          "helpText": "Your email is managed by your administrator"
+        },
+        "displayName": {
+          "label": "Display Name",
+          "placeholder": "e.g. Jane Doe"
+        },
+        "preferredLanguage": {
+          "label": "Preferred Language",
+          "placeholder": "Select your preferred language"
+        },
+        "buttons": {
+          "save": "Save",
+          "saving": "Saving..."
+        }
+      },
+      "toast": {
+        "success": {
+          "message": "Your information has been updated successfully."
+        },
+        "error": {
+          "defaultMessage": "Something went wrong. Please try again."
+        }
+      },
+      "details": {
+        "editTitle": "Edit Profile",
+        "unnamed": "No name set",
+        "form": {
+          "displayName": {
+            "label": "Display Name",
+            "placeholder": "Enter your display name",
+            "error": "Display name must be at least 2 characters"
+          },
+          "language": {
+            "label": "Preferred Language",
+            "english": "English",
+            "japanese": "Japanese"
+          },
+          "email": {
+            "label": "Email",
+            "hint": "Email cannot be changed"
+          },
+          "role": {
+            "label": "Role"
+          },
+          "buttons": {
+            "edit": "Edit Profile",
+            "save": "Save Changes",
+            "saving": "Saving...",
+            "cancel": "Cancel"
+          }
+        },
+        "toast": {
+          "success": "Profile updated successfully",
+          "error": "Something went wrong. Please try again."
+        }
+      }
+    },
+    "home": {
+      "title": "Dashboard",
+      "subtitle": "Stay on top of tasks that need attention across your projects.",
+      "activeProjects": {
+        "title": "Active Projects",
+        "empty": {
+          "title": "No active projects",
+          "description": "Projects will appear here once they are created."
+        },
+        "activeTasks": "active tasks"
+      },
+      "actions": {
+        "progress": "Progress",
+        "autoSync": "auto-sync",
+        "open": "Open",
+        "browseArchive": "Browse Archive"
+      },
+      "recentTasks": "Recent Tasks",
+      "table": {
+        "headers": {
+          "task": "Task",
+          "project": "Project",
+          "status": "Status",
+          "dueDate": "Due Date",
+          "assignee": "Assignee"
+        },
+        "state": {
+          "noTasks": "No tasks available",
+          "fetchTasksError": "Failed to load tasks",
+          "fetchProjectsError": "Failed to load projects",
+          "fetchReportsError": "Failed to load reports"
+        },
+        "status": {
+          "backlog": "Backlog",
+          "ready": "Ready",
+          "in_progress": "In Progress",
+          "blocked": "Blocked",
+          "review": "Review",
+          "testing": "Testing",
+          "done": "Done",
+          "deployed": "Deployed",
+          "cancelled": "Cancelled",
+          "closed": "Closed"
+        }
+      },
+      "status": {
+        "unassigned": "Unassigned"
+      },
+      "reports": {
+        "workflowEfficiency": "Workflow Efficiency",
+        "pulseTitle": "Pulse & Reports",
+        "recentTitle": "Recent Reports",
+        "empty": {
+          "title": "No reports yet",
+          "description": "Reports will appear here once they are generated."
+        }
+      }
+    }
+  },
+  "modals": {
+    "deactivateOrganisationMember": {
+      "title": "Deactivate Member",
+      "message": "This action will remove this member's access to the organization. Their data will not be deleted and can be restored upon reactivation. Are you sure you want to proceed?",
+      "buttons": {
+        "cancel": "Cancel",
+        "deactivate": "Deactivate"
+      },
+      "deleting": "Deactivating"
+    },
+    "editOrganisationMember": {
+      "title": "Edit User",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "email": "Email",
+      "display_name": "Name",
+      "editing": "Editing User",
+      "role": {
+        "label": "Change Role",
+        "title": "Role"
+      },
+      "saving": "Saving changes...",
+      "error": "You can only update your own display name.",
+      "changeRole": "Contact an admin to change your role.",
+      "editProfile": "Edit Profile",
+      "editingProfile": "Editing your profile",
+      "toast": {
+        "success": {
+          "message": "Member updated successfully!"
+        },
+        "error": {
+          "defaultMessage": "Failed to update member"
+        }
+      }
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Overview of all active and archived projects.",
+    "projectDetails": "Project details",
+    "noProjectMembers": "No project members",
+    "description": {
+      "label": "Description"
+    },
+    "state": {
+      "loading": "Loading projects...",
+      "noProjects": "No projects found"
+    },
+    "details": {
+      "fetchError": "Failed to load project",
+      "notFound": "Project not found",
+      "members": {
+        "count": "Members",
+        "link": "View all members",
+        "admins": "Admins",
+        "contributors": "Contributors",
+        "roleAdmin": "Admin",
+        "roleContributor": "Contributor"
+      },
+      "roles": {
+        "contributor": "Contributor",
+        "admin": "Admin"
+      },
+      "info": {
+        "title": "Project Overview",
+        "startDate": "Start Date",
+        "dueDate": "Due Date",
+        "owner": "Project Owner",
+        "status": "Status"
+      },
+      "stats": {
+        "total": "Total Tasks",
+        "inProgress": "In Progress",
+        "blocked": "Blocked",
+        "completed": "Completed",
+        "progress": "Project Progress",
+        "team": "Members"
+      },
+      "pieChart": {
+        "title": "Task Progress",
+        "subTitle": "Live project metrics",
+        "tasks": "Tasks",
+        "emptyState": "No tasks available for this project.",
+        "legend": {
+          "completed": "Completed",
+          "deployed": "Deployed",
+          "closed": "Closed",
+          "inProgress": "In Progress",
+          "inReview": "In Review",
+          "testing": "Testing",
+          "ready": "Ready",
+          "backlog": "Backlog",
+          "pending": "Pending",
+          "blocked": "Blocked",
+          "cancelled": "Cancelled",
+          "active": "Active",
+          "upcoming": "Upcoming tasks"
+        }
+      }
+    },
+    "adminActions": {
+      "title": "Project actions",
+      "edit": "Edit Project",
+      "delete": "Delete Project",
+      "editSuccess": "Project updated successfully",
+      "editError": "Failed to update project",
+      "deleteSuccess": "Project deleted successfully",
+      "deleteError": "Failed to delete project",
+      "cancelled": "This project has been cancelled and cannot be edited",
+      "fetchError": "Failed to load project"
+    },
+    "buttons": {
+      "createProject": "Create Project"
+    },
+    "table": {
+      "headers": {
+        "project": "Project",
+        "creator": "Creator",
+        "team": "Team",
+        "progress": "Progress",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "state": {
+        "loading": "Loading projects...",
+        "noProjects": "No projects available"
+      }
+    },
+    "tabs": {
+      "overview": "Overview",
+      "tasks": "Tasks",
+      "team": "Team",
+      "documents": "Documents"
+    },
+    "status": {
+      "completed": "Completed",
+      "paused": "Paused",
+      "active": "Active",
+      "inactive": "Inactive",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "closed": "Closed"
+    },
+    "tooltips": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "addTask": "Add Task"
+    },
+    "modals": {
+      "createProject": {
+        "title": "Create Project",
+        "subtitle": "Fill in the details to create a new project",
+        "cancel": "Cancel",
+        "confirm": "Create Project",
+        "creating": "Creating...",
+        "fields": {
+          "name": "Project Name",
+          "description": "Description",
+          "start_date": "Start Date",
+          "end_date": "Deadline",
+          "visibility": {
+            "label": "Visibility",
+            "options": {
+              "team": "Team",
+              "organisation": "Organisation"
+            }
+          }
+        },
+        "toasts": {
+          "create": {
+            "success": "Project created successfully",
+            "error": "Failed to create project"
+          }
+        }
+      },
+      "editProject": {
+        "title": "Edit Project Details",
+        "subtitle": "Update project details.",
+        "buttons": {
+          "cancel": "Cancel",
+          "saveChanges": "Save Changes",
+          "saving": "Saving changes..."
+        },
+        "toasts": {
+          "success": "Successfully updated project details.",
+          "error": "Failed to update project details."
+        }
+      },
+      "deleteProject": {
+        "title": "Delete Project",
+        "subtitle": "Delete this project",
+        "message": "Are you sure you want to delete this project?",
+        "confirm": "Delete",
+        "cancel": "Cancel",
+        "deleteSuccess": "Project deleted successfully",
+        "deleteError": "Failed to delete project",
+        "buttons": {
+          "cancel": "Cancel",
+          "delete": "Delete"
+        },
+        "deleting": "Deleting project..."
+      }
+    },
+    "manageMembers": "Manage team",
+    "manageTasks": "Manage tasks",
+    "sidebar": {
+      "allProjects": "All Projects",
+      "search": {
+        "placeholder": "Search projects..."
+      },
+      "nav": {
+        "overview": "Overview",
+        "tasks": "Tasks",
+        "members": "Members"
+      }
+    }
+  },
+  "projectMembers": {
+    "title": "Project Members",
+    "subtitle": "Overview of all active and archived project members.",
+    "buttons": {
+      "addMember": "Add Member"
+    },
+    "table": {
+      "member": "Name",
+      "email": "Email",
+      "role": "Role",
+      "actions": "Actions",
+      "status": {
+        "label": "Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending"
+      },
+      "state": {
+        "loading": "Loading members ...",
+        "noProjectMembers": "No project members"
+      }
+    },
+    "roles": {
+      "contributor": "Contributor",
+      "admin": "Admin"
+    },
+    "toast": {
+      "success": {
+        "message": "Successfully updated member role!"
+      },
+      "error": {
+        "message": "Failed to update member role"
+      },
+      "delete": {
+        "success": {
+          "message": "Successfully removed member from project!"
+        },
+        "error": {
+          "message": "Failed to remove member from project"
+        }
+      }
+    },
+    "addMember": {
+      "title": "Add a Member",
+      "description": "Invite a new member to join your project by entering their email address and assigning them a role.",
+      "form": {
+        "name": {
+          "label": "Full Name",
+          "placeholder": "Enter full name"
+        },
+        "email": {
+          "label": "Email",
+          "placeholder": "Enter email address"
+        },
+        "role": {
+          "placeholder": "Select role"
+        },
+        "buttons": {
+          "addMember": "Add Member",
+          "cancel": "Cancel"
+        }
+      },
+      "roles": {
+        "admin": "Admin",
+        "contributor": "Contributor"
+      },
+      "toast": {
+        "success": {
+          "message": "Successfully added member to project!"
+        },
+        "error": {
+          "message": "Failed to add member to project"
+        }
+      },
+      "validation": {
+        "email": {
+          "required": "Email is required",
+          "invalid": "Enter a valid email address"
+        },
+        "role": {
+          "required": "Role is required"
+        },
+        "general": "Please check your input and try again."
+      },
+      "loading": "Adding member...",
+      "adding": "Adding..."
+    },
+    "deleteProjectMember": {
+      "title": "Remove Member",
+      "message": "Are you sure you want to remove this member from the project? This action will revoke their access to the project and they will no longer be able to view or contribute to it.",
+      "buttons": {
+        "cancel": "Cancel",
+        "remove": "Remove"
+      },
+      "deleting": "Removing member...",
+      "toast": {
+        "success": {
+          "message": "Successfully removed member from project!"
+        },
+        "error": {
+          "message": "Failed to remove member from project"
+        }
+      }
+    },
+    "updateMemberRole": {
+      "title": "Update Member Role",
+      "currentRole": "Current Role",
+      "selectNewRole": "Select New Role",
+      "message": "Are you sure you want to update this member's role? This action will update their permissions and access level in the project.",
+      "roles": {
+        "admin": "Admin",
+        "contributor": "Contributor"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "update": "Update Role"
+      },
+      "updating": "Updating member role...",
+      "toast": {
+        "success": {
+          "message": "Successfully updated member role!"
+        },
+        "error": {
+          "message": "Failed to update member role"
+        }
+      }
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "subtitle": "Overview of all active and archived tasks.",
+    "noAssignee": "Unassigned",
+    "buttons": {
+      "createTask": "Create Task"
+    },
+    "kanban": {
+      "state": {
+        "dueToday": "Due today",
+        "overdue": "Due Overdue"
+      }
+    },
+    "table": {
+      "headers": {
+        "name": "Task Name",
+        "project": "Project",
+        "dueDate": "Due Date",
+        "status": "Status",
+        "hours": "Hours",
+        "reportedBy": "Reporter",
+        "assignedTo": "Assignee",
+        "actions": "Actions",
+        "category": "Category"
+      },
+      "state": {
+        "loading": "Loading tasks...",
+        "noTasks": "No tasks found"
+      }
+    },
+    "status": {
+      "backlog": "Backlog",
+      "ready": "Ready",
+      "in_progress": "In Progress",
+      "blocked": "Blocked",
+      "review": "Review",
+      "testing": "Testing",
+      "done": "Done",
+      "deployed": "Deployed",
+      "cancelled": "Cancelled"
+    },
+    "toasts": {
+      "create": {
+        "success": "Task created successfully!",
+        "error": "Failed to create task",
+        "fetchMembersError": "Failed to fetch project members"
+      },
+      "delete": {
+        "success": "Task deleted successfully!",
+        "error": "Failed to delete task"
+      },
+      "drag": {
+        "success": "Task status updated successfully",
+        "error": "Task status could not be updated successfully"
+      }
+    },
+    "deleteTask": {
+      "title": "Delete Task",
+      "subtitle": "Delete this task",
+      "message": "Are you sure you want to delete this task?",
+      "buttons": {
+        "cancel": "Cancel",
+        "delete": "Delete Task"
+      },
+      "deleting": "Deleting task..."
+    },
+    "tooltips": {
+      "delete": "Delete",
+      "edit": "Edit",
+      "display": {
+        "table": "Table view",
+        "kanban": "Kanban View"
+      },
+      "notProjectMember": "You must be a project member to create tasks"
+    },
+    "detailDrawer": {
+      "descriptionEmpty": "No description provided.",
+      "fields": {
+        "reference": "Reference",
+        "project": "Project",
+        "dueDate": "Due Date",
+        "expectedHours": "Expected Hours",
+        "hoursSuffix": "hrs",
+        "assignedTo": "Assigned To",
+        "status": "Status",
+        "priority": "Priority",
+        "category": "Category"
+      },
+      "tabs": {
+        "description": "Description",
+        "comments": "Comments ({count})",
+        "attachments": "Attachments ({count})"
+      },
+      "attachments": {
+        "empty": "No attachments yet.",
+        "loading": "Loading attachments...",
+        "addButton": "Add Attachment",
+        "addFirst": "Add your first attachment",
+        "types": {
+          "link": "Link",
+          "github": "GitHub",
+          "file": "File",
+          "document": "Document"
+        },
+        "actions": {
+          "open": "Open",
+          "copyUrl": "Copy URL",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "addDialog": {
+          "title": "Add Attachment",
+          "subtitle": "Add a link to documentation, GitHub PR, or file",
+          "adding": "Adding...",
+          "titleLabel": "Title",
+          "titlePlaceholder": "e.g., Design Specifications",
+          "urlLabel": "URL",
+          "urlPlaceholder": "https://example.com/document.pdf",
+          "typeLabel": "Type",
+          "cancel": "Cancel",
+          "add": "Add Attachment"
+        }
+      },
+      "comments": {
+        "loading": "Loading comments...",
+        "empty": "No comments yet. Start the conversation!",
+        "actions": {
+          "reply": "Reply",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "time": {
+          "justNow": "Just now"
+        },
+        "thread": {
+          "viewReplies": "View replies ({count})",
+          "hideReplies": "Hide replies",
+          "replyPlaceholder": "Write a reply...",
+          "addReply": "Reply",
+          "deletedParentAuthor": "Deleted comment",
+          "deletedParentBody": "This comment was deleted. Replies are still visible."
+        },
+        "deleteModal": {
+          "title": "Delete comment",
+          "message": "Are you sure you want to delete this comment?",
+          "cancel": "Cancel",
+          "confirm": "Delete",
+          "deleting": "Deleting..."
+        },
+        "editor": {
+          "placeholder": "Add a comment...",
+          "save": "Save",
+          "cancel": "Cancel",
+          "deleteConfirm": "Delete this comment?",
+          "replyingTo": "Replying to {name}"
+        }
+      }
+    },
+    "editTask": {
+      "title": "Edit Task",
+      "subtitle": "Modify task requirements and assignments.",
+      "description": "Description",
+      "buttons": {
+        "cancel": "Cancel",
+        "save": "Save Changes",
+        "saving": "Saving changes..."
+      },
+      "toasts": {
+        "success": "Successfully updated task details.",
+        "error": "Failed to update task details."
+      }
+    },
+    "create": {
+      "creating": "Creating...",
+      "title": "Create New Task",
+      "subtitle": "Fill in the details to create a new task",
+      "form": {
+        "title": {
+          "label": "Task Title",
+          "placeholder": "Enter task title"
+        },
+        "priority": {
+          "label": "Priority",
+          "options": {
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High",
+            "critical": "Critical"
+          }
+        },
+        "category": {
+          "label": "Category",
+          "options": {
+            "feature": "Feature",
+            "bug": "Bug",
+            "improvement": "Improvement",
+            "documentation": "Documentation",
+            "other": "Other"
+          }
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Describe the task in detail"
+        },
+        "status": {
+          "label": "Status",
+          "options": {
+            "backlog": "Backlog",
+            "ready": "Ready",
+            "in_progress": "In Progress",
+            "blocked": "Blocked",
+            "review": "In Review",
+            "testing": "Testing",
+            "done": "Done",
+            "deployed": "Deployed",
+            "cancelled": "Cancelled"
+          }
+        },
+        "assignees": {
+          "label": "Assignees",
+          "none": "None"
+        },
+        "dueDate": {
+          "label": "Due Date"
+        },
+        "estimatedHours": {
+          "label": "Estimated Hours",
+          "placeholder": "e.g., 4"
+        },
+        "tags": {
+          "label": "Tags",
+          "placeholder": "Add tags",
+          "helper": "Press Enter to add a tag (max 5 tags)"
+        },
+        "cancel": "Cancel",
+        "submit": "Create Task"
+      },
+      "validation": {
+        "required": "This field is required",
+        "undefined": "This field is required",
+        "min": "Must be at least 0 hours",
+        "max": "Cannot exceed 1000 hours"
+      }
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium", 
+      "high": "High",
+      "critical": "Critical"
+    },
+    "category": {
+      "feature": "Feature",
+      "bug": "Bug",
+      "improvement": "Improvement",
+      "documentation": "Documentation",
+      "other": "Other"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by task name...",
+      "status": "Status",
+      "assignee": "Assignee",
+      "priority": "Priority",
+      "category": "Category",
+      "allPriorities": "All Priorities",
+      "allCategories": "All Categories",
+      "all": "All",
+      "allStatuses": "All Statuses",
+      "allAssignees": "All Assignees"
+    }
+  },
+  "onboarding": {
+    "title": "Welcome to the organisation!",
+    "subtitle": "Enter your full name",
+    "form": {
+      "fullName": {
+        "label": "Full Name",
+        "placeholder": "Enter your full name"
+      },
+      "buttons": {
+        "acceptInvitation": "Accept Invitation"
+      }
+    }
+  },
+  "organisation": {
+    "create": {
+      "title": "Create organisation",
+      "subtitle": "Set up your organisation to collaborate with others",
+      "form": {
+        "name": {
+          "label": "Organisation name",
+          "placeholder": "SheWolf Media"
+        },
+        "type": {
+          "label": "Organisation type",
+          "placeholder": "Select organisation type",
+          "options": {
+            "company": "Company",
+            "ngo": "NGO / Non-profit",
+            "startup": "Startup",
+            "community": "Community",
+            "school": "School / Academy"
+          }
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "What does your organisation do?"
+        },
+        "email": {
+          "label": "Organisation email",
+          "placeholder": "info@example.com"
+        },
+        "country": {
+          "label": "Country",
+          "placeholder": "Uganda"
+        },
+        "inviteMembers": {
+          "label": "Would you like to invite members?",
+          "yes": "Yes",
+          "no": "No"
+        },
+        "inviteEmails": {
+          "label": "Invite members by email",
+          "placeholder": "user1@example.com, user2@example.com",
+          "helper": "Enter email addresses separated by commas",
+          "emails": "email(s) entered"
+        },
+        "submit": "Create organisation"
+      },
+      "success": {
+        "organisationCreated": "Organisation created successfully!",
+        "membersInvited": "members invited",
+        "membersInvitedSuccess": "{count} {count, plural, one {member} other {members}} invited successfully"
+      },
+      "errors": {
+        "name": {
+          "required": "Organisation name is required"
+        },
+        "type": {
+          "required": "Organisation type is required"
+        },
+        "description": {
+          "required": "Description is required"
+        },
+        "email": {
+          "invalid": "Enter a valid email address"
+        },
+        "inviteEmails": {
+          "required": "Please enter at least one email",
+          "invalid": "One or more email addresses are invalid"
+        },
+        "general": "Failed to create organisation. Please try again.",
+        "unauthorized": "Your session has expired. Please log in again.",
+        "server": "Server error. Please try again or contact support.",
+        "duplicate": "An organisation with this name already exists.",
+        "validation": "Please check your input and try again.",
+        "someInvitesFailed": "{count} {count, plural, one {invitation} other {invitations}} failed to send"
+      }
+    },
+    "invite": {
+      "title": "Invite a Member",
+      "subtitle": "Invite a new user to join your organisation",
+      "form": {
+        "email": {
+          "label": "Email",
+          "invalidEmail": "Enter a valid email address",
+          "placeholder": "Enter a valid email address"
+        },
+        "role": {
+          "label": "Role",
+          "options": {
+            "admin": "Admin",
+            "member": "Member"
+          },
+          "placeholder": "Select a role"
+        },
+        "buttons": {
+          "invite": "Invite",
+          "cancel": "Cancel",
+          "inviting": "Inviting ..."
+        }
+      }
+    },
+    "Members": {
+      "title": "Members",
+      "subtitle": "Invite, manage, and collaborate with your team",
+      "table": {
+        "name": "Member",
+        "email": "Email Address",
+        "role": "Role",
+        "status": "Status",
+        "date": "Joined Date",
+        "actions": "Actions"
+      },
+      "deactivatedSuccess": "Member deactivated successfully!",
+      "deactivateError": "Failed to deactivate member",
+      "loadingMessage": "Loading members...",
+      "roles": {
+        "admin": "Admin",
+        "member": "Member"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "empty": "No members found",
+      "buttons": {
+        "inviteMember": "Invite Member"
+      },
+      "toast": {
+        "success": {
+          "message": "Member role updated successfully."
+        },
+        "error": {
+          "message": "Failed to update member role."
+        },
+        "delete": {
+          "success": {
+            "message": "Member removed from project successfully."
+          },
+          "error": {
+            "message": "Failed to remove member from project."
+          }
+        },
+        "invite": {
+          "success": {
+            "message": "Member invited successfully."
+          },
+          "error": {
+            "defaultMessage": "Failed to invite member."
+          }
+        }
+      }
+    }
+  },
+  "admin": {
+    "welcome": "Welcome to your Admin dashboard",
+    "dashboard": {
+      "title": "Admin Dashboard Coming Soon",
+      "description": "We are building the admin dashboard to help you manage the platform with confidence."
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "View and manage all users across the platform.",
+      "search": "Search by email or organisation...",
+      "organisations": "{count, plural, one {organisation} other {organisations}}",
+      "table": {
+        "headers": {
+          "user": "User",
+          "role": "Role",
+          "organisation": "Organisation",
+          "status": "Status",
+          "date_joined": "Date Joined",
+          "last_login": "Last Login",
+          "actions": "Actions"
+        },
+        "state": {
+          "loading": "Loading users...",
+          "noUsers": "No users found.",
+          "never": "Never"
+        },
+        "tooltips": {
+          "editUser": "Edit User",
+          "deactivateUser": "Deactivate User",
+          "reactivateUser": "Reactivate User",
+          "editUserDisabled": "Cannot edit an inactive user"
+        }
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "roles": {
+        "admin": "Admin",
+        "member": "Member",
+        "staff": "Staff",
+        "superuser": "Superuser"
+      },
+      "modal": {
+        "title": "User Details",
+        "fields": {
+          "role": "Role",
+          "status": "Status",
+          "organization": "Organisation",
+          "dateJoined": "Date Joined",
+          "lastLogin": "Last Login"
+        },
+        "buttons": {
+          "close": "Close"
+        }
+      },
+      "editModal": {
+        "title": "Edit User",
+        "editingUser": "Editing user",
+        "changeRole": "Change Role",
+        "roles": {
+          "member": "Member",
+          "staff": "Staff",
+          "superuser": "Superuser"
+        },
+        "message": "Are you sure you want to update this member's role? This action will update their permissions and access level in the project.",
+        "buttons": {
+          "cancel": "Cancel",
+          "save": "Save Changes"
+        },
+        "saving": "Saving...",
+        "toast": {
+          "success": "User updated successfully!",
+          "error": "Failed to update user."
+        }
+      },
+      "deactivateModal": {
+        "title": "Deactivate User",
+        "message": "This user will be deactivated and will no longer be able to access the platform. You can reactivate them at any time.",
+        "buttons": {
+          "cancel": "Cancel",
+          "deactivate": "Deactivate User"
+        },
+        "deactivating": "Deactivating...",
+        "toast": {
+          "success": "User deactivated successfully!",
+          "error": "Failed to deactivate user."
+        }
+      },
+      "reactivateModal": {
+        "title": "Reactivate User",
+        "message": "This user will be reactivated and will regain access to the platform. You can deactivate them again at any time.",
+        "buttons": {
+          "cancel": "Cancel",
+          "reactivate": "Reactivate User"
+        },
+        "reactivating": "Reactivating...",
+        "toast": {
+          "success": "User reactivated successfully!",
+          "error": "Failed to reactivate user."
+        }
+      }
+    },
+    "workflows": {
+      "title": "AI Assistant Workflows",
+      "subTitle": "Supercharge your productivity with specialized workflow.",
+      "launch": "Launch Workflow",
+      "aiTranslations": {
+        "title": "AI Translations",
+        "description": "Instantly localize project documentation and task descriptions into 30+ languages.",
+        "category": "Multilingual"
+      },
+      "aiRequirements": {
+        "title": "Requirements AI",
+        "description": "Auto-generate technical requirements and user stories from project briefs.",
+        "category": "Smart Logic"
+      },
+      "executiveReports": {
+        "title": "Executive Reports",
+        "description": "Advanced AI summaries for stakeholders. Track velocity and project health.",
+        "category": "Automated"
+      },
+      "emptyState": {
+        "title": "No workflows yet",
+        "description": "Create your first workflow to start automating tasks with AI."
+      },
+      "categories": {
+        "translation": "Translation",
+        "requirements": "Requirements",
+        "report": "Report",
+        "general": "General"
+      },
+      "createWorkflow": {
+        "title": "Create AI Workflow",
+        "basicInformation": {
+          "title": "Workflow Name",
+          "placeholder": "Workflow Name (e.g. Code Reviewer)"
+        },
+        "description": {
+          "title": "Description",
+          "placeholder": "What does this workflow do?"
+        },
+        "systemPrompt": {
+          "title": "System Prompt",
+          "placeholder": "How should the AI behave?"
+        },
+        "category": {
+          "title": "Category",
+          "automated": "Automated",
+          "smartLogic": "Smart Logic",
+          "multilingual": "Multilingual",
+          "general": "General"
+        },
+        "model": "Intelligence Model",
+        "livePreview": "Live Preview",
+        "liveName": "Workflow Name",
+        "liveDescription": "Description will appear here...",
+        "buttons": {
+          "create": "Create Workflow",
+          "deploy": "Deploy Workflow"
+        },
+        "toasts": {
+          "success": "Workflow created successfully!",
+          "error": "Failed to create a new workflow."
+        }
+      },
+      "updateWorkflow": {
+        "title": "Workflow Settings",
+        "agentName": "Workflow Name",
+        "description": "Description",
+        "systemPrompt": "System Prompt",
+        "model": "Intelligence Model",
+        "buttons": {
+          "edit": "Edit Workflow",
+          "update": "Update Workflow",
+          "archive": "Archive Workflow"
+        },
+        "category": {
+          "title": "Category",
+          "automated": "Automated",
+          "smartLogic": "Smart Logic",
+          "multilingual": "Multilingual",
+          "general": "General"
+        },
+        "toasts": {
+          "success": "Workflow updated successfully!",
+          "error": "Failed to update workflow."
+        }
+      },
+      "archiveWorkflow": {
+        "title": "Archive Workflow",
+        "subtitle": "Archive this workflow.",
+        "message": "This action will remove the workflow from the active list but it can be restored later if needed.",
+        "buttons": {
+          "cancel": "Cancel",
+          "archive": "Archive Workflow"
+        },
+        "archiving": "Archiving...",
+        "toast": {
+          "success": "Workflow archived successfully!",
+          "error": "Failed to archive workflow."
+        }
+      }
+    },
+    "organisations": {
+      "title": "Organisations",
+      "subtitle": "A list of all registered organisations.",
+      "filters": {
+        "searchPlaceholder": "Search by name, creator, email or country...",
+        "status": "Status",
+        "all": "All"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "table": {
+        "headers": {
+          "organisation": "Organisation",
+          "country": "Country",
+          "owner": "Creator",
+          "members": "Members",
+          "status": "Status",
+          "created": "Created",
+          "actions": "Actions"
+        }
+      },
+      "state": {
+        "loading": "Loading organisations...",
+        "noOrganisations": "No organisations found",
+        "noResults": "No results match your filters",
+        "showing": "Showing {count} of {total} organisations",
+        "fetchError": "Failed to load organisations."
+      },
+      "tooltips": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "modals": {
+        "delete": {
+          "title": "Delete Organisation",
+          "message": "Are you sure you want to delete this organisation? This action cannot be undone and all associated data will be permanently lost.",
+          "buttons": {
+            "cancel": "Cancel",
+            "delete": "Delete"
+          },
+          "deleting": "Deleting...",
+          "toast": {
+            "success": "Organisation deleted successfully.",
+            "error": "Failed to delete organisation."
+          }
+        },
+        "edit": {
+          "title": "Edit Organisation",
+          "subtitle": "Update organisation details.",
+          "fields": {
+            "name": "Organisation Name",
+            "email": "Organisation Email",
+            "country": "Country",
+            "status": "Status"
+          },
+          "toast": {
+            "success": "Organization information has been updated.",
+            "error": "Failed to update organization information."
+          },
+          "buttons": {
+            "cancel": "Cancel",
+            "save": "Save Changes",
+            "saving": "Saving..."
+          }
+        }
+      },
+      "detail": {
+        "title": "Organisations",
+        "subtitle": "Click on an organisation to view its details and members.",
+        "breadcrumb": {
+          "organisations": "Organisations",
+          "detail": "Details"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "state": {
+          "loading": "Loading organisations...",
+          "noOrganisations": "No organisations found",
+          "fetchError": "Failed to load organisations.",
+          "fetchMembersError": "Failed to load members.",
+          "deleteOrganisation": " Organisation deleted sucessfully",
+          "failedDeleteOrganisation": "Failed to delete organisation"
+        },
+        "table": {
+          "headers": {
+            "organisation": "Organisation",
+            "owner": "Creator",
+            "members": "Members",
+            "status": "Status",
+            "created": "Created",
+            "member": "Member",
+            "role": "Role",
+            "joined": "Date Joined"
+          },
+          "empty": "No members found"
+        }
+      },
+      "drawer": {
+        "title": "Organisation Details",
+        "id": "ID",
+        "totalMembers": "Total Members",
+        "info": {
+          "email": "Organisation Email",
+          "description": "Description",
+          "country": "Country",
+          "owner": "Creator",
+          "members": "Members",
+          "created": "Created",
+          "actions": "Actions"
+        },
+        "tabs": {
+          "members": "Members",
+          "activity": "Activity",
+          "activityComingSoon": "Activity log coming soon",
+          "viewAllMembers": "View all members in the organisation",
+          "showLess": "Show less",
+          "headers": {
+            "user": "User",
+            "role": "Role",
+            "status": "status"
+          },
+          "roles": {
+            "admin": "Admin",
+            "member": "Member"
+          }
+        },
+        "buttons": {
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "table": {
+          "empty": "No members found"
+        }
+      }
+    },
+    "aiModels": {
+      "title": "AI Models",
+      "subTitle": "Supercharge your productivity with specialized agents.",
+      "noModelsFound": "No models found",
+      "noAIProviders": "You haven't configured any AI providers yet. Connect a service to get started.",
+      "buttons": {
+        "addAiModel": "Configure Model"
+      },
+      "aiModelCard": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "modals": {
+        "createModel": {
+          "title": "Create AI Model",
+          "subtitle": "Connect a new AI provider to power your workflows.",
+          "confirm": "Create Model",
+          "creating": "Creating...",
+          "cancel": "Cancel",
+          "fields": {
+            "name": "Name",
+            "provider": "Provider",
+            "api_key": "API Key",
+            "providers": {
+              "openai": "OpenAI",
+              "anthropic": "Anthropic",
+              "cohere": "Cohere",
+              "gemini": "Google Gemini"
+            }
+          }
+        },
+        "editModel": {
+          "title": "Edit AI Model",
+          "subtitle": "Update the configuration of this AI model.",
+          "cancel": "Cancel",
+          "saving": "Saving...",
+          "saveChanges": "Save Changes",
+          "apiKeyPlaceholder": "Update API key"
+        },
+        "deleteModel": {
+          "title": "Delete AI Model",
+          "subtitle": "AI model configuration",
+          "message": "This action will permanently delete this AI model configuration. This cannot be undone.",
+          "deleting": "Deleting...",
+          "buttons": {
+            "cancel": "Cancel",
+            "delete": "Delete Model"
+          }
+        }
+      },
+      "toasts": {
+        "create": {
+          "success": "AI model created successfully.",
+          "error": "Failed to create AI model."
+        },
+        "edit": {
+          "success": "AI model updated successfully.",
+          "error": "Failed to update AI model."
+        },
+        "delete": {
+          "success": "AI model deleted successfully.",
+          "error": "Failed to delete AI model."
+        }
+      }
+    }
+  },
+  "chat": {
+    "title": "Start a Report Session",
+    "button": "Start Report",
+    "chatBox": {
+      "subtitle": "Your culturally-aware AI mediator.",
+      "bannerOne": "Using **",
+      "bannerTwo": "**. You have 150 credits left.",
+      "textField": {
+        "placeholder": "What's on your mind today?",
+        "reply": "Reply to AI Pod..."
+      },
+      "analyzing": "AI Pod is analyzing...",
+      "footer": "Powered by AI Pod Mediator • v1.0.4"
+    },
+    "tasksArea": "Tasks Component Will Be Placed Here",
+    "taskSelection": {
+      "title": "Select Tasks",
+      "subtitle": "Choose tasks to include in the AI chat session",
+      "noAssignee": "Unassigned",
+      "search": {
+        "placeholder": "Search tasks, assignee or year"
+      },
+      "selectAll": {
+        "selectAll": "Select all",
+        "deselectAll": "Deselect all",
+        "selectedCount": "{count} selected"
+      },
+      "status": {
+        "backlog": "Backlog",
+        "ready": "Ready",
+        "in_progress": "In Progress",
+        "blocked": "Blocked",
+        "review": "Review",
+        "testing": "Testing",
+        "done": "Done",
+        "deployed": "Deployed",
+        "cancelled": "Cancelled"
+      },
+      "empty": {
+        "noResults": "No tasks match \"{search}\"",
+        "clearSearch": "Clear search",
+        "noTasks": "No tasks available",
+        "fetchError": "Failed to load tasks."
+      },
+      "cta": {
+        "active": "Start Chat Session ({count})",
+        "inactive": "Select tasks to start",
+        "loading": "Starting session..."
+      }
+    },
+    "state": {
+      "loadingProjects": "Loading projects...",
+      "selectProject": "Select a project",
+      "selectProjectPrompt": "Select a project to view its tasks",
+      "fetchProjectsError": "Failed to load projects.",
+      "fetchAiWorkflowError": "Failed to load AI workflow."
+    },
+    "toasts": {
+      "create": {
+        "success": "Report session started successfully.",
+        "error": "Failed to start report session."
+      }
+    },
+    "session": {
+      "project": "Project",
+      "status": {
+        "ingesting": "Ingesting",
+        "interviewing": "Interviewing",
+        "drafting": "Drafting",
+        "review": "Review",
+        "archived": "Archived"
+      }
+    }
+  },
+  "report": {
+    "today": "Today",
+    "sidebar": {
+      "myProjects": "My Projects",
+      "searchBar": "Search for projects",
+      "member": "Members",
+      "show": "Show",
+      "more": "more",
+      "showLess": "Show less"
+    },
+    "daysOfWeek": {
+      "sun": "SUN",
+      "mon": "MON",
+      "tue": "TUE",
+      "wed": "WED",
+      "thu": "THU",
+      "fri": "FRI",
+      "sat": "SAT"
+    },
+    "more": "more",
+    "reportsDetails": {
+      "title": "Report Details",
+      "reportTasks": "Report Tasks Details",
+      "id": "Report ID",
+      "owner": "Report Owner",
+      "project": "Project Name",
+      "organisation": "Organisation",
+      "date": "Date",
+      "reportTitles": {
+        "daily": "Report Details"
+      },
+      "taskStatus": {
+        "done": "Done",
+        "blocked": "Blocked",
+        "pending": "Pending",
+        "backlog": "Backlog",
+        "ready": "Ready",
+        "in_progress": "In Progress",
+        "review": "Review",
+        "testing": "Testing",
+        "deployed": "Deployed",
+        "cancelled": "Cancelled"
+      },
+      "tabs": {
+        "tasks": "Tasks ({count})",
+        "comments": "Comments ({count})"
+      },
+      "comments": {
+        "loading": "Loading comments...",
+        "empty": "No comments yet. Start the conversation!",
+        "actions": {
+          "reply": "Reply",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "editor": {
+          "cancel": "Cancel",
+          "save": "Save",
+          "placeholder": "Add a comment..."
+        },
+        "thread": {
+          "deletedParentAuthor": "Deleted comment",
+          "deletedParentBody": "This comment was deleted. Replies are still visible.",
+          "addReply": "Reply",
+          "viewReplies": "View {count} replies",
+          "hideReplies": "Hide replies",
+          "replyPlaceholder": "Write a reply..."
+        },
+        "deleteModal": {
+          "title": "Delete comment",
+          "message": "Are you sure you want to delete this comment?",
+          "cancel": "Cancel",
+          "confirm": "Delete",
+          "deleting": "Deleting..."
+        },
+        "time": {
+          "justNow": "Just now"
+        }
+      },
+      "sidebar": {
+        "reportDetails": "Report Details",
+        "reportId": "Report ID",
+        "type": "Type",
+        "date": "Date"
+      },
+      "actions": {
+        "copyLink": "Copy Link"
+      },
+      "sections": {
+        "whatIDid": "What I did in the last 24 hours",
+        "whatIWillDo": "What I will do in the next 24 hours",
+        "blockers": "Blockers",
+        "noBlockers": "No blockers reported"
+      },
+      "status": {
+        "submitted": "Submitted",
+        "draft": "Draft",
+        "pending": "Pending"
+      },
+      "loading": {
+        "report": "Loading report...",
+        "suspense": "Loading..."
+      },
+      "error": {
+        "generic": "Something went wrong. Please try again.",
+        "retry": "Retry"
+      },
+      "toasts": {
+        "invalidate": {
+          "success": "Report marked as invalid successfully!",
+          "error": "Failed to invalidate report."
+        }
+      },
+      "invalidReport": {
+        "title": "Mark as Invalid",
+        "subtitle": "Mark this report as invalid",
+        "message": "Are you sure you want to mark this report as invalid? This action cannot be undone.",
+        "buttons": {
+          "cancel": "Cancel",
+          "delete": "Mark as Invalid"
+        },
+        "deleting": "Marking report as invalid..."
+      }
+    },
+    "unfinalizedReport": {
+      "title": "Unfinalized Reports",
+      "subtitle": "Continue working on reports that have not yet been finalized.",
+      "buttons": {
+        "continue": "Continue Editing",
+        "discard": "Discard and Start New",
+        "showMore": "Show {count} more unfinalized {count, plural, one {report} other {reports}}",
+        "showLess": "Show less"
+      },
+      "state": {
+        "loading": "Loading unfinalized reports...",
+        "fetchError": "Unable to load unfinalized reports. Please try again.",
+        "noReport": "No unfinalized reports found.",
+        "reportsFinalized": "All reports have already been finalized."
+      },
+      "lastUpdated": "Last updated"
+    }
+  },
+  "reset-password": {
+    "title": "Create New Password",
+    "subtitle": "Choose a strong new password for your account. Make sure it’s something secure and easy for you to remember.",
+    "form": {
+      "newPassword": {
+        "label": "New Password",
+        "placeholder": "Enter your new password",
+        "helperText": "Must be at least 8 characters"
+      },
+      "confirmPassword": {
+        "label": "Confirm New Password",
+        "placeholder": "Confirm your new password"
+      },
+      "buttons": {
+        "submit": "Reset Password",
+        "submitting": "Resetting..."
+      }
+    },
+    "success": {
+      "title": "Password Reset Successfully!",
+      "message": "Your password has been reset successfully. You can now sign in with your new password.",
+      "button": "Go to Sign In"
+    },
+    "errors": {
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "invalidToken": "Invalid or missing reset link. Please request a new one.",
+      "generic": "Password reset failed. The link may have expired."
+    },
+    "requirements": {
+      "title": "Password requirements:",
+      "length": "At least 8 characters long",
+      "mix": "Use a mix of letters, numbers, and symbols"
+    },
+    "already-have-account": "Already have an account?",
+    "login": "Sign in",
+    "loading": "Loading..."
+  }
+}

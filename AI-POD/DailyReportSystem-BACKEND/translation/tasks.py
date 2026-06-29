@@ -1,0 +1,85 @@
+import logging
+
+from celery import shared_task
+from django.apps import apps
+from translation.services import persist_translations, trigger_translation
+from django.core.exceptions import ObjectDoesNotExist
+
+logger = logging.getLogger(__name__)
+
+# app_label, model_name, scope
+ENTITY_MODEL_MAP = {
+    "project": ("projects", "Project", "project"),
+    "task": ("tasks", "Task", "task"),
+    "task_comment": ("tasks", "TaskComment", "task_comment"),
+    "report": ("projects", "Report", "report"),
+    "report_comment": ("projects", "ReportComment", "report_comment"),
+}
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3},
+    name="translation.trigger_translation_task",
+)
+def trigger_translation_task(
+    self,
+    scope,
+    scope_id,
+    target_languages,
+    field_names,
+):
+    try:
+        app_label, model_name, scope = ENTITY_MODEL_MAP[scope]
+    except KeyError:
+        logger.error(
+            "Unsupported entity type received",
+            extra={
+                "scope": scope,
+                "scope_id": scope_id,
+            },
+        )
+        raise ValueError(f"Unsupported entity type: {scope}")
+
+    entity_model = apps.get_model(app_label, model_name)
+
+    try:
+        entity = entity_model.objects.get(id=scope_id)
+    except ObjectDoesNotExist:
+        logger.warning(
+            "Entity not found for translation task",
+            extra={
+                "scope": scope,
+                "scope_id": scope_id,
+                "model": f"{app_label}.{model_name}",
+            },
+        )
+
+        return {
+            "status": "not_found",
+            "scope": scope,
+            "scope_id": scope_id,
+        }
+
+    logger.info(
+        "Translation task started",
+        extra={
+            "scope": scope,
+            "scope_id": scope_id,
+            "target_languages": target_languages,
+            "field_names": field_names,
+        },
+    )
+
+    objects = trigger_translation(entity, target_languages, field_names, scope)
+    persist_translations(scope, objects)
+
+    return {
+        "status": "success",
+        "scope": scope,
+        "scope_id": scope_id,
+        "target_languages_count": len(target_languages),
+        "fields_translated": field_names,
+        "translations_created": len(objects) if objects else 0,
+    }
