@@ -11,7 +11,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from tasks.filters import TaskFilterSet
 from tasks.helpers import queue_task_comment_translation, queue_task_translation
 from tasks.models import Task, TaskComment, TaskAttachment
-from projects.helpers import filter_projects_by_visibility
 from projects.models import Project
 from tasks.pagination import TaskPagination
 from tasks.permissions import IsProjectMemberForTaskScope
