@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  web:
+    container_name: nextjs-app
+    build: .
+    ports:
+      - "3002:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.pnpm-store
+    environment:
+      - NODE_ENV=development
+    command: pnpm dev

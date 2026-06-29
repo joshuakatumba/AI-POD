@@ -1,0 +1,97 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
+            echo "ENV=develop" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "ENV=production" >> $GITHUB_ENV
+          else
+            echo "Not a deploy branch. Exiting."
+            exit 1
+          fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            ENV=${{ env.ENV }}
+            echo "Deploying frontend to $ENV"
+
+            cd /home/ubuntu/frontend
+
+            echo "Pull latest code..."
+            git fetch --all
+            git checkout $ENV
+            git pull origin $ENV
+
+            echo "Writing .env.local..."
+            cat > .env.local <<EOF
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_LOCALE_OVERRIDE_STORAGE_KEY=${{ secrets.NEXT_PUBLIC_LOCALE_OVERRIDE_STORAGE_KEY }}
+            NEXT_PUBLIC_LOCALE_EFFECTIVE_STORAGE_KEY=${{ secrets.NEXT_PUBLIC_LOCALE_EFFECTIVE_STORAGE_KEY }}
+            NEXT_PUBLIC_LOCALE_COOKIE_KEY=${{ secrets.NEXT_PUBLIC_LOCALE_COOKIE_KEY }}
+            NODE_ENV=production
+            EOF
+
+            # Determine active frontend container from nginx
+            if [ -f /etc/nginx/conf.d/frontend_upstream.conf ]; then
+                ACTIVE=$(grep "server" /etc/nginx/conf.d/frontend_upstream.conf | awk '{print $2}' || echo "")
+            else
+                ACTIVE=""
+            fi
+
+            if [ "$ACTIVE" = "127.0.0.1:3001;" ]; then
+                NEW_COLOR=green
+                OLD_COLOR=blue
+                NEW_PORT=3002
+                OLD_PORT=3001
+            else
+                NEW_COLOR=blue
+                OLD_COLOR=green
+                NEW_PORT=3001
+                OLD_PORT=3002
+            fi
+
+            echo "🚀 Deploying new frontend container: $NEW_COLOR on port $NEW_PORT"
+
+            # Build & start new container
+            docker compose -f docker-compose.yml -f docker-compose.frontend.yml build web_$NEW_COLOR
+            docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d web_$NEW_COLOR
+
+            # Wait 15s for static frontend to start
+            echo "⏱ Waiting 15s for container to start..."
+            sleep 15
+
+            # Switch Nginx
+            echo "🔁 Switching Nginx to $NEW_COLOR"
+            sudo sed -i "s/127.0.0.1:$OLD_PORT;/127.0.0.1:$NEW_PORT;/" /etc/nginx/conf.d/frontend_upstream.conf
+            sudo nginx -s reload
+
+            # Stop old container
+            if docker compose ps | grep -q "web_$OLD_COLOR"; then
+                echo "🛑 Stopping old container: $OLD_COLOR"
+                docker compose -f docker-compose.yml -f docker-compose.frontend.yml stop web_$OLD_COLOR
+                docker compose -f docker-compose.yml -f docker-compose.frontend.yml rm -f web_$OLD_COLOR
+            fi
+
+            echo "🎉 Frontend deployment complete!"
