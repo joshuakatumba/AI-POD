@@ -6,10 +6,12 @@ from rest_framework.response import Response
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from tasks.filters import TaskFilterSet
 from tasks.helpers import queue_task_comment_translation, queue_task_translation
 from tasks.models import Task, TaskComment, TaskAttachment
+from projects.helpers import filter_projects_by_visibility
 from projects.models import Project
 from tasks.pagination import TaskPagination
 from tasks.permissions import IsProjectMemberForTaskScope
@@ -35,6 +37,16 @@ class AllTasksView(generics.GenericAPIView):
     def get_queryset(self):
         auth = self.request.auth or {}
         organisation_id = auth.get("organisation_id")
+        user = self.request.user
+
+        visible_project_ids = filter_projects_by_visibility(
+            Project.objects.filter(
+                organization_id=organisation_id,
+                is_deleted=False,
+                is_active=True,
+            ),
+            user,
+        ).values_list("id", flat=True)
 
         attachments_qs = TaskAttachment.objects.filter(is_deleted=False).select_related(
             "membership",
@@ -45,6 +57,7 @@ class AllTasksView(generics.GenericAPIView):
             Task.objects.filter(
                 organisation_id=organisation_id,
                 is_deleted=False,
+                project_id__in=visible_project_ids,
             )
             .select_related(
                 "organisation",
@@ -63,6 +76,10 @@ class AllTasksView(generics.GenericAPIView):
                     queryset=attachments_qs,
                     to_attr="active_attachments",
                 )
+            )
+            .annotate(
+                comments_count=Count('comments', filter=Q(comments__is_deleted=False), distinct=True),
+                attachments_count=Count('attachments', filter=Q(attachments__is_deleted=False), distinct=True)
             )
             .order_by("-created_at")
         )
@@ -153,6 +170,9 @@ class TasksView(generics.GenericAPIView):
                 queryset=attachments_qs,
                 to_attr="active_attachments",
             )
+        ).annotate(
+            comments_count=Count('comments', filter=Q(comments__is_deleted=False), distinct=True),
+            attachments_count=Count('attachments', filter=Q(attachments__is_deleted=False), distinct=True)
         )
 
         status_filter = request.query_params.get("status")
@@ -230,9 +250,9 @@ class TaskDetailView(generics.GenericAPIView):
         queue_task_translation(task)
 
         return Response(
-            TaskReadSerializer(serializer.save()).data,
+            TaskReadSerializer(task).data,
             status=status.HTTP_200_OK,
-    )
+        )
     @swagger_auto_schema(
     operation_description="Delete a task (soft delete)",
     responses={

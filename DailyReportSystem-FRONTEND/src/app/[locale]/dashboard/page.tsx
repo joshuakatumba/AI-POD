@@ -83,8 +83,6 @@ export default function DashboardPage() {
       setTasksLoading(true)
       const data = await getAllTasksAPI({
         assigned_to: user_id,
-        reported_by: user_id,
-        high_priority: true,
         limit: 5,
       });
 
@@ -196,7 +194,7 @@ export default function DashboardPage() {
       }}>
 
         {/* Left Column */}
-        <Box sx={{ gridColumn: { lg: 'span 8' }, minWidth: 0 }}>
+        <Box sx={{ gridColumn: { lg: 'span 8' } }}>
           <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
             <LayersRounded sx={{ color: 'primary.main' }} /> {t("activeProjects.title")}
           </Typography>
@@ -513,7 +511,7 @@ export default function DashboardPage() {
         </Box>
 
         {/* Right Column */}
-        <Box sx={{ gridColumn: { lg: 'span 4' }, minWidth: 0 }}>
+        <Box sx={{ gridColumn: { lg: 'span 4' } }}>
           <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>{t("reports.pulseTitle")}</Typography>
           <Stack spacing={3}>
             <Box sx={{

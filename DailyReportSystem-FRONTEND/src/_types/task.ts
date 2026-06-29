@@ -35,6 +35,8 @@ export type BaseTaskType = {
   translations?: TranslationType[];
   priority: string;
   category: string;
+  comments_count?: number;
+  attachments_count?: number;
 };
 
 export type TaskType = BaseTaskType
