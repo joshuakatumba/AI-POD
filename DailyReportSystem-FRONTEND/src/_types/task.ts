@@ -35,8 +35,11 @@ export type BaseTaskType = {
   translations?: TranslationType[];
   priority: string;
   category: string;
+<<<<<<< HEAD
   comments_count?: number;
   attachments_count?: number;
+=======
+>>>>>>> origin/jm-commits
 };
 
 export type TaskType = BaseTaskType

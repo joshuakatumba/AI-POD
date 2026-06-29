@@ -14,7 +14,10 @@ import {
   Select,
   MenuItem,
   Grid,
+<<<<<<< HEAD
   Chip,
+=======
+>>>>>>> origin/jm-commits
 } from '@mui/material';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
@@ -438,6 +441,7 @@ export default function TasksPage() {
         </Stack>
       </Stack>
 
+<<<<<<< HEAD
       {/* QUICK FILTERS */}
       <Stack direction="row" spacing={1} mb={2} alignItems="center" sx={{ overflowX: 'auto' }}>
         <Typography variant="body2" color="text.secondary" sx={{ mr: 1, fontWeight: 600 }}>
@@ -489,6 +493,8 @@ export default function TasksPage() {
         )}
       </Stack>
 
+=======
+>>>>>>> origin/jm-commits
       {/* FILTERS */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
         <TextField
@@ -657,10 +663,13 @@ export default function TasksPage() {
         onClose={handleCloseTaskDrawer}
         task={selectedTask}
         onEdit={handleEditTaskDrawerDetails}
+<<<<<<< HEAD
         onDelete={(task) => {
           handleCloseTaskDrawer();
           handleDeleteClick(task);
         }}
+=======
+>>>>>>> origin/jm-commits
       />
     </Box>
   );

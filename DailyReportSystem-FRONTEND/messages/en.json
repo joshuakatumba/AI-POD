@@ -920,12 +920,16 @@
       "allCategories": "All Categories",
       "all": "All",
       "allStatuses": "All Statuses",
+<<<<<<< HEAD
       "allAssignees": "All Assignees",
       "quickFilters": "Quick Filters:",
       "assignedToMe": "Assigned to Me",
       "highPriority": "High Priority",
       "inProgress": "In Progress",
       "clearAll": "Clear All"
+=======
+      "allAssignees": "All Assignees"
+>>>>>>> origin/jm-commits
     }
   },
   "onboarding": {
@@ -1702,6 +1706,26 @@
         },
         "deleting": "Marking report as invalid..."
       }
+<<<<<<< HEAD
+=======
+    },
+    "unfinalizedReport": {
+      "title": "Unfinalized Reports",
+      "subtitle": "Continue working on reports that have not yet been finalized.",
+      "buttons": {
+        "continue": "Continue Editing",
+        "discard": "Discard and Start New",
+        "showMore": "Show {count} more unfinalized {count, plural, one {report} other {reports}}",
+        "showLess": "Show less"
+      },
+      "state": {
+        "loading": "Loading unfinalized reports...",
+        "fetchError": "Unable to load unfinalized reports. Please try again.",
+        "noReport": "No unfinalized reports found.",
+        "reportsFinalized": "All reports have already been finalized."
+      },
+      "lastUpdated": "Last updated"
+>>>>>>> origin/jm-commits
     }
   },
   "reset-password": {

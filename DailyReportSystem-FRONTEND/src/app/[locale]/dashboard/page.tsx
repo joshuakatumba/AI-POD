@@ -83,6 +83,11 @@ export default function DashboardPage() {
       setTasksLoading(true)
       const data = await getAllTasksAPI({
         assigned_to: user_id,
+<<<<<<< HEAD
+=======
+        reported_by: user_id,
+        high_priority: true,
+>>>>>>> origin/jm-commits
         limit: 5,
       });
 
@@ -194,7 +199,11 @@ export default function DashboardPage() {
       }}>
 
         {/* Left Column */}
+<<<<<<< HEAD
         <Box sx={{ gridColumn: { lg: 'span 8' } }}>
+=======
+        <Box sx={{ gridColumn: { lg: 'span 8' }, minWidth: 0 }}>
+>>>>>>> origin/jm-commits
           <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
             <LayersRounded sx={{ color: 'primary.main' }} /> {t("activeProjects.title")}
           </Typography>
@@ -511,7 +520,11 @@ export default function DashboardPage() {
         </Box>
 
         {/* Right Column */}
+<<<<<<< HEAD
         <Box sx={{ gridColumn: { lg: 'span 4' } }}>
+=======
+        <Box sx={{ gridColumn: { lg: 'span 4' }, minWidth: 0 }}>
+>>>>>>> origin/jm-commits
           <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>{t("reports.pulseTitle")}</Typography>
           <Stack spacing={3}>
             <Box sx={{
