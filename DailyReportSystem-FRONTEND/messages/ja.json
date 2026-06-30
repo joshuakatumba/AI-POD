@@ -920,7 +920,12 @@
       "allCategories": "すべてのカテゴリー",
       "all": "すべて",
       "allStatuses": "すべてのステータス",
-      "allAssignees": "すべての担当者"
+      "allAssignees": "すべての担当者",
+      "quickFilters": "クイックフィルター：",
+      "assignedToMe": "自分に割り当て",
+      "inProgress": "進行中",
+      "highPriority": "高優先度",
+      "clearAll": "すべてクリア"
     }
   },
   "onboarding": {

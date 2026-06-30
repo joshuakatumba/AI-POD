@@ -35,6 +35,11 @@ export type BaseTaskType = {
   translations?: TranslationType[];
   priority: string;
   category: string;
+<<<<<<< Updated upstream
+=======
+  comments_count?: number;
+  attachments_count?: number;
+>>>>>>> Stashed changes
 };
 
 export type TaskType = BaseTaskType

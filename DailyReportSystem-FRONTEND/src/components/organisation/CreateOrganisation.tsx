@@ -259,6 +259,7 @@ export default function CreateOrganisation({
         <TextField
           select
           label={t('form.type.label')}
+          value={watch('type') || ''}
           {...register('type')}
           error={!!errors.type}
           helperText={
@@ -363,7 +364,13 @@ export default function CreateOrganisation({
             error={!!errors.inviteEmails || getInvalidEmailsCount(inviteEmailsInput) > 0}
             helperText={
               errors.inviteEmails
-                ? t(`errors.inviteEmails.${errors.inviteEmails.message}`)
+                ? t(
+                    `errors.inviteEmails.${
+                      (Array.isArray(errors.inviteEmails)
+                        ? (errors.inviteEmails as any[]).find((err) => err?.message)?.message
+                        : errors.inviteEmails.message) || 'invalid'
+                    }`
+                  )
                 : inviteEmailsInput
                   ? `${t('form.inviteEmails.helper')} - ${parseEmails(inviteEmailsInput).length} valid ${t('form.inviteEmails.emails')}`
                   : t('form.inviteEmails.helper')
