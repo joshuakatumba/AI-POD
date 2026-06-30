@@ -93,5 +93,6 @@ services:
     restart: always
 
 volumes:
+  static_volume:
   postgres_data:
   redis_data:

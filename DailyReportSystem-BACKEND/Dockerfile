@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create writable directories for Django
-RUN mkdir -p /usr/src/app/core/staticfiles \
+RUN mkdir -p /usr/src/app/staticfiles \
     && mkdir -p /usr/src/app/core/media \
     && chown -R django:django /usr/src/app
 
