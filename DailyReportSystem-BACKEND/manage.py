@@ -8,6 +8,15 @@ def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
     try:
+        import environ
+        from pathlib import Path
+        env = environ.Env()
+        env_file = Path(__file__).resolve().parent / '.env'
+        if env_file.exists():
+            environ.Env.read_env(env_file)
+    except Exception:
+        pass
+    try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
         raise ImportError(
