@@ -3,6 +3,8 @@ import { ProjectResponseType } from '@/_types/project';
 import { ProjectMemberType } from '@/_types/projectMembers';
 import { FolderOutlined, EditOutlined, DeleteOutline } from '@mui/icons-material';
 import { Stack, Avatar, Typography, Button, Box, Chip } from '@mui/material';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import { DELETE_PROJECT_TOOLTIP, EDIT_PROJECT_TOOLTIP } from '@/constants/permissionMessages';
 
 
 export default function HeaderHero({
@@ -93,27 +95,35 @@ export default function HeaderHero({
         </Box>
 
         <Stack direction="row" spacing={1.5}>
-          <>
+          <PermissionTooltip
+            restricted={!isCurrentUserProjectAdmin}
+            message={EDIT_PROJECT_TOOLTIP}
+            ariaLabel={t('adminActions.edit') || 'Edit Project'}
+          >
             <Button
               variant="outlined"
               startIcon={<EditOutlined />}
               onClick={openEditProject}
-              disabled={!isCurrentUserProjectAdmin}
               sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
             >
               {t('adminActions.edit') || 'Edit Project'}
             </Button>
+          </PermissionTooltip>
+          <PermissionTooltip
+            restricted={!isCurrentUserProjectAdmin}
+            message={DELETE_PROJECT_TOOLTIP}
+            ariaLabel={t('adminActions.delete') || 'Delete'}
+          >
             <Button
               variant="contained"
               color="error"
               startIcon={<DeleteOutline />}
               onClick={openDeleteModal}
-              disabled={!isCurrentUserProjectAdmin}
               sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: 'none' }}
             >
               {t('adminActions.delete') || 'Delete'}
             </Button>
-          </>
+          </PermissionTooltip>
         </Stack>
       </Stack>
     </Box>

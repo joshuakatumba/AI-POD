@@ -12,6 +12,9 @@ User = get_user_model()
 
 _EMAIL_TYPE_REQUIRED_KWARGS = {
     "password_reset": ["reset_link"],
+    "invite_member": ["organization_name", "login_link"],
+    
+
 }
 
 

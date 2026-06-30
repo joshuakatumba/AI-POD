@@ -47,7 +47,11 @@ const NavEntry = ({ item, isCollapsed, depth = 0, onMobileClose }: { item: NavIt
   const hasChildren = Boolean(item.children && item.children.length > 0);
   const locale = pathname.split('/')[1];
   const itemFullPath = `/${locale}${item.href}`;
-  const isActive = item.href ? pathname === itemFullPath || pathname.startsWith(`${itemFullPath}/`) : false;
+  const isActive = item.href
+    ? hasChildren
+      ? pathname === itemFullPath || pathname.startsWith(`${itemFullPath}/`)
+      : pathname === itemFullPath
+    : false;
   const label = t(item.labelKey);
 
   const handleClick = () => {

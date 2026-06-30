@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim  
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create writable directories for Django
-RUN mkdir -p /usr/src/app/core/staticfiles \
+RUN mkdir -p /usr/src/app/staticfiles \
     && mkdir -p /usr/src/app/core/media \
     && chown -R django:django /usr/src/app
 

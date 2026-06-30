@@ -5,6 +5,7 @@ import {
   Typography,
   Box,
   Button,
+  Chip,
   Stack,
   Tooltip,
   TextField,
@@ -14,7 +15,6 @@ import {
   Select,
   MenuItem,
   Grid,
-  Chip,
 } from '@mui/material';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
@@ -48,6 +48,8 @@ import TaskDetailDrawer from '@/components/tasks/TaskDetailDrawer';
 import DeleteTaskModal from '@/components/modals/DeleteTaskDetails';
 import TaskTable from '@/components/tasks/taskLists/TaskListTable';
 import TaskKanbanBoard from '@/components/tasks/taskLists/TaskKanbanBoard';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import { CREATE_TASK_TOOLTIP } from '@/constants/permissionMessages';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ProjectMemberBase } from '@/_types/projectMembers';
 
@@ -416,8 +418,10 @@ export default function TasksPage() {
             </Tooltip>
           </ToggleButtonGroup>
 
-          <Tooltip
-            title={!isProjectMember ? t('tooltips.notProjectMember') : t('buttons.createTask')}
+          <PermissionTooltip
+            restricted={!isProjectMember}
+            message={CREATE_TASK_TOOLTIP}
+            ariaLabel={t('buttons.createTask')}
           >
             <Button
               variant="contained"
@@ -430,11 +434,10 @@ export default function TasksPage() {
                 boxShadow: 0,
               }}
               onClick={openCreateTask}
-              disabled={!isProjectMember}
             >
               {t('buttons.createTask')}
             </Button>
-          </Tooltip>
+          </PermissionTooltip>
         </Stack>
       </Stack>
 
@@ -488,7 +491,7 @@ export default function TasksPage() {
           </Button>
         )}
       </Stack>
-
+      
       {/* FILTERS */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={3}>
         <TextField

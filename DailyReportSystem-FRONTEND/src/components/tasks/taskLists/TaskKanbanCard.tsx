@@ -12,11 +12,28 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 
-import { TaskResponseType } from "@/_types/task";
+import { TaskResponseType, TaskPriority } from "@/_types/task";
 import { useTranslations } from "next-intl";
-import { TaskPriority } from "@/_types/task";
-import { PRIORITY_CONFIG } from "@/utils/priorityUtility";
-import { getDeadlineInfo } from "@/utils/deadlineUtils";
+
+const PRIORITY_CONFIG: Record<string, { color: string; labelKey: string }> = {
+  low:      { color: 'success', labelKey: 'form.priority.options.low' },
+  medium:   { color: 'info',    labelKey: 'form.priority.options.medium' },
+  high:     { color: 'warning', labelKey: 'form.priority.options.high' },
+  critical: { color: 'error',   labelKey: 'form.priority.options.critical' },
+};
+
+function getDeadlineInfo(dueDate?: string | null) {
+  if (!dueDate) return { label: '—', color: 'text.disabled', isOverdue: false };
+  const now = new Date();
+  const due = new Date(dueDate);
+  if (Number.isNaN(due.getTime())) return { label: '—', color: 'text.disabled', isOverdue: false };
+  const diffDays = Math.ceil((due.getTime() - now.getTime()) / 86400000);
+  if (diffDays < 0)  return { label: `${Math.abs(diffDays)}d overdue`, color: 'error.main',    isOverdue: true  };
+  if (diffDays === 0) return { label: 'Due today',                       color: 'warning.main',  isOverdue: false };
+  if (diffDays === 1) return { label: 'Tomorrow',                        color: 'warning.main',  isOverdue: false };
+  if (diffDays <= 7)  return { label: `${diffDays}d left`,               color: 'info.main',     isOverdue: false };
+  return { label: due.toLocaleDateString(), color: 'text.secondary', isOverdue: false };
+}
 
 interface TaskKanbanCardProps {
   task: TaskResponseType;
@@ -33,15 +50,12 @@ export default function TaskKanbanCard({
   getStatusColor,
   noAssigneeText,
 }: TaskKanbanCardProps) {
-
   const t = useTranslations('tasks');
 
-  /* ── ENH-4.1: Priority badge from shared utility ── */
   const priorityStyle = task.priority
     ? PRIORITY_CONFIG[task.priority as TaskPriority]
     : null;
 
-  /* ── ENH-4.2: Live deadline countdown from shared utility ── */
   const deadline = getDeadlineInfo(task.due_date);
 
   return (
@@ -105,19 +119,12 @@ export default function TaskKanbanCard({
           </Typography>
 
           {/* HOURS + PRIORITY + STATUS */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Typography
-              variant="caption"
-              color="text.secondary"
-            >
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="caption" color="text.secondary">
               {task.expected_hours}h
             </Typography>
+
             <Stack direction="row" spacing={0.75} alignItems="center">
-              {/* ENH-4.1: Color-coded priority badge */}
               {task.priority && priorityStyle && (
                 <Chip
                   label={t(`create.${priorityStyle.labelKey}`)}
@@ -131,11 +138,11 @@ export default function TaskKanbanCard({
                       theme.palette[priorityStyle.color as "success"].main,
                       0.20
                     ),
-                    color:
-                      theme.palette[priorityStyle.color as "success"].main,
-                  })}              
+                    color: theme.palette[priorityStyle.color as "success"].main,
+                  })}
                 />
               )}
+
               <Chip
                 label={getStatusTranslation(task.status)}
                 size="small"
@@ -148,8 +155,9 @@ export default function TaskKanbanCard({
               />
             </Stack>
           </Stack>
+
           {/* ACTIVITY INDICATORS */}
-          {((task.comments_count && task.comments_count > 0) || 
+          {((task.comments_count && task.comments_count > 0) ||
             (task.attachments_count && task.attachments_count > 0)) && (
             <Stack direction="row" spacing={1.5} alignItems="center">
               {task.comments_count ? (
@@ -168,17 +176,9 @@ export default function TaskKanbanCard({
           )}
 
           {/* ASSIGNEE + DEADLINE */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
             {/* ASSIGNEE */}
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-            >
+            <Stack direction="row" spacing={1} alignItems="center">
               <Avatar
                 sx={{
                   width: 24,
@@ -205,19 +205,14 @@ export default function TaskKanbanCard({
               </Typography>
             </Stack>
 
-            {/* ENH-4.2: Live deadline countdown */}
-            <Stack
-              direction="row"
-              spacing={0.5}
-              alignItems="center"
-            >
+            {/* DEADLINE COUNTDOWN */}
+            <Stack direction="row" spacing={0.5} alignItems="center">
               <CalendarTodayIcon
                 sx={{
                   fontSize: 14,
                   color: deadline.color,
                 }}
               />
-
               <Typography
                 variant="caption"
                 fontWeight={600}

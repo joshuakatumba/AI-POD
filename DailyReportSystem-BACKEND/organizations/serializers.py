@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from organizations.models import Organization, Membership
+from organizations.helpers import send_invite_member_email
 
 User = get_user_model()
 
@@ -55,7 +56,7 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
         # If field not provided OR empty → do nothing (tests expect no keys)
         if not invited_emails:
             return organization, {}
-        
+
         # Remove duplicates
         invited_emails = set(invited_emails)
         added = []
@@ -105,6 +106,12 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
 
             created_user_ids.add(invited_user.id)
 
+            send_invite_member_email(
+                user=invited_user,
+                organization_name=organization.name,
+                preferred_language=invited_user.preferred_language,
+            )
+
             added.append({
                 "email": email,
                 "membership_id": str(membership.id)
@@ -119,6 +126,7 @@ class OrganizationCreateSerializer(serializers.ModelSerializer):
             response_data["invited_members_failed"] = failed
 
         return organization, response_data
+
 
 # ---------- Add User to Organisation Serializer ----------
 class AddUserToOrganizationSerializer(serializers.Serializer):
@@ -191,9 +199,14 @@ class AddUserToOrganizationSerializer(serializers.Serializer):
                 "is_deleted_reason",
                 "role",
             ])
+            send_invite_member_email(
+                user=validated_data["user"],
+                organization_name=organization.name,
+                preferred_language=validated_data["user"].preferred_language,
+            )
             return existing_membership
 
-        return Membership.objects.create(
+        membership = Membership.objects.create(
             user=validated_data["user"],
             organization=organization,
             role=validated_data["role"],
@@ -201,6 +214,15 @@ class AddUserToOrganizationSerializer(serializers.Serializer):
             preferred_language=validated_data["user"].preferred_language,
             created_by=request.user,
         )
+
+        send_invite_member_email(
+            user=validated_data["user"],
+            organization_name=organization.name,
+            preferred_language=validated_data["user"].preferred_language,
+        )
+
+        return membership
+
 
 # ---------- Organisation Membership Serializer ----------
 class OrganizationMembershipSerializer(serializers.ModelSerializer):
@@ -229,6 +251,7 @@ class OrganizationMembershipSerializer(serializers.ModelSerializer):
             "metadata",
         ]
         read_only_fields = fields
+
 
 # ---------- Remove User from Organisation Serializer ----------
 class RemoveUserFromOrganizationSerializer(serializers.Serializer):
@@ -281,16 +304,16 @@ class RemoveUserFromOrganizationSerializer(serializers.Serializer):
         membership = self.validated_data["membership"]
         request = self.context["request"]
 
-        # Soft delete using the correct field names
         membership.is_active = False
         membership.is_deleted = True
         membership.is_deleted_at = timezone.now()
         membership.is_deleted_by_email = request.user.email
         membership.is_deleted_reason = "Removed by admin"
-        
+
         membership.save()
 
         return membership
+
 
 # ---------- Change Member Role and Display Name Serializer ----------
 class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
@@ -299,7 +322,7 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
         required=False,
         help_text="New role for the member. Must be 'admin' or 'member'. Only admins can change roles."
     )
-    
+
     display_name = serializers.CharField(
         max_length=255,
         required=False,
@@ -318,13 +341,10 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
         organization = self.context["organization"]
         membership = self.context["membership"]
 
-        # Get current user and check if they're the target user
         current_user = request.user
         is_target_user = (membership.user == current_user)
-        
-        # Check role changes
+
         if "role" in attrs:
-            # Only admins or superusers can change roles
             if not request.user.is_superuser:
                 is_admin = Membership.objects.filter(
                     user=request.user,
@@ -338,14 +358,12 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
                     raise PermissionDenied(
                         "You do not have permission to change roles in this organization."
                     )
-            
-            # Check if role is actually changing
+
             if attrs["role"] == membership.role:
                 raise ValidationError(
                     f"User already has the role '{membership.role}'. No change needed."
                 )
 
-            # Prevent demoting the last admin
             if membership.role == "admin" and attrs["role"] == "member":
                 admin_count = Membership.objects.filter(
                     organization=organization,
@@ -353,29 +371,27 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
                     is_active=True,
                     is_deleted=False,
                 ).count()
-                
+
                 if admin_count <= 1:
                     raise ValidationError(
                         "Cannot demote the last admin of the organization. "
                         "Please assign another admin first."
                     )
-        
-        # Check display name and language preferences changes - STRICT: Only the user themselves can update
+
         if "display_name" in attrs or "preferred_language" in attrs:
             if not is_target_user:
                 raise PermissionDenied(
                     "You can only update your own information."
                 )
-            
+
         if "display_name" in attrs:
             if not attrs["display_name"]:
                 raise ValidationError("Display name cannot be empty.")
-        
+
         if "preferred_language" in attrs:
             if not attrs["preferred_language"]:
                 raise ValidationError("Preferred language cannot be empty.")
-        
-        # At least one field should be provided
+
         if not attrs:
             raise ValidationError(
                 "At least one of 'role', 'display_name', or 'preferred_language' must be provided."
@@ -384,22 +400,20 @@ class ChangeMemberRoleAndNameSerializer(serializers.Serializer):
         return attrs
 
     def update(self, instance, validated_data):
-        # Update role if provided
         if "role" in validated_data:
             instance.role = validated_data["role"]
-        
-        # Update display name if provided
+
         if "display_name" in validated_data:
             instance.display_name = validated_data["display_name"]
 
-        # Update preferred language if provided
         if "preferred_language" in validated_data:
             instance.preferred_language = validated_data["preferred_language"]
-        
+
         instance.save()
-        
+
         return instance
-    
+
+
 # ---------- Delete Organisation Serializer (Soft Delete) ----------
 class OrganizationDeleteSerializer(serializers.Serializer):
     deletion_reason = serializers.CharField(
@@ -416,7 +430,6 @@ class OrganizationDeleteSerializer(serializers.Serializer):
         request = self.context["request"]
         organization = self.context["organization"]
 
-        # Only superusers or organization admins can delete the organization
         if not request.user.is_superuser:
             is_admin = Membership.objects.filter(
                 user=request.user,
@@ -432,13 +445,11 @@ class OrganizationDeleteSerializer(serializers.Serializer):
                     "Only superusers or organization admins can delete an organization."
                 )
 
-        # Check if organization is already deleted
         if organization.is_deleted:
             raise ValidationError(
                 "This organization has already been deleted."
             )
 
-        # Store the organization in attrs for use in delete method
         attrs["organization"] = organization
         return attrs
 
@@ -449,16 +460,14 @@ class OrganizationDeleteSerializer(serializers.Serializer):
         request = self.context["request"]
         deletion_reason = self.validated_data.get("deletion_reason", "")
 
-        # Soft delete the organization
         organization.is_active = False
         organization.is_deleted = True
         organization.is_deleted_at = timezone.now()
-        organization.is_deleted_by = request.user  # FK to User
+        organization.is_deleted_by = request.user
         organization.is_deleted_reason = deletion_reason
-        
+
         organization.save()
 
-        # Soft delete all active memberships
         Membership.objects.filter(
             organization=organization,
             is_deleted=False
@@ -466,7 +475,7 @@ class OrganizationDeleteSerializer(serializers.Serializer):
             is_active=False,
             is_deleted=True,
             is_deleted_at=timezone.now(),
-            is_deleted_by_email=request.user.email,  # Membership uses email field
+            is_deleted_by_email=request.user.email,
             is_deleted_reason=f"Organization deleted: {deletion_reason or 'No reason provided'}"
         )
 

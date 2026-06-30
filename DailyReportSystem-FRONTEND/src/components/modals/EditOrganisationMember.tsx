@@ -20,6 +20,11 @@ import {
 import { useTranslations } from 'next-intl';
 import { Role, organisationMemberType, updateOrganisationMemberType } from '@/_types/organisation';
 import { useAuth } from '@/app/_contexts/AuthContext';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import {
+  EDIT_ORGANISATION_ROLE_TOOLTIP,
+  EDIT_OWN_PROFILE_TOOLTIP,
+} from '@/constants/permissionMessages';
 
 /* ---------------- props ---------------- */
 type EditMemberModalProps = {
@@ -140,17 +145,22 @@ export default function EditOrganisationMemberModal({
               </Box>
             </Stack>
             {/* Name Input -only current users name editable */}
-            <TextField
-              fullWidth
-              id="display_name"
-              label={t('display_name')}
-              value={display_name}
-              onChange={(e) => setDisplayName(e.target.value)}
-              variant="outlined"
-              size="small"
-              disabled={!isCurrentUser}
-              required
-            />
+            <PermissionTooltip
+              restricted={!isCurrentUser}
+              message={EDIT_OWN_PROFILE_TOOLTIP}
+              ariaLabel={t('display_name')}
+            >
+              <TextField
+                fullWidth
+                id="display_name"
+                label={t('display_name')}
+                value={display_name}
+                onChange={(e) => setDisplayName(e.target.value)}
+                variant="outlined"
+                size="small"
+                required
+              />
+            </PermissionTooltip>
             {/* Email Input - always disabled */}
             <TextField
               fullWidth
@@ -167,20 +177,26 @@ export default function EditOrganisationMemberModal({
             {/* Role Select - Only admins can edit */}
             <FormControl fullWidth size="small">
               <InputLabel id="role-label">{t('role.title')}</InputLabel>
-              <Select
-                labelId="role-label"
-                id="role"
-                value={role}
-                label={t('role.title')}
-                onChange={(e) => setRole(e.target.value as Role)}
-                disabled={!isAdmin || loading}
+              <PermissionTooltip
+                restricted={!isAdmin}
+                message={EDIT_ORGANISATION_ROLE_TOOLTIP}
+                ariaLabel={t('role.title')}
               >
-                {ROLES.map((r) => (
-                  <MenuItem key={r} value={r}>
-                    {m(`roles.${r}`)}
-                  </MenuItem>
-                ))}
-              </Select>
+                <Select
+                  labelId="role-label"
+                  id="role"
+                  value={role}
+                  label={t('role.title')}
+                  onChange={(e) => setRole(e.target.value as Role)}
+                  disabled={loading}
+                >
+                  {ROLES.map((r) => (
+                    <MenuItem key={r} value={r}>
+                      {m(`roles.${r}`)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </PermissionTooltip>
               <FormHelperText>{!isAdmin ? t('changeRole') : t('role.label')}</FormHelperText>
             </FormControl>
           </Stack>

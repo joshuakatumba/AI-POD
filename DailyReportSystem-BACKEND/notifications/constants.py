@@ -19,4 +19,24 @@ EMAIL_CONTENT = {
             ),
         },
     },
+    "invite_member": {
+        "en": {
+            "subject": "You've been invited to join {organization_name}",
+            "text_body_template": (
+                "You have been invited to join {organization_name}.\n\n"
+                "Click the link below to log in and get started:\n"
+                "{login_link}\n\n"
+                "If you were not expecting this invitation, you can ignore this email."
+            ),
+        },
+        "ja": {
+            "subject": "{organization_name}への招待",
+            "text_body_template": (
+                "{organization_name}に招待されました。\n\n"
+                "以下のリンクをクリックしてログインを開始してください:\n"
+                "{login_link}\n\n"
+                "この招待に心当たりがない場合は、このメールを無視してください。"
+            ),
+        },
+    },
 }
