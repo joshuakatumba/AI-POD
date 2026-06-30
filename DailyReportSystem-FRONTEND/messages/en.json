@@ -899,7 +899,7 @@
     },
     "priority": {
       "low": "Low",
-      "medium": "Medium", 
+      "medium": "Medium",
       "high": "High",
       "critical": "Critical"
     },
@@ -926,7 +926,6 @@
       "highPriority": "High Priority",
       "inProgress": "In Progress",
       "clearAll": "Clear All"
-      "allAssignees": "All Assignees"
     }
   },
   "onboarding": {
