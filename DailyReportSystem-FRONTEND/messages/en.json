@@ -1022,7 +1022,12 @@
         "server": "Server error. Please try again or contact support.",
         "duplicate": "An organisation with this name already exists.",
         "validation": "Please check your input and try again.",
-        "someInvitesFailed": "{count} {count, plural, one {invitation} other {invitations}} failed to send"
+        "someInvitesFailed": "{count} {count, plural, one {invitation} other {invitations}} failed to send",
+        "forbidden": "You don't have permission to create an organisation."
+      },
+      "noPermission": {
+        "title": "Cannot create organisation",
+        "back": "Back to dashboard"
       }
     },
     "invite": {

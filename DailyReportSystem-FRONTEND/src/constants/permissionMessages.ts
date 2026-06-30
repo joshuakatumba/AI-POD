@@ -50,3 +50,6 @@ export const EDIT_ORGANISATION_ROLE_TOOLTIP =
 
 export const EDIT_OWN_PROFILE_TOOLTIP =
   'You can only edit your own display name.';
+
+export const CREATE_ORGANISATION_TOOLTIP =
+  "You don't have permission to create an organisation. Members cannot create new organisations — contact your Admin if you need access.";

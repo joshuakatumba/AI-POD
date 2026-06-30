@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import {
+  Box,
   TextField,
   Button,
   MenuItem,
@@ -11,7 +12,9 @@ import {
   FormControlLabel,
   FormLabel,
   CircularProgress,
+  Typography,
 } from '@mui/material';
+import BlockOutlined from '@mui/icons-material/BlockOutlined';
 import { useTranslations } from 'next-intl';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import z from 'zod';
@@ -36,6 +39,8 @@ import type {
   CreateOrganisationResponse,
   InviteResults,
 } from '@/_types/organisation';
+import { CREATE_ORGANISATION_TOOLTIP } from '@/constants/permissionMessages';
+import { canUserCreateOrganisation } from '@/utils/organisationPermissions';
 
 type CreateOrganisationProps = {
   organisationTypes: readonly string[];
@@ -47,7 +52,7 @@ export default function CreateOrganisation({
   const t = useTranslations('organisation.create');
   const router = useRouter();
   const showToast = useToast();
-  const { login } = useAuth();
+  const { login, user, memberships } = useAuth();
 
   const [inviteEmailsInput, setInviteEmailsInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,6 +80,7 @@ export default function CreateOrganisation({
   });
 
   const inviteMembers = watch('inviteMembers');
+  const allowedToCreate = canUserCreateOrganisation(user, memberships);
 
   const parseEmails = (input: string): string[] => {
     if (!input.trim()) return [];
@@ -216,6 +222,11 @@ export default function CreateOrganisation({
           error.message?.includes('Unauthorized')
         ) {
           errorMessage = t('errors.unauthorized');
+        } else if (
+          error.message?.includes('403') ||
+          error.message?.includes('Members are not allowed')
+        ) {
+          errorMessage = t('errors.forbidden');
         } else if (error.message?.includes('500')) {
           errorMessage = t('errors.server');
         } else if (error.message?.includes('409')) {
@@ -228,6 +239,41 @@ export default function CreateOrganisation({
       setIsSubmitting(false);
     }
   };
+
+  if (!allowedToCreate) {
+    return (
+      <div>
+        <Header title={t('noPermission.title')} subtitle={CREATE_ORGANISATION_TOOLTIP} />
+        <Box
+          className="mx-auto flex w-full max-w-md flex-col items-center gap-4 p-5 text-center"
+          role="alert"
+          aria-live="polite"
+        >
+          <Box
+            sx={{
+              display: 'inline-flex',
+              p: 2,
+              borderRadius: '50%',
+              bgcolor: 'action.hover',
+              color: 'text.secondary',
+            }}
+          >
+            <BlockOutlined sx={{ fontSize: 40 }} aria-hidden />
+          </Box>
+          <Typography variant="body1" color="text.secondary">
+            {CREATE_ORGANISATION_TOOLTIP}
+          </Typography>
+          <Button
+            variant="contained"
+            className="!rounded-xl"
+            onClick={() => router.push('/dashboard/')}
+          >
+            {t('noPermission.back')}
+          </Button>
+        </Box>
+      </div>
+    );
+  }
 
   return (
     <div>
