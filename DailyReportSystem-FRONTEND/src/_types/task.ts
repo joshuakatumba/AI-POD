@@ -37,8 +37,6 @@ export type BaseTaskType = {
   category: string;
   comments_count?: number;
   attachments_count?: number;
-  comments_count?: number;
-  attachments_count?: number;
 
 };
 
