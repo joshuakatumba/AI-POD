@@ -1,18 +1,16 @@
 from dataclasses import dataclass, field
-from pydantic import Field
 from enum import Enum
 import os
 from asgiref.sync import sync_to_async
 from django.db import transaction
-from typing import AsyncGenerator, Dict, Any, List, Literal
+from typing import Any, List
 from pydantic import BaseModel
 from chat.models import Session
 from orchestrator.utils import broadcast_session_event
 from projects.models import Report, ReportTask
 from pydantic_ai import Agent, RunContext
-from pydantic_ai import Agent
-from pydantic_ai.models.openai import OpenAIChatModel
-from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.providers.google import GoogleProvider
 
 
 class SessionPhase(str, Enum):
@@ -24,38 +22,10 @@ class SessionPhase(str, Enum):
     COMPLETE = "complete"
 
 
-class TaskStatus(str, Enum):
-    NOT_STARTED = "not_started"
-    IN_PROGRESS = "in_progress"
-    BLOCKED = "blocked"
-    COMPLETED = "completed"
-
-
-class TaskSnapshot(BaseModel):
-    reference: str
-    status: TaskStatus
-    summary: str | None = None
-    blockers: list[str] = Field(default_factory=list)
-    next_steps: list[str] = Field(default_factory=list)
-
-
-class StructuredSnapshot(BaseModel):
-    tasks: list[TaskSnapshot]
-    completed: list[str] = Field(default_factory=list)
-    in_progress: list[str] = Field(default_factory=list)
-    blockers: list[str] = Field(default_factory=list)
-    next_steps: list[str] = Field(default_factory=list)
-
-
-class ReportInput(BaseModel):
-    generated_text: str
-    structured_data_snapshot: StructuredSnapshot
-
-
 @dataclass
 class EngineeringDeps:
-    session: Any  # Session object
-    user: Any     # Django User
+    session: Any
+    user: Any
     metadata: dict = field(default_factory=dict)
     task_snapshots: dict = field(default_factory=dict)
     current_task_reference: str | None = None
@@ -65,12 +35,12 @@ class EngineeringDeps:
 
 class ReportAgentRunner:
     def __init__(self, workflow):
-        provider = OpenAIProvider(
+        provider = GoogleProvider(
             api_key=workflow.ai_model.api_key
         )
 
-        model = OpenAIChatModel(
-            model_name=workflow.ai_model.name,
+        model = GoogleModel(
+            workflow.ai_model.name,
             provider=provider,
         )
 
@@ -82,152 +52,105 @@ class ReportAgentRunner:
 
         self.agent = report_agent
 
-        def get_next_task(ctx: RunContext[EngineeringDeps]) -> ReportTask | None:
-            tasks = ReportTask.objects.filter(
-                session=ctx.deps.session
-            ).select_related("task")
-
-            for t in tasks:
-                if t.task.reference not in ctx.deps.completed_tasks:
-                    return t
-
-            return None
-
-        def is_task_complete(snapshot: dict) -> bool:
-            return (
-                snapshot.get("status") is not None
-                and snapshot.get("summary") is not None
-                and isinstance(snapshot.get("blockers"), list)
-                and isinstance(snapshot.get("next_steps"), list)
-            )
-
         @report_agent.tool
         async def get_session_tasks(ctx: RunContext[EngineeringDeps]) -> str:
             """
-            Returns all session tasks with true execution status.
+            Returns the list of tasks for this session along with their current
+            status if already recorded. Call this at the start of the interview.
             """
-
-            session_tasks = ReportTask.objects.filter(
-                session=ctx.deps.session
-            ).select_related("task").all()
-
-            lines = []
-
-            async for report_task in session_tasks:
-                snapshot = ctx.deps.task_snapshots.get(report_task.task.reference, {})
-                status = snapshot.get("status", "not_started")
-                lines.append(
-                    f"- {report_task.task.name} ({report_task.task.reference}) | status: {status}"
+            try:
+                session_id = ctx.deps.session.id
+                session_tasks = await sync_to_async(list)(
+                    ReportTask.objects.filter(
+                        session_id=session_id
+                    ).select_related("task").all()
                 )
+                if not session_tasks:
+                    return "No tasks found for this session."
 
-            return "Current Task Status:\n" + "\n".join(lines)
-
-
+                lines = []
+                for rt in session_tasks:
+                    snap = ctx.deps.task_snapshots.get(rt.task.reference, {})
+                    status = snap.get("status", "not_started")
+                    lines.append(f"- {rt.task.name} ({rt.task.reference}) | status: {status}")
+                return "Tasks for this session:\n" + "\n".join(lines)
+            except Exception as e:
+                return f"Error fetching tasks: {str(e)}"
 
         @report_agent.tool
-        async def update_task_snapshot(
+        async def save_task_update(
             ctx: RunContext[EngineeringDeps],
-            snapshot: TaskSnapshot,
+            task_reference: str,
+            status: str,
+            summary: str,
+            blockers: str = "",
+            next_steps: str = "",
         ) -> str:
             """
-            Updates the runtime structured state for a task
-            based on conversational progress updates.
+            Saves the user's update for one task after you've asked them what they
+            did, the status, blockers, and next steps. Call this once per task
+            after you have enough information. status must be one of:
+            not_started, in_progress, blocked, completed.
+            blockers and next_steps are plain text (use 'none' if not applicable).
             """
-
             task_exists = await ReportTask.objects.filter(
-                session=ctx.deps.session,
-                task__reference=snapshot.reference,
+                session_id=ctx.deps.session.id,
+                task__reference=task_reference,
             ).aexists()
 
             if not task_exists:
-                return (
-                    f"❌ Task '{snapshot.reference}' "
-                    f"is not part of this session."
-                )
+                return f"Task '{task_reference}' is not part of this session."
 
-            ctx.deps.task_snapshots[snapshot.reference] = {
-                "status": snapshot.status.value,
-                "summary": snapshot.summary,
-                "blockers": snapshot.blockers,
-                "next_steps": snapshot.next_steps,
+            ctx.deps.task_snapshots[task_reference] = {
+                "status": status,
+                "summary": summary,
+                "blockers": [b.strip() for b in blockers.split(",") if b.strip() and b.strip().lower() != "none"],
+                "next_steps": [n.strip() for n in next_steps.split(",") if n.strip() and n.strip().lower() != "none"],
             }
+            ctx.deps.completed_tasks.add(task_reference)
 
-            if is_task_complete(ctx.deps.task_snapshots[snapshot.reference]):
-                ctx.deps.completed_tasks.add(snapshot.reference)
+            return f"Saved update for {task_reference}."
 
-            return (
-                f"✅ Snapshot updated for "
-                f"{snapshot.reference}"
-            )
-        
         @report_agent.tool
-        async def create_report(
+        async def preview_report(
             ctx: RunContext[EngineeringDeps],
-            report: ReportInput,
+            report_text: str,
         ) -> str:
             """
-            Creates and saves a report for the current session.
-
-            The final report contains:
-            - Human-readable markdown report
-            - Immutable structured snapshot of task execution state
+            Generates a DRAFT preview of the report for the user to review.
+            This does NOT submit or finalize anything. Call this after all
+            tasks have been interviewed, to show the user a summary. Always
+            ask the user afterward if they want to add anything or if they
+            are ready to submit.
             """
+            session_id = ctx.deps.session.id
+            session = await Session.objects.select_related(
+                "project", "membership", "organisation", "created_by"
+            ).aget(id=session_id)
 
-            session = ctx.deps.session
-
-            # Safe because these should already be preloaded
-            membership = session.membership
-            organisation = session.organisation
-            project = session.project
-
-            generated_text = report.generated_text
-
-            session_tasks = (
-                ReportTask.objects.filter(
-                    session=session,
-                )
-                .select_related("task").all()
+            session_tasks = await sync_to_async(list)(
+                ReportTask.objects.filter(session_id=session_id).select_related("task").all()
             )
 
             structured_tasks = []
+            completed, in_progress, blockers, next_steps = [], [], [], []
 
-            completed = []
-            in_progress = []
-            blockers = []
-            next_steps = []
-
-            async for report_task in session_tasks:
-
-                snapshot = ctx.deps.task_snapshots.get(
-                    report_task.task.reference,
-                    {
-                        "status": TaskStatus.NOT_STARTED.value,
-                        "summary": None,
-                        "blockers": [],
-                        "next_steps": [],
-                    },
+            for rt in session_tasks:
+                snap = ctx.deps.task_snapshots.get(
+                    rt.task.reference,
+                    {"status": "not_started", "summary": "", "blockers": [], "next_steps": []},
                 )
-
-                task_payload = {
-                    "reference": report_task.task.reference,
-                    "name": report_task.task.name,
-                    "status": snapshot["status"],
-                    "summary": snapshot["summary"],
-                    "blockers": snapshot["blockers"],
-                    "next_steps": snapshot["next_steps"],
-                }
-
-                structured_tasks.append(task_payload)
-
-                # Aggregate summary sections
-                if snapshot["status"] == TaskStatus.COMPLETED.value:
-                    completed.append(report_task.task.name)
-
-                elif snapshot["status"] == TaskStatus.IN_PROGRESS.value:
-                    in_progress.append(report_task.task.name)
-
-                blockers = list(set(blockers + snapshot["blockers"]))
-                next_steps = list(set(next_steps + snapshot["next_steps"]))
+                structured_tasks.append({
+                    "reference": rt.task.reference,
+                    "name": rt.task.name,
+                    **snap,
+                })
+                if snap["status"] == "completed":
+                    completed.append(rt.task.name)
+                elif snap["status"] == "in_progress":
+                    in_progress.append(rt.task.name)
+                blockers = list(set(blockers + snap["blockers"]))
+                next_steps = list(set(next_steps + snap["next_steps"]))
 
             structured_data_snapshot = {
                 "tasks": structured_tasks,
@@ -237,142 +160,67 @@ class ReportAgentRunner:
                 "next_steps": next_steps,
             }
 
-            report_instance, created = await Report.objects.aupdate_or_create(
+            report_instance, _ = await Report.objects.aupdate_or_create(
                 session=session,
                 defaults={
                     "project_id": session.project_id,
                     "membership_id": session.membership_id,
                     "organisation_id": session.organisation_id,
-                    "generated_text": generated_text,
+                    "generated_text": report_text,
                     "structured_data_snapshot": structured_data_snapshot,
                     "status": "draft",
                     "created_by": session.created_by,
                 }
             )
 
-            # queue trigger translation
-            from projects.helpers import queue_report_translation
-            await sync_to_async(queue_report_translation, thread_sensitive=True)(report_instance)
-
-            async for report_task in session_tasks:
-                if report_task.report_id != report_instance.id:
-                    report_task.report = report_instance
-                    await report_task.asave(update_fields=["report"])        
+            for rt in session_tasks:
+                if rt.report_id != report_instance.id:
+                    rt.report = report_instance
+                    await sync_to_async(rt.save)(update_fields=["report"])
 
             return (
-                f"✅ Report created successfully.\n"
-                f"Status: DRAFT\n"
-                f"Reference: {report_instance.reference}\n"
-                f"Project: {project.name}\n"
-                f"Session: {session.title}"
+                "DRAFT REPORT PREVIEW (not submitted yet):\n\n"
+                f"{report_text}\n\n"
+                "Ask the user: does this look correct, anything to add, "
+                "or are they ready to submit?"
             )
 
-
         @report_agent.tool
-        async def update_report(
-            ctx: RunContext[EngineeringDeps],
-            report: ReportInput,
-        ) -> str:
+        async def submit_report(ctx: RunContext[EngineeringDeps]) -> str:
             """
-            Updates an existing draft report for the current session.
-
-            Rules:
-            - Only draft reports can be updated
-            - Completed reports are immutable
-            - This tool is used during the REVIEW phase of the session
+            Finalizes and locks the report. ONLY call this when the user has
+            explicitly confirmed they want to submit (e.g. they say 'submit',
+            'yes finalize it', 'looks good, send it'). Never call this on
+            your own initiative.
             """
+            session_id = ctx.deps.session.id
 
-            session = ctx.deps.session
-
-            # Fetch existing report for session
-            try:
-                existing_report = await Report.objects.aget(session=session)
-            except Report.DoesNotExist:
-                return "❌ No report exists for this session yet."
-
-            # Guard: prevent updates to finalized reports
-            if existing_report.status == "complete":
-                return (
-                    "❌ This report is finalized and cannot be modified.\n"
-                    "Create a new session if changes are needed."
-                )
-
-            # Update allowed fields
-            existing_report.generated_text = report.generated_text
-            existing_report.structured_data_snapshot = report.structured_data_snapshot
-
-            await existing_report.asave(
-                update_fields=[
-                    "generated_text",
-                    "structured_data_snapshot",
-                ]
-            )
-
-            # queue trigger translation
-            from projects.helpers import queue_report_translation
-            await sync_to_async(queue_report_translation, thread_sensitive=True)(existing_report)
-
-            return (
-                f"✅ Draft report updated successfully.\n"
-                f"Status: DRAFT\n"
-                f"Session: {session.title}\n"
-                f"Status: {existing_report.status}"
-            )
-        
-
-        @report_agent.tool
-        async def complete_task_interview(
-            ctx: RunContext[EngineeringDeps],
-            task_reference: str,
-        ) -> str:
-            """
-            Marks a task as fully interviewed and moves the agent forward.
-            """
-
-            ctx.deps.completed_tasks.add(task_reference)
-            ctx.deps.current_task_reference = None
-
-            return f"✅ Task {task_reference} marked as complete."
-        
-
-        @report_agent.tool
-        async def finalize_report(
-            ctx: RunContext[EngineeringDeps],
-        ) -> str:
             def _finalize():
                 with transaction.atomic():
-                    report = (
-                        Report.objects
-                        .select_for_update()
-                        .get(session=ctx.deps.session)
-                    )
-
+                    report = Report.objects.select_for_update().get(session_id=session_id)
                     if report.status == "complete":
                         return None
-
                     report.status = "complete"
                     report.save(update_fields=["status"])
-
                     return report
 
             report = await sync_to_async(_finalize)()
 
-            # queue trigger translation
+            if report is None:
+                return "This report has already been submitted."
+
             from projects.helpers import queue_report_translation
             await sync_to_async(queue_report_translation, thread_sensitive=True)(report)
-
-            if report is None:
-                return "⚠️ Report is already finalized."
 
             FRONTEND_URL = os.getenv("FRONTEND_BASE_URL", "").rstrip("/")
             report_url = f"{FRONTEND_URL}/reports/{report.id}"
 
             return (
-                "✅ Report has been finalized and locked.\n"
-                f"View completed Report: {report_url}\n"
+                "Report submitted and finalized successfully.\n"
+                f"View it here: {report_url}\n"
                 f"Reference: {report.reference}"
             )
-        
+
 
 class TranslationItem(BaseModel):
     field_name: str
@@ -385,19 +233,11 @@ class TranslationItem(BaseModel):
 
 class TranslationAgentRunner:
     def __init__(self, workflow):
-        provider = OpenAIProvider(
-            api_key=workflow.ai_model.api_key
-        )
-
-        model = OpenAIChatModel(
-            model_name=workflow.ai_model.name,
-            provider=provider,
-        )
-
-        translation_agent = Agent(  
+        provider = GoogleProvider(api_key=workflow.ai_model.api_key)
+        model = GoogleModel(workflow.ai_model.name, provider=provider)
+        translation_agent = Agent(
             model,
             output_type=List[TranslationItem],
             system_prompt=workflow.system_prompt,
         )
-
         self.agent = translation_agent
