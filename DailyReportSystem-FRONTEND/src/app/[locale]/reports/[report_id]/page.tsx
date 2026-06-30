@@ -43,6 +43,8 @@ import TaskRow from '@/components/chat/TaskRow';
 import { applyTranslations as applyTaskTranslations } from '@/utils/taskTranslations';
 import { useToast } from '@/app/_providers/ToastProvider';
 import InvalidReportModal from '@/components/modals/InvalidReportModal';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import { INVALIDATE_REPORT_TOOLTIP } from '@/constants/permissionMessages';
 import { usePathname } from 'next/navigation';
 import { applyTranslations } from '@/utils/reportTranslations';
 import { applyTranslations as translateReportComment } from '@/utils/reportCommentTranslations';
@@ -526,16 +528,31 @@ export default function ReportDetailsPage() {
             <Typography variant="h6" fontWeight={600}>
               {t('title')}
             </Typography>
-            <Button
-              variant="contained"
-              size="small"
-              color="error"
-              disabled={isinvalidating || !isReportOwner}
-              onClick={handleInvalidReport}
-              sx={{ textTransform: 'none', borderRadius: 2, fontWeight: 600, boxShadow: 'none' }}
+            <PermissionTooltip
+              restricted={!isReportOwner}
+              message={INVALIDATE_REPORT_TOOLTIP}
+              ariaLabel={t('invalidReport.title')}
             >
-              {isinvalidating ? t('invalidReport.deleting') : t('invalidReport.title')}
-            </Button>
+              <Button
+                variant="contained"
+                size="small"
+                color="error"
+                onClick={() => {
+                  if (isinvalidating) return;
+                  handleInvalidReport();
+                }}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  boxShadow: 'none',
+                  ...(isinvalidating && { opacity: 0.6, cursor: 'wait' }),
+                }}
+                aria-busy={isinvalidating}
+              >
+                {isinvalidating ? t('invalidReport.deleting') : t('invalidReport.title')}
+              </Button>
+            </PermissionTooltip>
           </Box>
           <Box sx={{
             overflow: 'auto',
