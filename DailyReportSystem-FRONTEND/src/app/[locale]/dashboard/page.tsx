@@ -93,7 +93,10 @@ export default function DashboardPage() {
           selectedLanguage
         )
       );
-      setTasks(translatedTasks);
+      const filteredTasks = translatedTasks.filter(
+        (task) => task.assigned_to && task.assigned_to.id === user_id
+      );
+      setTasks(filteredTasks);
     } catch (err) {
       showToast({ message: t('table.state.fetchTasksError'), severity: 'error' });
     } finally {
@@ -261,119 +264,131 @@ export default function DashboardPage() {
                 </Typography>
               </Box>
             ) : (
-              activeProjects.map((project, idx) => (
-                <Box
-                  key={`${project.name}-${idx}`}
-                  sx={{
-                    minWidth: { xs: '280px', md: '350px' },
-                    flexShrink: 0,
-                  }}
-                >
+              activeProjects.map((project, idx) => {
+                const progressData = project.progress_data || {};
+                const totalTasks = Object.values(progressData).reduce((sum, val) => sum + (val ?? 0), 0);
+                const completedTasks = (progressData.done ?? 0) + (progressData.deployed ?? 0) + (progressData.closed ?? 0);
+                const activeTasksCount = totalTasks - completedTasks;
+                const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+                return (
                   <Box
+                    key={`${project.name}-${idx}`}
                     sx={{
-                      p: 3,
-                      borderRadius: 4,
-                      border: '1px solid',
-                      borderColor: alpha(theme.palette.divider, 0.1),
-                      transition: '0.3s',
-                      '&:hover': {
-                        borderColor: getStatusColor(project.status),
-                        transform: 'translateY(-4px)',
-                      },
+                      minWidth: { xs: '280px', md: '350px' },
+                      flexShrink: 0,
                     }}
                   >
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                      sx={{ mb: 3 }}
+                    <Box
+                      sx={{
+                        p: 3,
+                        borderRadius: 4,
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.divider, 0.1),
+                        transition: '0.3s',
+                        '&:hover': {
+                          borderColor: getStatusColor(project.status),
+                          transform: 'translateY(-4px)',
+                        },
+                      }}
                     >
-                      <Box>
-                        <Typography variant="h6" fontWeight={700}>
-                          {project.name}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'text.secondary' }}
-                        >
-                          {/* {project.tasks}  */}
-                          9 {t("activeProjects.activeTasks")}
-                        </Typography>
-                      </Box>
-
-                      <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                        <MoreHorizRounded />
-                      </IconButton>
-                    </Stack>
-
-                    <Box sx={{ mb: 3 }}>
                       <Stack
                         direction="row"
                         justifyContent="space-between"
-                        sx={{ mb: 1 }}
+                        alignItems="flex-start"
+                        sx={{ mb: 3 }}
                       >
-                        <Typography
-                          variant="body2"
-                          sx={{ color: 'text.primary' }}
-                        >
-                          {t("actions.progress")}
-                        </Typography>
-                        <Typography variant="body2" fontWeight={700}>
-                          {project.progress}%
-                        </Typography>
+                        <Box>
+                          <Typography variant="h6" fontWeight={700}>
+                            {project.name}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary' }}
+                          >
+                            {activeTasksCount} {t("activeProjects.activeTasks")}
+                          </Typography>
+                        </Box>
+
+                        <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                          <MoreHorizRounded />
+                        </IconButton>
                       </Stack>
 
-                      <LinearProgress
-                        variant="determinate"
-                        value={project.progress ?? 0}
-                        sx={{
-                          height: 6,
-                          borderRadius: 3,
-                          bgcolor: alpha(theme.palette.divider, 0.1),
-                          '& .MuiLinearProgress-bar': {
-                            bgcolor: getStatusColor(project.status),
-                          },
-                        }}
-                      />
+                      <Box sx={{ mb: 3 }}>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          sx={{ mb: 1 }}
+                        >
+                          <Typography
+                            variant="body2"
+                            sx={{ color: 'text.primary' }}
+                          >
+                            {t("actions.progress")}
+                          </Typography>
+                          <Typography variant="body2" fontWeight={700}>
+                            {progressPercentage}%
+                          </Typography>
+                        </Stack>
+
+                        <LinearProgress
+                          variant="determinate"
+                          value={progressPercentage}
+                          aria-label={`${project.name} progress`}
+                          sx={{
+                            height: 6,
+                            borderRadius: 3,
+                            bgcolor: alpha(theme.palette.divider, 0.1),
+                            '& .MuiLinearProgress-bar': {
+                              bgcolor: getStatusColor(project.status),
+                            },
+                          }}
+                        />
+                      </Box>
+
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <AvatarGroup
+                          max={3}
+                          sx={{
+                            '& .MuiAvatar-root': {
+                              width: 24,
+                              height: 24,
+                              fontSize: 12,
+                              border: `2px solid ${theme.palette.background.paper}`,
+                            },
+                          }}
+                        >
+                          {project.members && Array.isArray(project.members) ? (
+                            project.members.map((member) => (
+                              <Avatar key={member.id} alt={member.member_name}>
+                                {member.member_name ? member.member_name.charAt(0).toUpperCase() : ""}
+                              </Avatar>
+                            ))
+                          ) : null}
+                        </AvatarGroup>
+
+                        <Button
+                          variant="text"
+                          size="small"
+                          endIcon={<ArrowForwardRounded />}
+                          sx={{
+                            color: getStatusColor(project.status),
+                            fontWeight: 700,
+                            textTransform: 'none',
+                          }}
+                        >
+                          {t("actions.open")}
+                        </Button>
+                      </Stack>
                     </Box>
-
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <AvatarGroup
-                        max={3}
-                        sx={{
-                          '& .MuiAvatar-root': {
-                            width: 24,
-                            height: 24,
-                            fontSize: 12,
-                            border: `2px solid ${theme.palette.background.paper}`,
-                          },
-                        }}
-                      >
-                        {[...Array(project.members)].map((_, i) => (
-                          <Avatar key={i} />
-                        ))}
-                      </AvatarGroup>
-
-                      <Button
-                        variant="text"
-                        size="small"
-                        endIcon={<ArrowForwardRounded />}
-                        sx={{
-                          color: getStatusColor(project.status),
-                          fontWeight: 700,
-                          textTransform: 'none',
-                        }}
-                      >
-                        {t("actions.open")}
-                      </Button>
-                    </Stack>
                   </Box>
-                </Box>
-              ))
+                );
+              })
             )}
           </Box>
 
@@ -381,7 +396,6 @@ export default function DashboardPage() {
           <Box sx={{ mt: 5 }}>
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
               <SpeedRounded sx={{ color: 'primary.light' }} /> {t("recentTasks")}
-              {/* <SpeedRounded sx={{ color: 'primary.light' }} /> {t('activeWork.title')} Recent Tasks */}
             </Typography>
 
             <Box sx={{
@@ -392,66 +406,152 @@ export default function DashboardPage() {
               borderColor: alpha(theme.palette.divider, 0.1),
               overflow: 'hidden'
             }}>
-              <Box sx={{ overflowX: 'auto' }}>
-                <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
-                  <thead>
-                    <Box component="tr" sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-                      {[
-                        t("table.headers.task"),
-                        t("table.headers.project"),
-                        t("table.headers.status"),
-                        t("table.headers.dueDate"),
-                        t("table.headers.assignee"),
-                        ""
-                      ].map((head) => (
-                        <Box component="th" key={head} sx={{ textAlign: 'left', p: 2, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700 }}>
-                          {head}
+              {tasksLoading ? (
+                <Box sx={{ p: 6, textAlign: 'center' }}>
+                  <CircularProgress size={28} />
+                </Box>
+              ) : tasks.length === 0 ? (
+                <Box sx={{ p: 6, textAlign: 'center' }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
+                    {t('table.state.noTasks')}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    You don't have any recent tasks assigned to you.
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  {/* Desktop Table View */}
+                  <Box sx={{ display: { xs: 'none', md: 'block' }, overflowX: 'auto' }}>
+                    <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+                      <thead>
+                        <Box component="tr" sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                          {[
+                            t("table.headers.task"),
+                            t("table.headers.project"),
+                            t("table.headers.status"),
+                            t("table.headers.dueDate"),
+                            t("table.headers.assignee"),
+                            ""
+                          ].map((head) => (
+                            <Box component="th" key={head} sx={{ textAlign: 'left', p: 2, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700 }}>
+                              {head}
+                            </Box>
+                          ))}
                         </Box>
-                      ))}
+                      </thead>
+                      <tbody>
+                        {tasks.map((task) => (
+                          <Box
+                            component="tr"
+                            key={task.id}
+                            sx={{
+                              '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.02) },
+                              borderBottom: '1px solid',
+                              borderColor: alpha(theme.palette.divider, 0.1)
+                            }}
+                          >
+                            {/* TASK NAME & DESCRIPTION */}
+                            <Box component="td" sx={{ p: 2, maxWidth: 200 }}>
+                              <Typography variant="body2"
+                                sx={{
+                                  p: 2,
+                                  color: 'text.primary',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 1,
+                                  WebkitBoxOrient: 'vertical',
+                                  wordBreak: 'break-word'
+                                }}
+                                fontWeight={600}>{task.name}</Typography>
+                            </Box>
+
+                            {/* PROJECT */}
+                            <Box component="td" sx={{ p: 2 }}>
+                              <Typography variant="body2" sx={{ color: 'text.primary' }}>{task.project.name}</Typography>
+                            </Box>
+
+                            {/* STATUS CHIP */}
+                            <Box component="td" sx={{ p: 2 }}>
+                              <Chip
+                                label={getStatusTranslation(task.status)}
+                                size="small"
+                                color={getStatusColor(task.status) as any}
+                                variant="outlined"
+                                sx={{
+                                  fontWeight: 700,
+                                  borderRadius: 1.5,
+                                  fontSize: 12,
+                                }}
+                              />
+                            </Box>
+
+                            {/* DUE DATE */}
+                            <Box component="td" sx={{ p: 2 }}>
+                              <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
+                                <CalendarToday sx={{ fontSize: 14 }} />
+                                <Typography variant="caption" fontWeight={500}>
+                                  {task.due_date ? new Date(task.due_date).toLocaleDateString() : '-'}
+                                </Typography>
+                              </Stack>
+                            </Box>
+
+                            {/* ASSIGNEE */}
+                            <Box component="td" sx={{ p: 2 }}>
+                              {task.assigned_to ? (
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem', bgcolor: 'primary.main' }}>
+                                    {task.assigned_to.name.charAt(0)}
+                                  </Avatar>
+                                  <Typography variant="caption" fontWeight={600}>{task.assigned_to.name}</Typography>
+                                </Stack>
+                              ) : (
+                                <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>{t("status.unassigned")}</Typography>
+                              )}
+                            </Box>
+
+                            <Box component="td" sx={{ p: 2, textAlign: 'right' }}>
+                              <IconButton size="small" sx={{ color: 'text.secondary' }}><ArrowForwardRounded fontSize="small" /></IconButton>
+                            </Box>
+                          </Box>
+                        ))}
+                      </tbody>
                     </Box>
-                  </thead>
-                  <tbody>
-                    {loading ? (
-                      <Box component="tr">
-                        <Box component="td" colSpan={6} sx={{ p: 4, textAlign: 'center' }}>
-                          <CircularProgress size={28} />
-                        </Box>
-                      </Box>
-                    ) : tasks.length > 0 ? (
-                      tasks.map((task) => (
-                        <Box
-                          component="tr"
-                          key={task.id}
-                          sx={{
-                            '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.02) },
-                            borderBottom: '1px solid',
-                            borderColor: alpha(theme.palette.divider, 0.1)
-                          }}
-                        >
-                          {/* TASK NAME & DESCRIPTION */}
-                          <Box component="td"
-                            sx={{ p: 2, maxWidth: 200 }}>
-                            <Typography variant="body2"
-                              sx={{
-                                p: 2,
-                                color: 'text.primary',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 1,
-                                WebkitBoxOrient: 'vertical',
-                                wordBreak: 'break-word'
-                              }}
-                              fontWeight={600}>{task.name}</Typography>
-                          </Box>
+                  </Box>
 
-                          {/* PROJECT */}
-                          <Box component="td" sx={{ p: 2 }}>
-                            <Typography variant="body2" sx={{ color: 'text.primary' }}>{task.project.name}</Typography>
-                          </Box>
+                  {/* Mobile Card View */}
+                  <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 2, p: 2 }}>
+                    {tasks.map((task) => (
+                      <Box
+                        key={task.id}
+                        sx={{
+                          p: 2.5,
+                          borderRadius: 3,
+                          border: '1px solid',
+                          borderColor: alpha(theme.palette.divider, 0.1),
+                          bgcolor: alpha(theme.palette.background.paper, 0.25),
+                          backdropFilter: 'blur(5px)'
+                        }}
+                      >
+                        <Stack spacing={1.5}>
+                          {/* Title and Arrow Icon */}
+                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography variant="subtitle2" fontWeight={700} sx={{ wordBreak: 'break-word' }}>
+                                {task.name}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                                {task.project.name}
+                              </Typography>
+                            </Box>
+                            <IconButton size="small" sx={{ color: 'text.secondary', mt: -0.5 }}>
+                              <ArrowForwardRounded fontSize="small" />
+                            </IconButton>
+                          </Stack>
 
-                          {/* STATUS CHIP */}
-                          <Box component="td" sx={{ p: 2 }}>
+                          {/* Status and Due Date */}
+                          <Stack direction="row" justifyContent="space-between" alignItems="center">
                             <Chip
                               label={getStatusTranslation(task.status)}
                               size="small"
@@ -460,51 +560,39 @@ export default function DashboardPage() {
                               sx={{
                                 fontWeight: 700,
                                 borderRadius: 1.5,
-                                fontSize: 12,
+                                fontSize: 11,
                               }}
                             />
-                          </Box>
 
-                          {/* DUE DATE */}
-                          <Box component="td" sx={{ p: 2 }}>
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
-                              <CalendarToday sx={{ fontSize: 14 }} />
+                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: 'text.secondary' }}>
+                              <CalendarToday sx={{ fontSize: 12 }} />
                               <Typography variant="caption" fontWeight={500}>
                                 {task.due_date ? new Date(task.due_date).toLocaleDateString() : '-'}
                               </Typography>
                             </Stack>
-                          </Box>
+                          </Stack>
 
-                          {/* ASSIGNEE */}
-                          <Box component="td" sx={{ p: 2 }}>
+                          {/* Assignee */}
+                          <Box sx={{ pt: 1, borderTop: '1px solid', borderColor: alpha(theme.palette.divider, 0.05) }}>
                             {task.assigned_to ? (
                               <Stack direction="row" spacing={1} alignItems="center">
-                                <Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem', bgcolor: 'primary.main' }}>
+                                <Avatar sx={{ width: 20, height: 20, fontSize: '0.65rem', bgcolor: 'primary.main' }}>
                                   {task.assigned_to.name.charAt(0)}
                                 </Avatar>
                                 <Typography variant="caption" fontWeight={600}>{task.assigned_to.name}</Typography>
                               </Stack>
                             ) : (
-                              <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>{t("status.unassigned")}</Typography>
+                              <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
+                                {t("status.unassigned")}
+                              </Typography>
                             )}
                           </Box>
-
-
-                          <Box component="td" sx={{ p: 2, textAlign: 'right' }}>
-                            <IconButton size="small" sx={{ color: 'text.secondary' }}><ArrowForwardRounded fontSize="small" /></IconButton>
-                          </Box>
-                        </Box>
-                      ))
-                    ) : (
-                      <Box component="tr">
-                        <Box component="td" colSpan={6} sx={{ p: 8, textAlign: 'center' }}>
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>{t('table.state.noTasks')}</Typography>
-                        </Box>
+                        </Stack>
                       </Box>
-                    )}
-                  </tbody>
-                </Box>
-              </Box>
+                    ))}
+                  </Box>
+                </>
+              )}
             </Box>
           </Box>
 
