@@ -1,4 +1,0 @@
-- [x] Add client-side filtering by current user ID in dashboard `fetchTasks` function.
-- [x] Implement enhanced empty state with descriptive text for tasks list.
-- [x] Create mobile-responsive card layout and hide traditional table layout on mobile screen sizes.
-- [x] Verify the layout and functionality on the dashboard.
