@@ -31,7 +31,7 @@ class ProjectsApiView(generics.GenericAPIView):
     def get_serializer_class(self):
         if self.request.method == "POST":
             return ProjectCreateSerializer
-        return ProjectReadSerializer
+        return ProjectDetailsSerializer
 
     def get_permissions(self):
         if self.request.method == "POST":

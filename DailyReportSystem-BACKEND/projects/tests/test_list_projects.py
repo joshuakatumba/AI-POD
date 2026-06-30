@@ -120,7 +120,7 @@ class TestReadProjects(MockAuthMixin, APITestCase):
         expected_fields = {
             "id", "reference", "name", "description", "members", "status",
             "translations", "start_date", "end_date", "is_active", "is_deleted", 
-            "visibility", "owner_id", "owner_name", "owner_email",
+            "visibility", "owner_id", "owner_name", "owner_email", "progress_data",
         }
         self.assertEqual(set(project_data.keys()), expected_fields)
 

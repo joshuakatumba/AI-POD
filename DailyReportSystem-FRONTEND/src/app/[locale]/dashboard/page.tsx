@@ -261,119 +261,131 @@ export default function DashboardPage() {
                 </Typography>
               </Box>
             ) : (
-              activeProjects.map((project, idx) => (
-                <Box
-                  key={`${project.name}-${idx}`}
-                  sx={{
-                    minWidth: { xs: '280px', md: '350px' },
-                    flexShrink: 0,
-                  }}
-                >
+              activeProjects.map((project, idx) => {
+                const progressData = project.progress_data || {};
+                const totalTasks = Object.values(progressData).reduce((sum, val) => sum + (val ?? 0), 0);
+                const completedTasks = (progressData.done ?? 0) + (progressData.deployed ?? 0) + (progressData.closed ?? 0);
+                const activeTasksCount = totalTasks - completedTasks;
+                const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+                return (
                   <Box
+                    key={`${project.name}-${idx}`}
                     sx={{
-                      p: 3,
-                      borderRadius: 4,
-                      border: '1px solid',
-                      borderColor: alpha(theme.palette.divider, 0.1),
-                      transition: '0.3s',
-                      '&:hover': {
-                        borderColor: getStatusColor(project.status),
-                        transform: 'translateY(-4px)',
-                      },
+                      minWidth: { xs: '280px', md: '350px' },
+                      flexShrink: 0,
                     }}
                   >
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                      sx={{ mb: 3 }}
+                    <Box
+                      sx={{
+                        p: 3,
+                        borderRadius: 4,
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.divider, 0.1),
+                        transition: '0.3s',
+                        '&:hover': {
+                          borderColor: getStatusColor(project.status),
+                          transform: 'translateY(-4px)',
+                        },
+                      }}
                     >
-                      <Box>
-                        <Typography variant="h6" fontWeight={700}>
-                          {project.name}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'text.secondary' }}
-                        >
-                          {/* {project.tasks}  */}
-                          9 {t("activeProjects.activeTasks")}
-                        </Typography>
-                      </Box>
-
-                      <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                        <MoreHorizRounded />
-                      </IconButton>
-                    </Stack>
-
-                    <Box sx={{ mb: 3 }}>
                       <Stack
                         direction="row"
                         justifyContent="space-between"
-                        sx={{ mb: 1 }}
+                        alignItems="flex-start"
+                        sx={{ mb: 3 }}
                       >
-                        <Typography
-                          variant="body2"
-                          sx={{ color: 'text.primary' }}
-                        >
-                          {t("actions.progress")}
-                        </Typography>
-                        <Typography variant="body2" fontWeight={700}>
-                          {project.progress}%
-                        </Typography>
+                        <Box>
+                          <Typography variant="h6" fontWeight={700}>
+                            {project.name}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.secondary' }}
+                          >
+                            {activeTasksCount} {t("activeProjects.activeTasks")}
+                          </Typography>
+                        </Box>
+
+                        <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                          <MoreHorizRounded />
+                        </IconButton>
                       </Stack>
 
-                      <LinearProgress
-                        variant="determinate"
-                        value={project.progress ?? 0}
-                        sx={{
-                          height: 6,
-                          borderRadius: 3,
-                          bgcolor: alpha(theme.palette.divider, 0.1),
-                          '& .MuiLinearProgress-bar': {
-                            bgcolor: getStatusColor(project.status),
-                          },
-                        }}
-                      />
+                      <Box sx={{ mb: 3 }}>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          sx={{ mb: 1 }}
+                        >
+                          <Typography
+                            variant="body2"
+                            sx={{ color: 'text.primary' }}
+                          >
+                            {t("actions.progress")}
+                          </Typography>
+                          <Typography variant="body2" fontWeight={700}>
+                            {progressPercentage}%
+                          </Typography>
+                        </Stack>
+
+                        <LinearProgress
+                          variant="determinate"
+                          value={progressPercentage}
+                          aria-label={`${project.name} progress`}
+                          sx={{
+                            height: 6,
+                            borderRadius: 3,
+                            bgcolor: alpha(theme.palette.divider, 0.1),
+                            '& .MuiLinearProgress-bar': {
+                              bgcolor: getStatusColor(project.status),
+                            },
+                          }}
+                        />
+                      </Box>
+
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
+                        <AvatarGroup
+                          max={3}
+                          sx={{
+                            '& .MuiAvatar-root': {
+                              width: 24,
+                              height: 24,
+                              fontSize: 12,
+                              border: `2px solid ${theme.palette.background.paper}`,
+                            },
+                          }}
+                        >
+                          {project.members && Array.isArray(project.members) ? (
+                            project.members.map((member) => (
+                              <Avatar key={member.id} alt={member.member_name}>
+                                {member.member_name ? member.member_name.charAt(0).toUpperCase() : ""}
+                              </Avatar>
+                            ))
+                          ) : null}
+                        </AvatarGroup>
+
+                        <Button
+                          variant="text"
+                          size="small"
+                          endIcon={<ArrowForwardRounded />}
+                          sx={{
+                            color: getStatusColor(project.status),
+                            fontWeight: 700,
+                            textTransform: 'none',
+                          }}
+                        >
+                          {t("actions.open")}
+                        </Button>
+                      </Stack>
                     </Box>
-
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
-                      <AvatarGroup
-                        max={3}
-                        sx={{
-                          '& .MuiAvatar-root': {
-                            width: 24,
-                            height: 24,
-                            fontSize: 12,
-                            border: `2px solid ${theme.palette.background.paper}`,
-                          },
-                        }}
-                      >
-                        {[...Array(project.members)].map((_, i) => (
-                          <Avatar key={i} />
-                        ))}
-                      </AvatarGroup>
-
-                      <Button
-                        variant="text"
-                        size="small"
-                        endIcon={<ArrowForwardRounded />}
-                        sx={{
-                          color: getStatusColor(project.status),
-                          fontWeight: 700,
-                          textTransform: 'none',
-                        }}
-                      >
-                        {t("actions.open")}
-                      </Button>
-                    </Stack>
                   </Box>
-                </Box>
-              ))
+                );
+              })
             )}
           </Box>
 
