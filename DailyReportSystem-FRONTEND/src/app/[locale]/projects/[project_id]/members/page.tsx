@@ -35,6 +35,13 @@ import { ProjectRoleType } from '@/_types/organisation';
 import { ProjectMemberType } from '@/_types/projectMembers';
 
 import AddProjectMemberModal from '@/components/projects/modals/AddProjectMember';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import {
+  ADD_PROJECT_MEMBER_TOOLTIP,
+  EDIT_PROJECT_MEMBER_TOOLTIP,
+  INACTIVE_MEMBER_TOOLTIP,
+  REMOVE_PROJECT_MEMBER_TOOLTIP,
+} from '@/constants/permissionMessages';
 import DeleteProjectMemberModal from '@/components/projects/modals/DeleteProjectMember';
 import { deleteProjectMemberAPI } from '@/app/[locale]/projects/[project_id]/members/index';
 import { boolean } from 'zod';
@@ -69,6 +76,16 @@ export default function ProjectMembersPage() {
     if (member.status === 'inactive') return false;
     if (isCurrentUserProjectAdmin) return true;         
   }
+
+  const getProjectMemberEditRestrictionMessage = (member: ProjectMemberType) => {
+    if (member.status === 'inactive') return INACTIVE_MEMBER_TOOLTIP;
+    return EDIT_PROJECT_MEMBER_TOOLTIP;
+  };
+
+  const getProjectMemberRemoveRestrictionMessage = (member: ProjectMemberType) => {
+    if (member.status === 'inactive') return INACTIVE_MEMBER_TOOLTIP;
+    return REMOVE_PROJECT_MEMBER_TOOLTIP;
+  };
 
   const [deleteModal, setDeleteModal] = useState(false);
 
@@ -197,14 +214,19 @@ export default function ProjectMembersPage() {
             {t('subtitle')}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<PersonAddIcon />}
-          onClick={() => setOpenAddMemberModal(true)}
-          disabled={!isCurrentUserProjectAdmin}
+        <PermissionTooltip
+          restricted={!isCurrentUserProjectAdmin}
+          message={ADD_PROJECT_MEMBER_TOOLTIP}
+          ariaLabel={t('buttons.addMember')}
         >
-          {t('buttons.addMember')}
-        </Button>
+          <Button
+            variant="contained"
+            startIcon={<PersonAddIcon />}
+            onClick={() => setOpenAddMemberModal(true)}
+          >
+            {t('buttons.addMember')}
+          </Button>
+        </PermissionTooltip>
 
       </Stack>
       <AddProjectMemberModal
@@ -306,37 +328,45 @@ export default function ProjectMembersPage() {
                     {/* ACTION */}
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        {/* Edit  Button  */}
-                        <IconButton
-                          sx={{
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                              bgcolor: 'primary.dark',
-                            }
-                          }}
-                          size="small"
-                          onClick={() => openEditModal(member)}
-                          disabled={!canEditMember(member)}
+                        <PermissionTooltip
+                          restricted={!canEditMember(member)}
+                          message={getProjectMemberEditRestrictionMessage(member)}
+                          ariaLabel={t('table.actions')}
                         >
-                          <EditOutlined />
-                        </IconButton>
+                          <IconButton
+                            sx={{
+                              bgcolor: 'primary.main',
+                              color: 'white',
+                              '&:hover': {
+                                bgcolor: 'primary.dark',
+                              }
+                            }}
+                            size="small"
+                            onClick={() => openEditModal(member)}
+                          >
+                            <EditOutlined />
+                          </IconButton>
+                        </PermissionTooltip>
 
-                        {/* Delete Button  */}
-                        <IconButton
-                          sx={{
-                            bgcolor: 'error.main',
-                            color: 'white',
-                            '&:hover': {
-                              bgcolor: 'error.dark',
-                            }
-                          }}
-                          size="small"
-                          onClick={() => openDeleteModal(member)}
-                          disabled={!canEditMember(member)}
+                        <PermissionTooltip
+                          restricted={!canEditMember(member)}
+                          message={getProjectMemberRemoveRestrictionMessage(member)}
+                          ariaLabel={t('table.actions')}
                         >
-                          <DeleteOutline />
-                        </IconButton>
+                          <IconButton
+                            sx={{
+                              bgcolor: 'error.main',
+                              color: 'white',
+                              '&:hover': {
+                                bgcolor: 'error.dark',
+                              }
+                            }}
+                            size="small"
+                            onClick={() => openDeleteModal(member)}
+                          >
+                            <DeleteOutline />
+                          </IconButton>
+                        </PermissionTooltip>
                       </Stack>
                     </TableCell>
                   </TableRow>

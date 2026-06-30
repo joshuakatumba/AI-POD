@@ -32,6 +32,13 @@ import {
 import DeactivateOrganisationMemberModal from '@/components/modals/DeactivateMember';
 import { useToast } from '@/app/_providers/ToastProvider';
 import InviteOrganisationMemberModal from '@/components/organisation/modals/InviteOrganisationmember';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import {
+  DEACTIVATE_MEMBER_TOOLTIP,
+  EDIT_MEMBER_TOOLTIP,
+  INACTIVE_MEMBER_TOOLTIP,
+  INVITE_MEMBER_TOOLTIP,
+} from '@/constants/permissionMessages';
 
 export default function MembersPage() {
   const t = useTranslations('organisation.Members');
@@ -92,6 +99,16 @@ export default function MembersPage() {
     if (member.status === 'inactive') return false;
     if (isCurrentUserOrganisationAdmin) return true;
     return member.id === currentUserId;
+  };
+
+  const getMemberEditRestrictionMessage = (member: organisationMemberType) => {
+    if (member.status === 'inactive') return INACTIVE_MEMBER_TOOLTIP;
+    return EDIT_MEMBER_TOOLTIP;
+  };
+
+  const getMemberDeactivateRestrictionMessage = (member: organisationMemberType) => {
+    if (member.status === 'inactive') return INACTIVE_MEMBER_TOOLTIP;
+    return DEACTIVATE_MEMBER_TOOLTIP;
   };
 
   /* ---------------- Update Organisation Member Role ---------------- */
@@ -217,23 +234,28 @@ export default function MembersPage() {
             {t('subtitle')}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          sx={{
-            borderRadius: 2.5,
-            textTransform: 'none',
-            fontWeight: 600,
-            px: { xs: 2, sm: 3 },
-            py: { xs: 0.8, sm: 1 },
-            fontSize: { xs: '0.8rem', sm: '0.875rem' },
-            boxShadow: 0,
-          }}
-          onClick={openInvite}
-          disabled={!isCurrentUserOrganisationAdmin}
+        <PermissionTooltip
+          restricted={!isCurrentUserOrganisationAdmin}
+          message={INVITE_MEMBER_TOOLTIP}
+          ariaLabel={t('buttons.inviteMember')}
         >
-          {t('buttons.inviteMember')}
-        </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            sx={{
+              borderRadius: 2.5,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: { xs: 2, sm: 3 },
+              py: { xs: 0.8, sm: 1 },
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              boxShadow: 0,
+            }}
+            onClick={openInvite}
+          >
+            {t('buttons.inviteMember')}
+          </Button>
+        </PermissionTooltip>
       </Stack>
 
       <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto', maxHeight: 700 }}>
@@ -340,30 +362,40 @@ export default function MembersPage() {
 
                   <TableCell align="right">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <IconButton
-                        size="small"
-                        onClick={() => openEdit(member)}
-                        sx={{
-                          bgcolor: 'primary.main',
-                          color: 'white',
-                          '&:hover': { bgcolor: 'primary.dark' },
-                        }}
-                        disabled={!canEdit(member)}
+                      <PermissionTooltip
+                        restricted={!canEdit(member)}
+                        message={getMemberEditRestrictionMessage(member)}
+                        ariaLabel={t('table.actions')}
                       >
-                        <EditOutlined fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => openDeactivate(member)}
-                        sx={{
-                          bgcolor: 'error.main',
-                          color: 'white',
-                          '&:hover': { bgcolor: 'error.dark' },
-                        }}
-                        disabled={!canEdit(member)}
+                        <IconButton
+                          size="small"
+                          onClick={() => openEdit(member)}
+                          sx={{
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            '&:hover': { bgcolor: 'primary.dark' },
+                          }}
+                        >
+                          <EditOutlined fontSize="small" />
+                        </IconButton>
+                      </PermissionTooltip>
+                      <PermissionTooltip
+                        restricted={!canEdit(member)}
+                        message={getMemberDeactivateRestrictionMessage(member)}
+                        ariaLabel={t('table.actions')}
                       >
-                        <DeleteOutline fontSize="small" />
-                      </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => openDeactivate(member)}
+                          sx={{
+                            bgcolor: 'error.main',
+                            color: 'white',
+                            '&:hover': { bgcolor: 'error.dark' },
+                          }}
+                        >
+                          <DeleteOutline fontSize="small" />
+                        </IconButton>
+                      </PermissionTooltip>
                     </Stack>
                   </TableCell>
                 </TableRow>

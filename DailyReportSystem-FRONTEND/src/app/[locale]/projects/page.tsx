@@ -16,7 +16,6 @@ import {
   Box,
   Chip,
   Button,
-  Tooltip,
   LinearProgress,
   AvatarGroup,
   CircularProgress,
@@ -36,6 +35,13 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/app/_contexts/AuthContext';
 import DeleteProjectModal from '@/components/modals/DeleteProject';
 import CreateProjectModal from '@/components/modals/CreateProject';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import {
+  CREATE_PROJECT_TOOLTIP,
+  DELETE_PROJECT_ROW_TOOLTIP,
+  EDIT_PROJECT_ROW_TOOLTIP,
+  PROJECT_CANCELLED_TOOLTIP,
+} from '@/constants/permissionMessages';
 import { CreateProjectPayloadType, EditProjectPayloadType, ProjectResponseType } from '@/_types/project';
 import EditProjectModal from '@/components/modals/EditProject';
 import { deleteProjectAPI, getProjectsAPI, createProjectAPI, updateProjectAPI } from '@/app/[locale]/projects/index';
@@ -73,6 +79,16 @@ export default function ProjectsPage() {
     if (project.status === 'cancelled') return false;
     if (isOrganisationAdmin) return true;
     if ((isProjectAdmin(project))) return true;
+  };
+
+  const getProjectEditRestrictionMessage = (project: ProjectResponseType) => {
+    if (project.status === 'cancelled') return PROJECT_CANCELLED_TOOLTIP;
+    return EDIT_PROJECT_ROW_TOOLTIP;
+  };
+
+  const getProjectDeleteRestrictionMessage = (project: ProjectResponseType) => {
+    if (project.status === 'cancelled') return PROJECT_CANCELLED_TOOLTIP;
+    return DELETE_PROJECT_ROW_TOOLTIP;
   };
 
   // Delete modal state
@@ -282,23 +298,28 @@ export default function ProjectsPage() {
             {t('subtitle')}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          sx={{
-            borderRadius: 2.5,
-            textTransform: 'none',
-            fontWeight: 600,
-            px: { xs: 2, sm: 3 },
-            py: { xs: 0.8, sm: 1 },
-            fontSize: { xs: '0.8rem', sm: '0.875rem' },
-            boxShadow: 0,
-          }}
-          onClick={openCreate}
-          disabled={!isOrganisationAdmin}
+        <PermissionTooltip
+          restricted={!isOrganisationAdmin}
+          message={CREATE_PROJECT_TOOLTIP}
+          ariaLabel={t('buttons.createProject')}
         >
-          {t('buttons.createProject')}
-        </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            sx={{
+              borderRadius: 2.5,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: { xs: 2, sm: 3 },
+              py: { xs: 0.8, sm: 1 },
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              boxShadow: 0,
+            }}
+            onClick={openCreate}
+          >
+            {t('buttons.createProject')}
+          </Button>
+        </PermissionTooltip>
       </Stack>
 
       {/* TABLE */}
@@ -604,7 +625,11 @@ export default function ProjectsPage() {
                   {/* ACTIONS */}
                   <TableCell align="right">
                     <Stack direction="row" spacing={1} justifyContent="flex-center">
-                      <Tooltip title={t('tooltips.edit')}>
+                      <PermissionTooltip
+                        restricted={!canEdit(project)}
+                        message={getProjectEditRestrictionMessage(project)}
+                        ariaLabel={t('tooltips.edit')}
+                      >
                         <IconButton
                           sx={{
                             bgcolor: 'primary.main',
@@ -612,7 +637,6 @@ export default function ProjectsPage() {
                             '&:hover': { bgcolor: 'primary.dark' },
                           }}
                           size="small"
-                          disabled={!canEdit(project)}
                           onClick={(e) => {
                             e.stopPropagation();
                             openEditProject(project);
@@ -620,16 +644,19 @@ export default function ProjectsPage() {
                         >
                           <EditOutlined fontSize="small" />
                         </IconButton>
-                      </Tooltip>
+                      </PermissionTooltip>
 
-                      <Tooltip title={t('tooltips.delete')}>
+                      <PermissionTooltip
+                        restricted={!canEdit(project)}
+                        message={getProjectDeleteRestrictionMessage(project)}
+                        ariaLabel={t('tooltips.delete')}
+                      >
                         <IconButton
                           size="small"
                           onClick={(e) => {
                             e.stopPropagation();
                             openDeleteModal(project);
                           }}
-                          disabled={!canEdit(project)}
                           sx={{
                             bgcolor: 'error.main',
                             color: 'white',
@@ -638,7 +665,7 @@ export default function ProjectsPage() {
                         >
                           <DeleteOutline fontSize="small" />
                         </IconButton>
-                      </Tooltip>
+                      </PermissionTooltip>
                     </Stack>
                   </TableCell>
                 </TableRow>

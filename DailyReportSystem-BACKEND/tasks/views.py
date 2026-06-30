@@ -9,7 +9,10 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from tasks.filters import TaskFilterSet
-from tasks.helpers import queue_task_comment_translation, queue_task_translation
+from tasks.helpers import (
+    queue_report_translation,
+    queue_report_comment_translation,
+)
 from tasks.models import Task, TaskComment, TaskAttachment
 from projects.models import Project
 from tasks.pagination import TaskPagination
@@ -213,7 +216,7 @@ class TasksView(generics.GenericAPIView):
         task = serializer.save()
 
         # queue trigger translation
-        queue_task_translation(task)
+        queue_report_translation(task)
 
         return Response(
             TaskReadSerializer(task).data,
@@ -251,7 +254,7 @@ class TaskDetailView(generics.GenericAPIView):
         task = serializer.save()
 
         # queue trigger translation
-        queue_task_translation(task)
+        queue_report_translation(task)
 
         return Response(
             TaskReadSerializer(task).data,
@@ -464,7 +467,7 @@ class TaskCommentsView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
 
-        queue_task_comment_translation(comment)
+        queue_report_comment_translation(comment)
 
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_201_CREATED)
 
@@ -514,7 +517,7 @@ class TaskCommentDetailView(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
-        queue_task_comment_translation(comment)
+        queue_report_comment_translation(comment)
 
         return Response(TaskCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
 
