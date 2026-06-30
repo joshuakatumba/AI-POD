@@ -11,7 +11,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from chat.models import Session, SessionMessage
-from chat.serializers import CreateSessionSerializer, SessionDetailSerializer, SessionMessageCreateSerializer, SessionResponseSerializer
+from chat.serializers import (
+    CreateSessionSerializer,
+    SessionDetailSerializer,
+    SessionMessageCreateSerializer,
+    SessionResponseSerializer,
+    get_request_auth_context,
+)
 from orchestrator.core import EngineeringDeps, ReportAgentRunner
 from orchestrator.utils import seed_session_ai
 from sysadmin.models import AIWorkflow
@@ -27,7 +33,7 @@ class SessionsApiView(generics.GenericAPIView):
         return SessionResponseSerializer
     
     def get_queryset(self):
-        auth = self.request.auth or {}
+        auth = get_request_auth_context(self.request)
         organisation_id = auth.get("organisation_id")
         membership_id = auth.get("membership_id")
         project_id = self.kwargs.get("project_id")
@@ -183,14 +189,22 @@ class StreamApiView(generics.GenericAPIView):
         
         # 3. Fetch Full Message History
         # We fetch ALL messages for this session to give the AI full context
-        db_messages = SessionMessage.objects.filter(session=session).order_by('created_at')
-        history = [
-            msg.to_pydantic_ai_format() 
-            for msg in db_messages 
-            if msg.to_pydantic_ai_format() is not None
-        ]
-
-        # 4. Persistence: Save User Message
+        # 3. Fetch Full Message History
+        db_messages = list(SessionMessage.objects.filter(session=session).order_by('created_at'))
+        
+        # Build valid history — must alternate user/assistant starting with user
+        # Skip the seed assistant message if it has no preceding user message
+        raw_history = [msg.to_pydantic_ai_format() for msg in db_messages if msg.to_pydantic_ai_format() is not None]
+        
+        # Filter to only include messages before the current user message
+        # and ensure the history starts with a user message
+        history = []
+        for msg in raw_history:
+            from pydantic_ai.messages import ModelRequest, ModelResponse
+            if not history and isinstance(msg, ModelResponse):
+                # Skip leading assistant messages (seed greeting) — avoids invalid history
+                continue
+            history.append(msg)        # 4. Persistence: Save User Message
         SessionMessage.objects.create(
             session=session,
             organisation=session.organisation,
@@ -202,8 +216,9 @@ class StreamApiView(generics.GenericAPIView):
 
         # 4. Prepare Dependencies
         deps = EngineeringDeps(session=session, user=request.user)
+        print(f"DEBUG: workflow ai_model name={session.workflow.ai_model.name} provider={session.workflow.ai_model.provider}", flush=True)
         inspector_agent = ReportAgentRunner(workflow=session.workflow)
-
+        print(f"DEBUG: agent model type={type(inspector_agent.agent.model)}", flush=True)
         # 5. Streaming Generator
         async def event_generator():
             full_content = ""
@@ -242,10 +257,20 @@ class StreamApiView(generics.GenericAPIView):
                     },
                     created_by=session.created_by,
                 )
-        return StreamingHttpResponse(
-            event_generator(), 
-            content_type='text/plain' # Change to 'text/event-stream' if using SSE headers
+        from django.http import StreamingHttpResponse
+        import asyncio
+
+        async def sync_generator():
+            async for chunk in event_generator():
+                yield chunk
+
+        response = StreamingHttpResponse(
+            streaming_content=sync_generator(),
+            content_type='text/event-stream',
         )
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'
+        return response
    
         
 class ChatAIWorkflowsApiView(generics.GenericAPIView):

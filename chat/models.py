@@ -135,6 +135,6 @@ class SessionMessage(CommonField):
         if self.role == 'user':
             return ModelRequest(parts=[UserPromptPart(content=self.content)])
         elif self.role == 'assistant':
-            return ModelResponse(parts=[TextPart(content=self.content)])
+            return ModelResponse(parts=[TextPart(content=self.content)], model_name='groq')
         return None
 

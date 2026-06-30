@@ -1,12 +1,13 @@
 import json
 from dataclasses import dataclass
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from asgiref.sync import async_to_sync
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import AccessToken
 
 from chat.models import Session, SessionMessage
 from core.tests.utils import MockAuthMixin
@@ -122,6 +123,27 @@ class ChatApiTests(MockAuthMixin, APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("organisation", response.data)
+
+    def test_create_session_accepts_jwt_auth_token_claims(self):
+        self.authenticate()
+
+        payload = {
+            "project_id": str(self.project.id),
+            "workflow_id": str(self.workflow.id),
+            "task_ids": [str(self.task.id)],
+            "session_type": "report_generation",
+        }
+
+        token = AccessToken()
+        token["organisation_id"] = str(self.org.id)
+        token["membership_id"] = str(self.membership.id)
+
+        with patch("rest_framework.request.Request.auth", new_callable=PropertyMock) as mocked_auth:
+            mocked_auth.return_value = token
+            response = self.client.post(self.sessions_url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Session.objects.filter(project=self.project).count(), 1)
 
     def test_create_requirements_session_without_task_ids_succeeds(self):
         self.authenticate()
