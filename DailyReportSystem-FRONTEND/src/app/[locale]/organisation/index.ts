@@ -13,7 +13,13 @@ export const createOrganisationApi = {
     const createResponseData = await response.json();
 
     if (!response.ok) {
-      throw new Error(createResponseData?.error || "Create organisation failed");
+      const message =
+        createResponseData?.detail ||
+        createResponseData?.error ||
+        (response.status === 403
+          ? 'Members are not allowed to create organizations.'
+          : 'Create organisation failed');
+      throw new Error(message);
     }
     return createResponseData;
   }

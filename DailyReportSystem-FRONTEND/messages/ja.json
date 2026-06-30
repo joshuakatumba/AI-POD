@@ -1008,7 +1008,12 @@
         "server": "サーバーエラーが発生しました。もう一度試すか、サポートにお問い合わせください。",
         "duplicate": "この名前の組織はすでに存在します。",
         "validation": "入力内容を確認して再度お試しください。",
-        "someInvitesFailed": "{count}件の招待送信に失敗しました"
+        "someInvitesFailed": "{count}件の招待送信に失敗しました",
+        "forbidden": "組織を作成する権限がありません。"
+      },
+      "noPermission": {
+        "title": "組織を作成できません",
+        "back": "ダッシュボードに戻る"
       }
     },
     "invite": {
