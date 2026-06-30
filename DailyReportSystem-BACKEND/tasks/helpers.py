@@ -2,35 +2,32 @@ from django.db import transaction
 from translation.tasks import trigger_translation_task
 
 
-def queue_task_translation(task):
-    field_names = [
-        "name",
-        "description"
-    ]
-
-    target_languages = ["en", "ja"]
-
+def queue_translation(instance, scope, field_names, target_languages=("en", "ja")):
     transaction.on_commit(
         lambda: trigger_translation_task.delay(
-            scope="task",
-            scope_id=task.id,
-            target_languages=target_languages,
+            scope=scope,
+            scope_id=instance.id,
+            target_languages=list(target_languages),
             field_names=field_names,
         )
     )
+
+
+def queue_task_translation(task):
+    queue_translation(task, "task", ["name", "description"])
+
 
 def queue_task_comment_translation(task_comment):
-    field_names = [
-        "content",
-    ]
+    queue_translation(task_comment, "task_comment", ["content"])
 
-    target_languages = ["en", "ja"]
 
-    transaction.on_commit(
-        lambda: trigger_translation_task.delay(
-            scope="task_comment",
-            scope_id=task_comment.id,
-            target_languages=target_languages,
-            field_names=field_names,
-        )
-    )
+def queue_project_translation(project):
+    queue_translation(project, "project", ["name", "description"])
+
+
+def queue_report_translation(report):
+    queue_translation(report, "report", ["generated_text"])
+
+
+def queue_report_comment_translation(report_comment):
+    queue_translation(report_comment, "report_comment", ["content"])

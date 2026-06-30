@@ -57,9 +57,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    networks:
-      - default
-      - ai_pod_network
 
   celery_worker:
     build: .
@@ -98,8 +95,3 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  static_volume:
-
-networks:
-  ai_pod_network:
-    external: true

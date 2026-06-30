@@ -83,8 +83,6 @@ export default function DashboardPage() {
       setTasksLoading(true)
       const data = await getAllTasksAPI({
         assigned_to: user_id,
-        reported_by: user_id,
-        high_priority: true,
         limit: 5,
       });
 

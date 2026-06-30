@@ -9,17 +9,31 @@ import {
   Typography,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 
-import { TaskResponseType } from "@/_types/task";
+import { TaskResponseType, TaskPriority } from "@/_types/task";
 import { useTranslations } from "next-intl";
-import { TaskCategory, TaskPriority } from "@/_types/task";
 
-const PRIORITY_CONFIG: Record<TaskPriority, { color: string; labelKey: string }> = {
-  low: { color: 'success.main', labelKey: 'form.priority.options.low' },
-  medium: { color: 'info.main', labelKey: 'form.priority.options.medium' },
-  high: { color: 'warning.main', labelKey: 'form.priority.options.high' },
-  critical: { color: 'error.main', labelKey: 'form.priority.options.critical' },
+const PRIORITY_CONFIG: Record<string, { color: string; labelKey: string }> = {
+  low:      { color: 'success', labelKey: 'form.priority.options.low' },
+  medium:   { color: 'info',    labelKey: 'form.priority.options.medium' },
+  high:     { color: 'warning', labelKey: 'form.priority.options.high' },
+  critical: { color: 'error',   labelKey: 'form.priority.options.critical' },
 };
+
+function getDeadlineInfo(dueDate?: string | null) {
+  if (!dueDate) return { label: '—', color: 'text.disabled', isOverdue: false };
+  const now = new Date();
+  const due = new Date(dueDate);
+  if (Number.isNaN(due.getTime())) return { label: '—', color: 'text.disabled', isOverdue: false };
+  const diffDays = Math.ceil((due.getTime() - now.getTime()) / 86400000);
+  if (diffDays < 0)  return { label: `${Math.abs(diffDays)}d overdue`, color: 'error.main',    isOverdue: true  };
+  if (diffDays === 0) return { label: 'Due today',                       color: 'warning.main',  isOverdue: false };
+  if (diffDays === 1) return { label: 'Tomorrow',                        color: 'warning.main',  isOverdue: false };
+  if (diffDays <= 7)  return { label: `${diffDays}d left`,               color: 'info.main',     isOverdue: false };
+  return { label: due.toLocaleDateString(), color: 'text.secondary', isOverdue: false };
+}
 
 interface TaskKanbanCardProps {
   task: TaskResponseType;
@@ -36,54 +50,13 @@ export default function TaskKanbanCard({
   getStatusColor,
   noAssigneeText,
 }: TaskKanbanCardProps) {
-
   const t = useTranslations('tasks');
 
-  const formatDueDate = (date?: string | null) => {
-    if (!date) return "No due date";
+  const priorityStyle = task.priority
+    ? PRIORITY_CONFIG[task.priority as TaskPriority]
+    : null;
 
-    return new Date(date).toLocaleDateString();
-  }
-
-  const getDueDateMeta = (date?: string | null) => {
-    if (!date) {
-      return {
-        label: "No due date",
-        borderColor: "divider",
-      };
-    }
-
-    const today = new Date();
-    const due = new Date(date);
-
-    today.setHours(0, 0, 0, 0);
-    due.setHours(0, 0, 0, 0);
-
-    const diff =
-      (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-
-    if (diff < 0) {
-      return {
-        label: t("kanban.state.overdue"),
-        borderColor: "error.main",
-      };
-    }
-
-    if (diff === 0) {
-      return {
-        label: t("kanban.state.dueToday"),
-        borderColor: "warning.main",
-      };
-    }
-
-    return {
-      label: formatDueDate(date),
-      borderColor: "info.main",
-    };
-  }
-
-  const dueDateMeta = getDueDateMeta(task.due_date);
-  const priorityStyle = task.priority ? PRIORITY_CONFIG[task.priority as TaskPriority] : null;
+  const deadline = getDeadlineInfo(task.due_date);
 
   return (
     <Card
@@ -145,39 +118,31 @@ export default function TaskKanbanCard({
             {task.name}
           </Typography>
 
-          {/* HOURS + STATUS */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Typography
-              variant="caption"
-              color="text.secondary"
-            >
+          {/* HOURS + PRIORITY + STATUS */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="caption" color="text.secondary">
               {task.expected_hours}h
             </Typography>
+
             <Stack direction="row" spacing={0.75} alignItems="center">
               {task.priority && priorityStyle && (
                 <Chip
-                  label={t(`create.form.priority.options.${task.priority}`)}
+                  label={t(`create.${priorityStyle.labelKey}`)}
                   size="small"
                   variant="filled"
-                  color={priorityStyle.color.split('.')[0] as any}
+                  color={priorityStyle.color as any}
                   sx={(theme) => ({
                     fontSize: 11,
                     fontWeight: 600,
                     bgcolor: alpha(
-                      theme.palette[priorityStyle.color.split(".")[0] as "success"].main,
+                      theme.palette[priorityStyle.color as "success"].main,
                       0.20
                     ),
-                    color:
-                      theme.palette[
-                        priorityStyle.color.split(".")[0] as "success"
-                      ].main,
-                  })}              
+                    color: theme.palette[priorityStyle.color as "success"].main,
+                  })}
                 />
               )}
+
               <Chip
                 label={getStatusTranslation(task.status)}
                 size="small"
@@ -191,18 +156,29 @@ export default function TaskKanbanCard({
             </Stack>
           </Stack>
 
-          {/* ASSIGNEE + Dude Date */}
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
+          {/* ACTIVITY INDICATORS */}
+          {((task.comments_count && task.comments_count > 0) ||
+            (task.attachments_count && task.attachments_count > 0)) && (
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              {task.comments_count ? (
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: "text.secondary" }}>
+                  <ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />
+                  <Typography variant="caption" fontWeight={600}>{task.comments_count}</Typography>
+                </Stack>
+              ) : null}
+              {task.attachments_count ? (
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: "text.secondary" }}>
+                  <AttachFileIcon sx={{ fontSize: 14, transform: 'rotate(45deg)' }} />
+                  <Typography variant="caption" fontWeight={600}>{task.attachments_count}</Typography>
+                </Stack>
+              ) : null}
+            </Stack>
+          )}
+
+          {/* ASSIGNEE + DEADLINE */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
             {/* ASSIGNEE */}
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-            >
+            <Stack direction="row" spacing={1} alignItems="center">
               <Avatar
                 sx={{
                   width: 24,
@@ -229,24 +205,29 @@ export default function TaskKanbanCard({
               </Typography>
             </Stack>
 
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-            >
+            {/* DEADLINE COUNTDOWN */}
+            <Stack direction="row" spacing={0.5} alignItems="center">
               <CalendarTodayIcon
                 sx={{
                   fontSize: 14,
-                  color: "text.secondary",
+                  color: deadline.color,
                 }}
               />
-
               <Typography
                 variant="caption"
-                color="text.secondary"
                 fontWeight={600}
+                sx={{
+                  color: deadline.color,
+                  ...(deadline.isOverdue && {
+                    animation: "pulse 2s ease-in-out infinite",
+                    "@keyframes pulse": {
+                      "0%, 100%": { opacity: 1 },
+                      "50%": { opacity: 0.6 },
+                    },
+                  }),
+                }}
               >
-                {dueDateMeta.label}
+                {deadline.label}
               </Typography>
             </Stack>
           </Stack>

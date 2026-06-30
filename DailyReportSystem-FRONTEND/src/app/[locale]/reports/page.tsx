@@ -179,6 +179,7 @@ export default function ReportsCalendar() {
             selectedMemberEmail={selectedMemberEmail}
             onMemberSelect={(email) => {
               setSelectedMemberEmail(email);
+
             }}
           />
         </Drawer>

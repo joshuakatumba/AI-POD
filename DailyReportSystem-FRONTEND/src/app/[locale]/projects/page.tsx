@@ -369,6 +369,28 @@ export default function ProjectsPage() {
                       <Box>
                         <Typography fontWeight={700}>{project.name}</Typography>
 
+                         {/*Reference Chip*/}
+                        {project.reference && (
+                          <Chip
+                          label={project.reference}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            height: 18,
+                            letterSpacing: '0.04em',
+                            color: 'primary.main',
+                            borderColor: 'primary.light',
+                            bgcolor: 'primary.lighter',
+                            mb: 0.5,
+                            mt: 0.25,
+                            '& .MuiChip-label': { px: 0.75 },
+                          }}
+                          />
+                        )}
+
                         <Stack
                           direction="row"
                           spacing={0.5}
