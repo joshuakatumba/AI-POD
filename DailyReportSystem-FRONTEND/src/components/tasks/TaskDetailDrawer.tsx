@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 import { ArrowUpward, Close as CloseIcon } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
-import ReactMarkdown from 'react-markdown';
+
 
 import {
   Tag as TagIcon,
@@ -42,7 +42,7 @@ import {
   Flag as FlagIcon,
   Category as CategoryIcon,
   DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
-  DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
+
 
 } from '@mui/icons-material';
 import { useTranslations } from 'next-intl';
@@ -64,7 +64,7 @@ interface TaskDetailDrawerProps {
   task: TaskType | null;
   onEdit: (task: TaskType) => void;
   onDelete?: (task: TaskType) => void;
-  onDelete?: (task: TaskType) => void;
+
 }
 
 const THREAD_PARENT_PREFIX = '[drs-parent:';
@@ -133,7 +133,6 @@ const sortThreadNodes = (nodes: CommentThreadNode[]): CommentThreadNode[] => {
   return nodes;
 };
 
-export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete }: TaskDetailDrawerProps) {
 export default function TaskDetailDrawer({ open, onClose, task, onEdit, onDelete }: TaskDetailDrawerProps) {
 
   const { user } = useAuth();
