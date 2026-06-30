@@ -27,6 +27,10 @@ import {
   Add as AddIcon,
   FolderOutlined,
   CalendarToday,
+  PublicOutlined,
+  PeopleOutlined,
+  WarningAmberOutlined,   // ── NEW: amber warning for due-soon
+  ErrorOutlineOutlined,   // ── NEW: red error for overdue
 } from '@mui/icons-material';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import Link from 'next/link';
@@ -235,6 +239,7 @@ export default function ProjectsPage() {
     'creator',
     'team',
     'progress',
+    'visibility',   // ── NEW: visibility column added here
     'status',
     'actions',
   ];
@@ -281,6 +286,65 @@ export default function ProjectsPage() {
       default:
         return status;
     }
+  };
+
+  // ── NEW: deadline health indicator ──────────────────────────────
+  // Returns a label, colour and icon based on how close end_date is
+  // to today. Three states:
+  //   overdue   → end_date is in the past          → red
+  //   due-soon  → end_date is within 7 days        → amber
+  //   on-track  → end_date is more than 7 days away → no badge shown
+  const getDeadlineHealth = (endDate?: string | null) => {
+    if (!endDate) return null;
+
+    const today = new Date();
+    const end   = new Date(endDate);
+
+    // Strip time so comparison is date-only
+    today.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.ceil(
+      (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays < 0) {
+      return {
+        label: t('deadline.overdue') || 'Overdue',
+        color: 'error' as const,
+        icon:  <ErrorOutlineOutlined sx={{ fontSize: 12 }} />,
+      };
+    }
+
+    if (diffDays <= 7) {
+      return {
+        label: t('deadline.dueSoon') || `Due in ${diffDays}d`,
+        color: 'warning' as const,
+        icon:  <WarningAmberOutlined sx={{ fontSize: 12 }} />,
+      };
+    }
+
+    // On track — no badge needed
+    return null;
+  };
+
+  // ── NEW: visibility badge indicator ─────────────────────────────
+  // Returns a label, icon and colour depending on whether a project
+  // is visible to the whole organisation or only its team members.
+  const getVisibilityConfig = (visibility?: string) => {
+    const v = visibility?.toLowerCase();
+    if (v === 'organisation') {
+      return {
+        label: t('visibility.organisation') || 'Organisation',
+        icon: <PublicOutlined sx={{ fontSize: 13 }} />,
+        color: 'primary' as const,
+      };
+    }
+    return {
+      label: t('visibility.team') || 'Team',
+      icon: <PeopleOutlined sx={{ fontSize: 13 }} />,
+      color: 'default' as const,
+    };
   };
 
   /* ---------------- UI ---------------- */
@@ -388,41 +452,78 @@ export default function ProjectsPage() {
                       </Avatar>
 
                       <Box>
+                        {/* PROJECT NAME */}
                         <Typography fontWeight={700}>{project.name}</Typography>
 
-                         {/*Reference Chip*/}
-                        {project.reference && (
-                          <Chip
-                          label={project.reference}
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            fontFamily: 'monospace',
-                            fontSize: '0.65rem',
-                            fontWeight: 700,
-                            height: 18,
-                            letterSpacing: '0.04em',
-                            color: 'primary.main',
-                            borderColor: 'primary.light',
-                            bgcolor: 'primary.lighter',
-                            mb: 0.5,
-                            mt: 0.25,
-                            '& .MuiChip-label': { px: 0.75 },
-                          }}
-                          />
-                        )}
-
+                        {/* REFERENCE CODE — pulled from project.reference returned by ProjectReadSerializer */}
                         <Stack
                           direction="row"
-                          spacing={0.5}
+                          spacing={1}
                           alignItems="center"
-                          color="text.secondary"
+                          sx={{ mt: 0.5, mb: 0.25 }}
                         >
-                          <CalendarToday sx={{ fontSize: 12 }} />
-                          <Typography variant="caption">
-                            {project.start_date} - {project.end_date}
-                          </Typography>
+                          <Chip
+                            label={project.reference}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              fontFamily: 'monospace',
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              height: 18,
+                              letterSpacing: '0.04em',
+                              color: 'primary.main',
+                              borderColor: 'primary.light',
+                              bgcolor: 'primary.lighter',
+                              '& .MuiChip-label': { px: 0.75 },
+                            }}
+                          />
                         </Stack>
+
+                        {/* DATE RANGE + DEADLINE HEALTH */}
+                        {(() => {
+                          const health = getDeadlineHealth(project.end_date);
+                          return (
+                            <Stack
+                              direction="row"
+                              spacing={0.75}
+                              alignItems="center"
+                              flexWrap="wrap"
+                            >
+                              {/* Calendar icon + date range — unchanged */}
+                              <Stack
+                                direction="row"
+                                spacing={0.5}
+                                alignItems="center"
+                                color="text.secondary"
+                              >
+                                <CalendarToday sx={{ fontSize: 12 }} />
+                                <Typography variant="caption">
+                                  {project.start_date} - {project.end_date}
+                                </Typography>
+                              </Stack>
+
+                              {/* ── NEW: deadline health chip, only shown when
+                                  project is overdue or due within 7 days ── */}
+                              {health && project.status !== 'completed' && project.status !== 'cancelled' && (
+                                <Chip
+                                  icon={health.icon}
+                                  label={health.label}
+                                  size="small"
+                                  color={health.color}
+                                  variant="filled"
+                                  sx={{
+                                    height: 18,
+                                    fontSize: '0.6rem',
+                                    fontWeight: 700,
+                                    '& .MuiChip-label': { px: 0.75 },
+                                    '& .MuiChip-icon': { fontSize: 11, ml: 0.5 },
+                                  }}
+                                />
+                              )}
+                            </Stack>
+                          );
+                        })()}
                       </Box>
                     </Stack>
                   </TableCell>
@@ -607,7 +708,28 @@ export default function ProjectsPage() {
                     </Box>
                   </TableCell>
 
-                  {/* STATUS */}
+                  {/* ── NEW: VISIBILITY badge ── */}
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {(() => {
+                      const config = getVisibilityConfig(project.visibility);
+                      return (
+                        <Chip
+                          icon={config.icon}
+                          label={config.label}
+                          size="small"
+                          color={config.color}
+                          variant="outlined"
+                          sx={{
+                            fontWeight: 600,
+                            borderRadius: 1.5,
+                            fontSize: 12,
+                          }}
+                        />
+                      );
+                    })()}
+                  </TableCell>
+
+                  {/* STATUS — unchanged */}
                   <TableCell>
                     <Chip
                       label={getStatusTranslation(project.status)}

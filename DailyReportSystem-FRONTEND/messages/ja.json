@@ -425,6 +425,7 @@
         "creator": "作成者",
         "team": "担当チーム",
         "progress": "進捗状況",
+        "visibility": "公開範囲",
         "status": "状態",
         "actions": "操作"
       },
@@ -447,6 +448,14 @@
       "inactive": "非アクティブ",
       "pending": "保留中",
       "closed": "クローズ済み"
+    },
+    "visibility": {
+      "organisation": "組織",
+      "team": "チーム"
+    },
+    "deadline": {
+      "overdue": "期限を過ぎた",
+      "dueSoon": "もうすぐ期限"
     },
     "tooltips": {
       "edit": "編集する",

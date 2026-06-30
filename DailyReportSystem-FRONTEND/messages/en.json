@@ -428,6 +428,7 @@
         "creator": "Creator",
         "team": "Team",
         "progress": "Progress",
+        "visibility": "Visibility", 
         "status": "Status",
         "actions": "Actions"
       },
@@ -450,6 +451,14 @@
       "cancelled": "Cancelled",
       "pending": "Pending",
       "closed": "Closed"
+    },
+    "visibility": {
+      "organisation": "Organisation",
+      "team": "Team"
+    },
+    "deadline": {
+      "overdue": "Overdue",
+      "dueSoon": "Due Soon"
     },
     "tooltips": {
       "edit": "Edit",
