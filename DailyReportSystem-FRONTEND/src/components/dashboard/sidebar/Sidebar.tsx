@@ -63,7 +63,18 @@ interface SidebarProps {
 
 export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const t = useTranslations('dashboard.switcher'); 
-  const [isCollapsed, setIsCollapsed] = useState(() => getSidebarCollapseFromCookie() ?? false);
+  // ⚠️ Always initialize to `false` so server and client render the same HTML.
+  // Reading the cookie synchronously here caused a hydration mismatch because
+  // the server has no access to browser cookies and always renders with `false`.
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // After mount, sync with the saved cookie preference (client-only).
+  useEffect(() => {
+    const saved = getSidebarCollapseFromCookie();
+    if (saved !== null && saved !== undefined) {
+      setIsCollapsed(saved);
+    }
+  }, []);
   const { user, memberships } = useAuth()
   const pathname = usePathname();
 

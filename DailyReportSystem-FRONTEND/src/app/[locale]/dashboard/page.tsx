@@ -280,11 +280,13 @@ export default function DashboardPage() {
                     }}
                   >
                     <Box
+                      onClick={() => router.push(`/${selectedLanguage}/projects/${project.id}`)}
                       sx={{
                         p: 3,
                         borderRadius: 4,
                         border: '1px solid',
                         borderColor: alpha(theme.palette.divider, 0.1),
+                        cursor: 'pointer',
                         transition: '0.3s',
                         '&:hover': {
                           borderColor: getStatusColor(project.status),
@@ -445,7 +447,9 @@ export default function DashboardPage() {
                           <Box
                             component="tr"
                             key={task.id}
+                            onClick={() => router.push(`/${selectedLanguage}/projects/${task.project.id}/tasks/${task.id}`)}
                             sx={{
+                              cursor: 'pointer',
                               '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.02) },
                               borderBottom: '1px solid',
                               borderColor: alpha(theme.palette.divider, 0.1)
@@ -525,9 +529,11 @@ export default function DashboardPage() {
                     {tasks.map((task) => (
                       <Box
                         key={task.id}
+                        onClick={() => router.push(`/${selectedLanguage}/projects/${task.project.id}/tasks/${task.id}`)}
                         sx={{
                           p: 2.5,
                           borderRadius: 3,
+                          cursor: 'pointer',
                           border: '1px solid',
                           borderColor: alpha(theme.palette.divider, 0.1),
                           bgcolor: alpha(theme.palette.background.paper, 0.25),
