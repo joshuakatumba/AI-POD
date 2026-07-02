@@ -39,7 +39,6 @@ class Session(CommonField):
         null=True, blank=True # Nullable for general chats
     )
     
-    title = models.CharField(max_length=255, default="New Engineering Report")
     status = models.CharField(
         max_length=20, 
         choices=SESSION_STATUS_CHOICES, 

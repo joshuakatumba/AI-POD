@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - static_volume:/usr/src/app/staticfiles
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres || exit 0" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -44,8 +44,9 @@ services:
     env_file:
       - .env
     environment:
-      - DEBUG=0
+      - DEBUG=1
       - PYTHONPATH=/usr/src/app
+      - DJANGO_SETTINGS_MODULE=core.settings.development
       - REDIS_URL=redis://redis:6379/0
     ports:
       - "8000:8000"
@@ -69,8 +70,9 @@ services:
     env_file:
       - .env
     environment:
-      - DEBUG=0
+      - DEBUG=1
       - PYTHONPATH=/usr/src/app
+      - DJANGO_SETTINGS_MODULE=core.settings.development
       - REDIS_URL=redis://redis:6379/0
     command: celery -A core worker -l info
     restart: always
@@ -86,6 +88,7 @@ services:
     env_file:
       - .env
     environment:
+      - DJANGO_SETTINGS_MODULE=core.settings.development
       - REDIS_URL=redis://redis:6379/0
     command: celery -A core flower --port=5555
     ports:

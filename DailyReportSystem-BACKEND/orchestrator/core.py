@@ -13,6 +13,24 @@ from pydantic_ai import Agent, RunContext
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.providers.google import GoogleProvider
+
+
+def build_model(ai_model):
+    """
+    Builds the correct pydantic_ai model instance based on
+    the model name stored on the AIWorkflow's ai_model.
+    """
+    name = ai_model.name.lower()
+
+    if name.startswith("gemini"):
+        provider = GoogleProvider(api_key=ai_model.api_key)
+        return GoogleModel(model_name=ai_model.name, provider=provider)
+
+    # default: OpenAI-compatible models
+    provider = OpenAIProvider(api_key=ai_model.api_key)
+    return OpenAIChatModel(model_name=ai_model.name, provider=provider)
 
 
 class SessionPhase(str, Enum):
@@ -65,14 +83,7 @@ class EngineeringDeps:
 
 class ReportAgentRunner:
     def __init__(self, workflow):
-        provider = OpenAIProvider(
-            api_key=workflow.ai_model.api_key
-        )
-
-        model = OpenAIChatModel(
-            model_name=workflow.ai_model.name,
-            provider=provider,
-        )
+        model = build_model(workflow.ai_model)
 
         report_agent = Agent(
             model,
@@ -347,13 +358,24 @@ class ReportAgentRunner:
                         .get(session=ctx.deps.session)
                     )
 
-            if report.status == "complete":
+                    if report.status == "complete":
+                        return None
+
+                    report.status = "complete"
+                    report.save(update_fields=["status"])
+
+                    return report
+
+            report = await sync_to_async(_finalize)()
+
+            # queue trigger translation
+            from projects.helpers import queue_report_translation
+            await sync_to_async(queue_report_translation, thread_sensitive=True)(report)
+
+            if report is None:
                 return "⚠️ Report is already finalized."
 
-            report.status = "complete"
-            await report.asave(update_fields=["status"])
-
-            FRONTEND_URL = os.getenv("FRONTEND_BASE_URL")
+            FRONTEND_URL = os.getenv("FRONTEND_BASE_URL", "").rstrip("/")
             report_url = f"{FRONTEND_URL}/reports/{report.id}"
 
             return (
@@ -374,14 +396,7 @@ class TranslationItem(BaseModel):
 
 class TranslationAgentRunner:
     def __init__(self, workflow):
-        provider = OpenAIProvider(
-            api_key=workflow.ai_model.api_key
-        )
-
-        model = OpenAIChatModel(
-            model_name=workflow.ai_model.name,
-            provider=provider,
-        )
+        model = build_model(workflow.ai_model)
 
         translation_agent = Agent(  
             model,
