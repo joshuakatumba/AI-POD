@@ -299,12 +299,22 @@
       },
       "reports": {
         "workflowEfficiency": "Workflow Efficiency",
+        "workflowEfficiencyTooltip": "Based on daily report submissions and task completion rates over the last 7 days",
+        "workflowEfficiencyPeriod": "Last 7 days",
+        "workflowEfficiencyAriaLabel": "About Workflow Efficiency calculation",
         "pulseTitle": "Pulse & Reports",
         "recentTitle": "Recent Reports",
         "empty": {
           "title": "No reports yet",
           "description": "Reports will appear here once they are generated."
         }
+      },
+      "onboarding": {
+        "title": "Welcome to DailyReportSystem!",
+        "description": "You don't have any active projects or tasks yet. Get started by creating your first project or configuring your settings.",
+        "createProject": "Create Project",
+        "viewSettings": "View Settings",
+        "dismiss": "Dismiss"
       }
     }
   },

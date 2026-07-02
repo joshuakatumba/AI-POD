@@ -296,12 +296,22 @@
       },
       "reports": {
         "workflowEfficiency": "ワークフロー効率",
+        "workflowEfficiencyTooltip": "過去7日間の日次レポート提出数とタスク完了率に基づいています",
+        "workflowEfficiencyPeriod": "過去7日間",
+        "workflowEfficiencyAriaLabel": "ワークフロー効率の計算について",
         "pulseTitle": "パルス＆レポート",
         "recentTitle": "最近のレポート",
         "empty": {
           "title": "まだレポートはありません",
           "description": "レポートが生成されるとここに表示されます。"
         }
+      },
+      "onboarding": {
+        "title": "DailyReportSystemへようこそ！",
+        "description": "現在、アクティブなプロジェクトやタスクはありません。最初のプロジェクトを作成するか、設定を構成して開始してください。",
+        "createProject": "プロジェクトを作成",
+        "viewSettings": "設定を表示",
+        "dismiss": "閉じる"
       }
     }
   },

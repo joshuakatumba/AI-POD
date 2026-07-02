@@ -11,7 +11,9 @@ from django.db import DatabaseError
 from django.db.models import Q
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from datetime import datetime
+from datetime import datetime, timedelta
+from tasks.models import Task
+from projectMembers.models import ProjectMember
 
 
 from organizations.models import Membership, Organization
@@ -521,3 +523,168 @@ class ReportCommentDetailView(generics.GenericAPIView):
         queue_report_comment_translation(comment)
 
         return Response(ReportCommentReadSerializer(comment).data, status=status.HTTP_200_OK)
+
+
+class WorkflowEfficiencyApiView(generics.GenericAPIView):
+    """
+    GET /api/reports/workflow-efficiency/
+
+    Returns the Workflow Efficiency metric for the authenticated user within
+    their current organisation, computed over the last 7 days.
+
+    Formula (see PR description for full rationale):
+        task_score   = completed_tasks_7d  / max(total_tasks_7d,  1)
+        report_score = submitted_reports_7d / max(expected_reports, 1)
+        efficiency   = round((task_score * 0.6 + report_score * 0.4) * 100, 1)
+
+    Where:
+        completed_tasks  = tasks assigned to user, created in window, status in
+                           {done, deployed, closed}, not deleted.
+        total_tasks      = tasks assigned to user, created in window, not deleted,
+                           not cancelled.
+        submitted_reports = reports by user in window, not deleted, status != invalid.
+        expected_reports  = working_days_in_window * active_project_memberships.
+
+    A delta vs the prior 7-day period is also returned (current - prior).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description=(
+            "Compute Workflow Efficiency for the authenticated user over the last 7 days. "
+            "Returns efficiency percentage, delta vs prior 7 days, and the period dates."
+        ),
+        responses={
+            200: openapi.Response(
+                description="Workflow Efficiency metric",
+                examples={
+                    "application/json": {
+                        "efficiency": 72.5,
+                        "delta": 5.2,
+                        "period_start": "2026-06-25",
+                        "period_end": "2026-07-02",
+                    }
+                },
+            ),
+            401: openapi.Response(description="Authentication required"),
+        },
+        tags=["Reports"],
+    )
+    def get(self, request):
+        auth = request.auth or {}
+        organisation_id = auth.get("organisation_id")
+        user = request.user
+
+        now = timezone.now()
+        window_end = now
+        window_start = now - timedelta(days=7)
+        prior_end = window_start
+        prior_start = prior_end - timedelta(days=7)
+
+        current_efficiency = self._compute_efficiency(
+            user, organisation_id, window_start, window_end
+        )
+        prior_efficiency = self._compute_efficiency(
+            user, organisation_id, prior_start, prior_end
+        )
+        delta = round(current_efficiency - prior_efficiency, 1)
+
+        return Response(
+            {
+                "efficiency": current_efficiency,
+                "delta": delta,
+                "period_start": window_start.date().isoformat(),
+                "period_end": window_end.date().isoformat(),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    # ------------------------------------------------------------------
+    # Private helpers
+    # ------------------------------------------------------------------
+
+    def _compute_efficiency(
+        self, user, organisation_id, window_start, window_end
+    ) -> float:
+        """
+        Compute a single efficiency score for [window_start, window_end).
+        Returns a float in [0.0, 100.0].
+        """
+        task_score = self._task_score(user, organisation_id, window_start, window_end)
+        report_score = self._report_score(
+            user, organisation_id, window_start, window_end
+        )
+        return round((task_score * 0.6 + report_score * 0.4) * 100, 1)
+
+    @staticmethod
+    def _task_score(
+        user, organisation_id, window_start, window_end
+    ) -> float:
+        """
+        Task completion ratio for tasks assigned to *user* and created in the window.
+        Excludes deleted and cancelled tasks.
+        Completed = status in {done, deployed, closed}.
+        """
+        base_qs = Task.objects.filter(
+            organisation_id=organisation_id,
+            assigned_to__membership__user=user,
+            created_at__gte=window_start,
+            created_at__lt=window_end,
+            is_deleted=False,
+        ).exclude(status="cancelled")
+
+        total = base_qs.count()
+        if total == 0:
+            return 0.0
+
+        completed = base_qs.filter(
+            status__in=["done", "deployed", "closed"]
+        ).count()
+        return completed / total
+
+    @staticmethod
+    def _report_score(
+        user, organisation_id, window_start, window_end
+    ) -> float:
+        """
+        Report submission ratio.
+        Submitted = valid (non-invalid, non-deleted) reports created in the window.
+        Expected  = working days in window * active project memberships for the user.
+        Capped at 1.0 to handle over-submission gracefully.
+        """
+        submitted = Report.objects.filter(
+            organisation_id=organisation_id,
+            membership__user=user,
+            created_at__gte=window_start,
+            created_at__lt=window_end,
+            is_deleted=False,
+        ).exclude(status="invalid").count()
+
+        working_days = WorkflowEfficiencyApiView._count_working_days(
+            window_start.date(), window_end.date()
+        )
+        active_projects = ProjectMember.objects.filter(
+            organisation_id=organisation_id,
+            membership__user=user,
+            status="active",
+            is_deleted=False,
+        ).count()
+
+        expected = working_days * max(active_projects, 1)
+        if expected == 0:
+            return 0.0
+
+        return min(submitted / expected, 1.0)
+
+    @staticmethod
+    def _count_working_days(start_date, end_date) -> int:
+        """Count Mon–Fri calendar days in [start_date, end_date)."""
+        from datetime import timedelta as _td
+        count = 0
+        current = start_date
+        while current < end_date:
+            if current.weekday() < 5:  # 0=Monday … 4=Friday
+                count += 1
+            current += _td(days=1)
+        return count

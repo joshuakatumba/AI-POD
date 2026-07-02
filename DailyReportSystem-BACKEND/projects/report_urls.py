@@ -1,5 +1,12 @@
 from django.urls import path
-from projects.views import ReportCommentDetailView, ReportCommentsView, ReportDetailApiView, ReportInvalidateApiView, ReportsApiView
+from projects.views import (
+    ReportCommentDetailView,
+    ReportCommentsView,
+    ReportDetailApiView,
+    ReportInvalidateApiView,
+    ReportsApiView,
+    WorkflowEfficiencyApiView,
+)
 
 app_name = "reports"
 
@@ -8,6 +15,11 @@ urlpatterns = [
         "",
         ReportsApiView.as_view(),
         name="reports",
+    ),
+    path(
+        "workflow-efficiency/",
+        WorkflowEfficiencyApiView.as_view(),
+        name="workflow_efficiency",
     ),
     path(
         "<uuid:report_id>/",
