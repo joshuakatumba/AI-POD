@@ -99,27 +99,13 @@ export default function NotificationSettings() {
     );
   }
 
-  const cardSx = {
+    const cardSx = {
     p: { xs: 3, md: 4 },
-    borderRadius: 4,
-    bgcolor: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.background.paper, 0.6) 
-      : theme.palette.background.paper,
-    border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-    backdropFilter: 'blur(12px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 8px 32px rgba(0,0,0,0.3)'
-      : '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)',
-    transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
-    '&:hover': {
-      borderColor: alpha(theme.palette.divider, 0.15),
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 8px 40px rgba(0,0,0,0.4)'
-        : '0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08)',
-    },
+    borderRadius: 2,
+    bgcolor: 'background.paper',
+    border: `1px solid ${theme.palette.divider}`,
   };
-
-  return (
+return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       
       {/* Email Alerts Section */}
@@ -127,8 +113,7 @@ export default function NotificationSettings() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <Avatar sx={{ 
             width: 48, height: 48, 
-            background: 'linear-gradient(135deg, #10b981, #34d399)',
-            boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
+            bgcolor: 'primary.main',
           }}>
             <NotificationsActiveOutlinedIcon sx={{ fontSize: 24 }} />
           </Avatar>
@@ -187,8 +172,7 @@ export default function NotificationSettings() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <Avatar sx={{ 
             width: 48, height: 48, 
-            background: 'linear-gradient(135deg, #f43f5e, #fb7185)',
-            boxShadow: '0 4px 14px rgba(244,63,94,0.35)',
+            bgcolor: 'primary.main',
           }}>
             <CampaignOutlinedIcon sx={{ fontSize: 24 }} />
           </Avatar>

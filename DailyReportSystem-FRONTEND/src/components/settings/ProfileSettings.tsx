@@ -134,35 +134,19 @@ export default function ProfileSettings() {
     );
   }
 
-  const cardSx = {
+    const cardSx = {
     p: { xs: 3, md: 4 },
-    borderRadius: 4,
-    bgcolor: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.background.paper, 0.6) 
-      : theme.palette.background.paper,
-    border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-    backdropFilter: 'blur(12px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 8px 32px rgba(0,0,0,0.3)'
-      : '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)',
-    transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
-    '&:hover': {
-      borderColor: alpha(theme.palette.divider, 0.15),
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 8px 40px rgba(0,0,0,0.4)'
-        : '0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08)',
-    },
+    borderRadius: 2,
+    bgcolor: 'background.paper',
+    border: `1px solid ${theme.palette.divider}`,
   };
-
-  const textFieldSx = {
+const textFieldSx = {
     '& .MuiOutlinedInput-root': {
       borderRadius: 2.5,
       transition: 'all 0.2s ease',
       '&:hover': {
-        boxShadow: `0 0 0 3px ${alpha('#6366f1', 0.06)}`,
       },
       '&.Mui-focused': {
-        boxShadow: `0 0 0 3px ${alpha('#6366f1', 0.12)}`,
       },
     },
   };
@@ -175,8 +159,7 @@ export default function ProfileSettings() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <Avatar sx={{ 
             width: 48, height: 48, 
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+            bgcolor: 'primary.main',
           }}>
             <PersonOutlineIcon sx={{ fontSize: 24 }} />
           </Avatar>
@@ -284,12 +267,10 @@ export default function ProfileSettings() {
                     textTransform: 'none',
                     fontWeight: 600,
                     fontSize: '0.9rem',
-                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+                    bgcolor: 'primary.main',
                     transition: 'all 0.25s ease',
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                      boxShadow: '0 6px 20px rgba(99,102,241,0.45)',
+                      bgcolor: 'primary.main',
                       transform: 'translateY(-1px)',
                     },
                     '&:active': { transform: 'translateY(0)' },
@@ -325,8 +306,7 @@ export default function ProfileSettings() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <Avatar sx={{ 
             width: 48, height: 48, 
-            background: 'linear-gradient(135deg, #f59e0b, #f97316)',
-            boxShadow: '0 4px 14px rgba(245,158,11,0.35)',
+            bgcolor: 'primary.main',
           }}>
             <SecurityIcon sx={{ fontSize: 24 }} />
           </Avatar>

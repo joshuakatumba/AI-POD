@@ -13,8 +13,8 @@ User = get_user_model()
 _EMAIL_TYPE_REQUIRED_KWARGS = {
     "password_reset": ["reset_link"],
     "invite_member": ["organization_name", "login_link"],
-    
-
+    "task_assigned": ["task_name", "task_link", "assigner_name"],
+    "task_deadline_approaching": ["task_name", "task_link", "due_date"],
 }
 
 
@@ -62,3 +62,38 @@ def send_email_task(self, email_type, user_id, **kwargs):
     html_body = render_to_string(email["template_paths"], context)
     EmailService().send(user.email, email["subject"], email["text_body"], html_body)
     return {"status": "sent", "user_id": str(user_id), "email_type": email_type}
+
+
+@shared_task(name="notifications.send_deadline_reminders_task")
+def send_deadline_reminders_task():
+    """
+    Checks for tasks due tomorrow and sends a reminder to the assignee.
+    """
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.conf import settings
+    from tasks.models import Task
+
+    tomorrow = timezone.now().date() + timedelta(days=1)
+    
+    # Find tasks due tomorrow that are not closed or cancelled
+    tasks_due_tomorrow = Task.objects.filter(
+        due_date__date=tomorrow,
+        is_deleted=False
+    ).exclude(status__in=["closed", "cancelled"])
+
+    frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3002")
+
+    for task in tasks_due_tomorrow:
+        if task.assigned_to and task.assigned_to.membership and task.assigned_to.membership.user:
+            user_id = task.assigned_to.membership.user.id
+            task_link = f"{frontend_url}/projects/{task.project.id}/tasks?task={task.id}"
+            
+            send_email_task.delay(
+                "task_deadline_approaching",
+                user_id,
+                task_name=task.name,
+                task_link=task_link,
+                due_date=str(task.due_date.date())
+            )
+    return {"status": "success", "tasks_processed": tasks_due_tomorrow.count()}

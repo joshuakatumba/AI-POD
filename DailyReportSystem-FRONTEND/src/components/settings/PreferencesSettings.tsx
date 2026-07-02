@@ -34,27 +34,13 @@ export default function PreferencesSettings() {
     }
   };
 
-  const cardSx = {
+    const cardSx = {
     p: { xs: 3, md: 4 },
-    borderRadius: 4,
-    bgcolor: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.background.paper, 0.6) 
-      : theme.palette.background.paper,
-    border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-    backdropFilter: 'blur(12px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 8px 32px rgba(0,0,0,0.3)'
-      : '0 1px 3px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06)',
-    transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
-    '&:hover': {
-      borderColor: alpha(theme.palette.divider, 0.15),
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 8px 40px rgba(0,0,0,0.4)'
-        : '0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08)',
-    },
+    borderRadius: 2,
+    bgcolor: 'background.paper',
+    border: `1px solid ${theme.palette.divider}`,
   };
-
-  const themeOptions = [
+const themeOptions = [
     { 
       value: 'light', 
       label: t('themeLight'), 
@@ -85,8 +71,7 @@ export default function PreferencesSettings() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <Avatar sx={{ 
             width: 48, height: 48, 
-            background: 'linear-gradient(135deg, #f59e0b, #f97316)',
-            boxShadow: '0 4px 14px rgba(245,158,11,0.35)',
+            bgcolor: 'primary.main',
           }}>
             <PaletteOutlinedIcon sx={{ fontSize: 24 }} />
           </Avatar>
@@ -135,12 +120,10 @@ export default function PreferencesSettings() {
                   bgcolor: `${alpha(option.color, 0.04)} !important`,
                   borderColor: `${alpha(option.color, 0.25)} !important`,
                   transform: 'translateY(-2px)',
-                  boxShadow: `0 6px 20px ${alpha(option.color, 0.15)}`,
                 },
                 '&.Mui-selected': {
                   bgcolor: `${alpha(option.color, 0.08)} !important`,
                   borderColor: `${alpha(option.color, 0.4)} !important`,
-                  boxShadow: `0 0 0 3px ${alpha(option.color, 0.1)}, 0 4px 16px ${alpha(option.color, 0.2)}`,
                   '&:hover': {
                     bgcolor: `${alpha(option.color, 0.12)} !important`,
                   },
@@ -175,8 +158,7 @@ export default function PreferencesSettings() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
           <Avatar sx={{ 
             width: 48, height: 48, 
-            background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
-            boxShadow: '0 4px 14px rgba(59,130,246,0.35)',
+            bgcolor: 'primary.main',
           }}>
             <LanguageOutlinedIcon sx={{ fontSize: 24 }} />
           </Avatar>
