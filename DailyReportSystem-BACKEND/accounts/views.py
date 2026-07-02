@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import authenticate, get_user_model
-from .serializers import LoginResponseSerializer, LogoutSerializer, OrganisationSelectResponseSerializer, UserInfoSerializer, UserSignUpSerializer, OrganisationSelectSerializer, LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+from .serializers import LoginResponseSerializer, LogoutSerializer, OrganisationSelectResponseSerializer, UserInfoSerializer, UserSignUpSerializer, OrganisationSelectSerializer, LoginSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer, UserUpdateSerializer, ChangePasswordSerializer, UserNotificationPreferenceSerializer
 from organizations.models import Membership
 from .utils import get_jwt_for_membership
 from .helpers import send_password_reset_email
@@ -273,6 +273,12 @@ class CurrentUserView(APIView):
                 "last_accessed_at": m.last_accessed_at,
             })
 
+        from .models import UserNotificationPreference
+        try:
+            prefs = user.notification_preference
+        except UserNotificationPreference.DoesNotExist:
+            prefs = UserNotificationPreference.objects.create(user=user)
+
         return Response({
             "user_id": str(user.id),
             "email": user.email,
@@ -282,7 +288,86 @@ class CurrentUserView(APIView):
             "preferred_language": user.preferred_language,
             "super_user": user.is_superuser,
             "memberships": memberships_data,
+            "notification_preferences": {
+                "email_notifications_enabled": prefs.email_notifications_enabled,
+                "daily_summary_enabled": prefs.daily_summary_enabled,
+                "marketing_emails_enabled": prefs.marketing_emails_enabled,
+            }
         })
+
+    @swagger_auto_schema(
+        request_body=UserUpdateSerializer,
+        responses={
+            200: openapi.Response(description="User updated successfully"),
+            400: openapi.Response(description="Invalid input"),
+        },
+        operation_description="Updates the current user's profile information.",
+        tags=["Auth"],
+    )
+    def patch(self, request):
+        serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=ChangePasswordSerializer,
+        responses={
+            200: openapi.Response(description="Password changed successfully."),
+            400: openapi.Response(description="Invalid input or old password incorrect."),
+        },
+        operation_description="Change the current user's password.",
+        tags=["Auth"],
+    )
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        user = request.user
+        if not user.check_password(serializer.validated_data.get("old_password")):
+            return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate new password using Django validators
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        try:
+            validate_password(serializer.validated_data.get("new_password"), user=user)
+        except DjangoValidationError as e:
+            return Response({"new_password": list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(serializer.validated_data.get("new_password"))
+        user.save(update_fields=["password"])
+        
+        return Response({"message": "Password updated successfully"}, status=status.HTTP_200_OK)
+
+
+class UpdateNotificationPreferenceView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=UserNotificationPreferenceSerializer,
+        responses={
+            200: openapi.Response(description="Preferences updated successfully"),
+            400: openapi.Response(description="Invalid input"),
+        },
+        operation_description="Updates the current user's notification preferences.",
+        tags=["Auth"],
+    )
+    def put(self, request):
+        from .models import UserNotificationPreference
+        try:
+            prefs = request.user.notification_preference
+        except UserNotificationPreference.DoesNotExist:
+            prefs = UserNotificationPreference.objects.create(user=request.user)
+
+        serializer = UserNotificationPreferenceSerializer(prefs, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SwitchOrganizationView(APIView):
