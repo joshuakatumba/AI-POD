@@ -1,4 +1,4 @@
-import { GetReportsParams, ReportResponseType } from "@/_types/reports";
+import { GetReportsParams, ReportResponseType, WorkflowEfficiencyResponseType } from "@/_types/reports";
 import { authFetch } from "@/utils/apiClient";
 
 export async function getReportsAPI(
@@ -77,4 +77,22 @@ export async function invalidateReportAPI(reportId: string): Promise<ReportRespo
   }
   const data: ReportResponseType = await res.json();
   return data;
+}
+
+/**
+ * Fetch the Workflow Efficiency metric for the authenticated user.
+ * Returns efficiency (0–100), delta vs prior 7 days, and the period dates.
+ * GET /api/reports/workflow-efficiency/
+ */
+export async function getWorkflowEfficiencyAPI(): Promise<WorkflowEfficiencyResponseType> {
+  const res = await authFetch('/api/reports/workflow-efficiency/', {
+    method: 'GET',
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData?.message || 'Failed to fetch workflow efficiency');
+  }
+
+  return res.json() as Promise<WorkflowEfficiencyResponseType>;
 }

@@ -9,7 +9,8 @@ import {
   Box, Typography, Button, Avatar, AvatarGroup,
   Chip, LinearProgress, Stack, IconButton, alpha, useTheme,
   CircularProgress,
-  Skeleton
+  Skeleton,
+  Tooltip,
 } from '@mui/material';
 import {
   AutoAwesomeRounded,
@@ -18,16 +19,18 @@ import {
   ArrowForwardRounded,
   NotificationsNoneRounded,
   SpeedRounded,
-  CalendarToday
+  CalendarToday,
+  InfoOutlined,
 } from '@mui/icons-material';
 import { getProjectsAPI } from "../projects";
 import { ProjectResponseType } from "@/_types/project";
 import { useToast } from "@/app/_providers/ToastProvider";
-import { getReportsAPI } from "../reports";
-import { ReportResponseType } from "@/_types/reports";
+import { getReportsAPI, getWorkflowEfficiencyAPI } from "../reports";
+import { ReportResponseType, WorkflowEfficiencyResponseType } from "@/_types/reports";
 import { TaskResponseType } from "@/_types/task";
 import { getAllTasksAPI } from "../projects/[project_id]/tasks";
 import { applyTranslations } from "@/utils/taskTranslations";
+import OnboardingCard from "@/components/dashboard/OnboardingCard";
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard.home');
@@ -41,9 +44,12 @@ export default function DashboardPage() {
   const [projectsLoading, setProjectsLoading] = useState(false)
   const [reportsLoading, setReportsLoading] = useState(false)
   const [tasksLoading, setTasksLoading] = useState(false)
+  const [efficiencyLoading, setEfficiencyLoading] = useState(false)
   const [activeProjects, setActiveProjects] = useState<ProjectResponseType[]>([]);
   const [reports, setReports] = useState<ReportResponseType[]>([]);
   const [tasks, setTasks] = useState<TaskResponseType[]>([]);
+  const [efficiency, setEfficiency] = useState<WorkflowEfficiencyResponseType | null>(null);
+  const [efficiencyError, setEfficiencyError] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -61,6 +67,7 @@ export default function DashboardPage() {
       fetchProjects(user.user_id);
       fetchReports(user.user_id);
       fetchTasks(user.user_id);
+      fetchWorkflowEfficiency();
     }
   }, [user]);
 
@@ -115,6 +122,24 @@ export default function DashboardPage() {
       showToast({ message: t('table.state.fetchReportsError'), severity: 'error' });
     } finally {
       setReportsLoading(false)
+    }
+  };
+
+  /**
+   * Fetches the real Workflow Efficiency metric from the backend.
+   * Scoped to the authenticated user within their current organisation.
+   * Period: last 7 days (matches tooltip copy and "Last 7 days" label).
+   */
+  const fetchWorkflowEfficiency = async () => {
+    try {
+      setEfficiencyLoading(true);
+      setEfficiencyError(false);
+      const data = await getWorkflowEfficiencyAPI();
+      setEfficiency(data);
+    } catch {
+      setEfficiencyError(true);
+    } finally {
+      setEfficiencyLoading(false);
     }
   };
 
@@ -190,6 +215,10 @@ export default function DashboardPage() {
       </Stack>
 
       {/* Main Layout Container */}
+      {!projectsLoading && !tasksLoading && activeProjects.length === 0 && tasks.length === 0 && (
+        <OnboardingCard />
+      )}
+
       <Box sx={{
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', lg: 'repeat(12, 1fr)' },
@@ -611,9 +640,54 @@ export default function DashboardPage() {
             }}>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.2), color: 'primary.light' }}><SpeedRounded /></Avatar>
-                <Box>
-                  <Typography variant="body2" sx={{ color: 'primary.light', fontWeight: 600 }}>{t("reports.workflowEfficiency")}</Typography>
-                  <Typography variant="h5" fontWeight={800}>+12.5%</Typography>
+                <Box sx={{ flex: 1 }}>
+                  {/* Label row: metric name + info icon */}
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <Typography variant="body2" sx={{ color: 'primary.light', fontWeight: 600 }}>
+                      {t("reports.workflowEfficiency")}
+                    </Typography>
+                    <Tooltip
+                      title={t("reports.workflowEfficiencyTooltip")}
+                      arrow
+                      placement="top"
+                    >
+                      <IconButton
+                        size="small"
+                        aria-label={t("reports.workflowEfficiencyAriaLabel")}
+                        sx={{ p: 0.25, color: 'primary.light', opacity: 0.7, '&:hover': { opacity: 1 } }}
+                      >
+                        <InfoOutlined sx={{ fontSize: 14 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+
+                  {/* Metric value – skeleton while loading, '—' on error, real value otherwise */}
+                  {efficiencyLoading ? (
+                    <Skeleton variant="text" width={90} height={48} />
+                  ) : efficiencyError || efficiency === null ? (
+                    <Typography variant="h5" fontWeight={800} sx={{ color: 'text.disabled' }}>—</Typography>
+                  ) : (
+                    <Stack direction="row" alignItems="baseline" spacing={1}>
+                      <Typography variant="h5" fontWeight={800}>
+                        {efficiency.efficiency.toFixed(1)}%
+                      </Typography>
+                      {efficiency.delta !== 0 && (
+                        <Typography
+                          variant="caption"
+                          fontWeight={700}
+                          sx={{ color: efficiency.delta > 0 ? 'success.main' : 'error.main' }}
+                        >
+                          {efficiency.delta > 0 ? '↑' : '↓'}
+                          {Math.abs(efficiency.delta).toFixed(1)}%
+                        </Typography>
+                      )}
+                    </Stack>
+                  )}
+
+                  {/* Period indicator – always visible */}
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                    {t("reports.workflowEfficiencyPeriod")}
+                  </Typography>
                 </Box>
               </Stack>
             </Box>
