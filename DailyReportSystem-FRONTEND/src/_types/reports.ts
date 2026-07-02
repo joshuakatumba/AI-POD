@@ -46,6 +46,18 @@ export type GetReportsParams = {
   page_size?: number;
 };
 
+/** Shape returned by GET /api/reports/workflow-efficiency/ */
+export type WorkflowEfficiencyResponseType = {
+  /** Efficiency score for the current 7-day window, 0.0 – 100.0 */
+  efficiency: number;
+  /** Change vs the prior 7-day window (positive = improvement) */
+  delta: number;
+  /** ISO date string for the start of the measured window */
+  period_start: string;
+  /** ISO date string for the end of the measured window */
+  period_end: string;
+};
+
 export type ReportTask = {
   id: string;
   name: string;

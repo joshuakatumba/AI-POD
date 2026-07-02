@@ -362,28 +362,30 @@ export default function ProjectsPage() {
             {t('subtitle')}
           </Typography>
         </Box>
-        <PermissionTooltip
-          restricted={!isOrganisationAdmin}
-          message={CREATE_PROJECT_TOOLTIP}
-          ariaLabel={t('buttons.createProject')}
-        >
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              borderRadius: 2.5,
-              textTransform: 'none',
-              fontWeight: 600,
-              px: { xs: 2, sm: 3 },
-              py: { xs: 0.8, sm: 1 },
-              fontSize: { xs: '0.8rem', sm: '0.875rem' },
-              boxShadow: 0,
-            }}
-            onClick={openCreate}
+        <Stack direction="row" spacing={2} alignItems="center">
+          <PermissionTooltip
+            restricted={!isOrganisationAdmin}
+            message={CREATE_PROJECT_TOOLTIP}
+            ariaLabel={t('buttons.createProject')}
           >
-            {t('buttons.createProject')}
-          </Button>
-        </PermissionTooltip>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{
+                borderRadius: 2.5,
+                textTransform: 'none',
+                fontWeight: 600,
+                px: { xs: 2, sm: 3 },
+                py: { xs: 0.8, sm: 1 },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                boxShadow: 0,
+              }}
+              onClick={openCreate}
+            >
+              {t('buttons.createProject')}
+            </Button>
+          </PermissionTooltip>
+        </Stack>
       </Stack>
 
       {/* TABLE */}

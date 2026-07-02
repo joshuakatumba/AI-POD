@@ -101,7 +101,8 @@ SESSION_STATUS_CHOICES = [
 
 SESSION_TYPE_CHOICES = [
     ("report_generation", _("Report Generation")),
-    ("project_audit", _("Admin Project Audit")),   
+    ("project_audit", _("Admin Project Audit")),
+    ("requirements", _("Requirements Gathering")),
 ]
 
 SESSION_MESSAGE_ROLE_CHOICES = [

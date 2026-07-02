@@ -299,12 +299,22 @@
       },
       "reports": {
         "workflowEfficiency": "Workflow Efficiency",
+        "workflowEfficiencyTooltip": "Based on daily report submissions and task completion rates over the last 7 days",
+        "workflowEfficiencyPeriod": "Last 7 days",
+        "workflowEfficiencyAriaLabel": "About Workflow Efficiency calculation",
         "pulseTitle": "Pulse & Reports",
         "recentTitle": "Recent Reports",
         "empty": {
           "title": "No reports yet",
           "description": "Reports will appear here once they are generated."
         }
+      },
+      "onboarding": {
+        "title": "Welcome to DailyReportSystem!",
+        "description": "You don't have any active projects or tasks yet. Get started by creating your first project or configuring your settings.",
+        "createProject": "Create Project",
+        "viewSettings": "View Settings",
+        "dismiss": "Dismiss"
       }
     }
   },
@@ -428,7 +438,7 @@
         "creator": "Creator",
         "team": "Team",
         "progress": "Progress",
-        "visibility": "Visibility", 
+        "visibility": "Visibility",
         "status": "Status",
         "actions": "Actions"
       },
@@ -1022,7 +1032,12 @@
         "server": "Server error. Please try again or contact support.",
         "duplicate": "An organisation with this name already exists.",
         "validation": "Please check your input and try again.",
-        "someInvitesFailed": "{count} {count, plural, one {invitation} other {invitations}} failed to send"
+        "someInvitesFailed": "{count} {count, plural, one {invitation} other {invitations}} failed to send",
+        "forbidden": "You don't have permission to create an organisation."
+      },
+      "noPermission": {
+        "title": "Cannot create organisation",
+        "back": "Back to dashboard"
       }
     },
     "invite": {
@@ -1517,6 +1532,16 @@
   "chat": {
     "title": "Start a Report Session",
     "button": "Start Report",
+    "session": {
+      "project": "Project",
+      "status": {
+        "ingesting": "Ingesting",
+        "interviewing": "Interviewing",
+        "drafting": "Drafting",
+        "review": "Review",
+        "archived": "Archived"
+      }
+    },
     "chatBox": {
       "subtitle": "Your culturally-aware AI mediator.",
       "bannerOne": "Using **",
@@ -1769,5 +1794,96 @@
     "already-have-account": "Already have an account?",
     "login": "Sign in",
     "loading": "Loading..."
+  },
+  "Settings": {
+    "title": "Settings",
+    "tabs": {
+      "profile": "Profile & Security",
+      "preferences": "Preferences",
+      "notifications": "Notifications",
+      "organization": "Organization & Team",
+      "ai_integrations": "AI & Integrations"
+    },
+    "ProfileSettings": {
+      "title": "Profile & Security",
+      "subtitle": "Manage your personal information and security settings.",
+      "updateSuccess": "Profile updated successfully!",
+      "updateError": "Failed to update profile. Please try again.",
+      "personalInfo": "Personal Information",
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "saveChanges": "Save Changes",
+      "changePassword": "Change Password",
+      "oldPassword": "Old Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updatePassword": "Update Password",
+      "passwordSuccess": "Password changed successfully!",
+      "passwordError": "Failed to change password. Please check your old password."
+    },
+    "PreferencesSettings": {
+      "appearance": "Appearance",
+      "appearanceDesc": "Customize how the application looks on your device.",
+      "themeLight": "Light Mode",
+      "themeDark": "Dark Mode",
+      "themeSystem": "System Default",
+      "localization": "Localization",
+      "localizationDesc": "Language preferences are managed in your Profile tab.",
+      "languageSettings": "Language settings",
+      "timezoneSupport": "Timezone support coming soon"
+    },
+    "NotificationSettings": {
+      "emailAlerts": "Email Alerts",
+      "emailAlertsDesc": "Choose what you want to be notified about via email.",
+      "enableEmail": "Enable Email Notifications",
+      "enableEmailDesc": "Receive emails for important activity and alerts.",
+      "dailySummaries": "Daily Summaries",
+      "dailySummariesDesc": "Get a daily digest of tasks, reports, and activity.",
+      "marketing": "Marketing & Promotions",
+      "promotionalEmails": "Promotional Emails",
+      "promotionalEmailsDesc": "Receive emails about new features, tips, and special offers.",
+      "updateSuccess": "Preferences updated successfully",
+      "updateError": "Failed to update preferences"
+    },
+    "OrganizationSettings": {
+      "teamMembers": "Team Members",
+      "inviteMember": "Invite Member",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "actions": "Actions",
+      "roleAdmin": "Admin",
+      "roleUser": "User",
+      "noMembers": "No members found.",
+      "inviteNewMember": "Invite New Member",
+      "inviteDesc": "Enter the email address of the person you'd like to invite to the organization.",
+      "emailAddress": "Email Address",
+      "cancel": "Cancel",
+      "sendInvite": "Send Invite",
+      "notInOrg": "You are not part of any organization.",
+      "inviteSuccess": "User invited successfully!",
+      "inviteError": "Failed to invite user",
+      "removeSuccess": "Member removed successfully",
+      "removeError": "Failed to remove member",
+      "roleSuccess": "Role updated successfully",
+      "roleError": "Failed to update role",
+      "confirmRemove": "Are you sure you want to remove this member?"
+    },
+    "AISettings": {
+      "aiConfiguration": "AI Configuration",
+      "aiConfigurationDesc": "Set your default AI provider and personal API key for generating reports.",
+      "providerLabel": "AI Provider",
+      "apiKeyLabel": "API Key",
+      "apiKeyHelper": "Your key is stored securely.",
+      "integrations": "Integrations",
+      "integrationsDesc": "Connect your workspace with external services.",
+      "slackIntegration": "Slack Integration",
+      "slackIntegrationDesc": "Send daily summaries and alerts to a Slack channel.",
+      "githubIntegration": "GitHub Integration",
+      "githubIntegrationDesc": "Automatically link tasks to GitHub issues and pull requests.",
+      "saveChanges": "Save Changes",
+      "updateSuccess": "AI & Integrations settings saved successfully!",
+      "updateError": "Failed to save settings. Please try again."
+    }
   }
 }

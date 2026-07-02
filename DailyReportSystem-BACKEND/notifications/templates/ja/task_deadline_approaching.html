@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}タスク期限が近づいています{% endblock %}
+{% block content %}
+  <h1 style="margin:0 0 16px;color:#1f2937;font-size:22px;font-weight:700;">タスク期限が近づいています</h1>
+  <p style="margin:0 0 12px;color:#4b5563;font-size:15px;line-height:1.6;">
+    こんにちは {{ full_name }} さん。これはリマインダーです。タスク「<strong>{{ task_name }}</strong>」の期限が明日（{{ due_date }}）に迫っています。
+  </p>
+  <p style="margin:0 0 32px;color:#4b5563;font-size:15px;line-height:1.6;">
+    以下のボタンをクリックして、タスクの進捗状況を更新してください。
+  </p>
+  <table cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="border-radius:10px;background-color:#4f46e5;">
+        <a href="{{ task_link }}"
+           style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;">
+          タスクを表示
+        </a>
+      </td>
+    </tr>
+  </table>
+  <p style="margin:32px 0 0;color:#9ca3af;font-size:13px;">
+    または、このリンクをブラウザにコピーしてください:<br>
+    <a href="{{ task_link }}" style="color:#4f46e5;word-break:break-all;">{{ task_link }}</a>
+  </p>
+{% endblock %}

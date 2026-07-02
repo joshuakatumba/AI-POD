@@ -11,10 +11,13 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/app/_contexts/AuthContext';
 import { orgSwitchApi } from '@/app/[locale]/(auth)/index';
 import { useToast } from '@/app/_providers/ToastProvider';
+import PermissionTooltip from '@/components/PermissionTooltip';
+import { CREATE_ORGANISATION_TOOLTIP } from '@/constants/permissionMessages';
+import { canUserCreateOrganisation } from '@/utils/organisationPermissions';
 
 export default function OrganisationSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { memberships, login } = useAuth();
+  const { memberships, login, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const showToast = useToast();
@@ -23,6 +26,10 @@ export default function OrganisationSwitcher({ isCollapsed }: { isCollapsed: boo
   const open = Boolean(anchorEl);
   const locale = useMemo(() => pathname.split('/')[1], [pathname]);
   const activeOrg = useMemo(() => memberships?.find(o => o.is_current), [memberships]);
+  const allowedToCreateOrganisation = useMemo(
+    () => canUserCreateOrganisation(user, memberships ?? []),
+    [memberships, user]
+  );
 
   const handleOrgSwitch = async (orgId: string) => {
     if (orgId === activeOrg?.organization_id) return setAnchorEl(null);
@@ -125,10 +132,26 @@ export default function OrganisationSwitcher({ isCollapsed }: { isCollapsed: boo
           </MenuItem>
         ))}
         <Divider sx={{ my: 1 }} />
-        <MenuItem onClick={() => router.push(`/${locale}/organisation/create`)} sx={{ mx: 1, borderRadius: 1.5, color: 'primary.main' }}>
-          <AddIcon fontSize="small" sx={{ mr: 1 }} />
-          <Typography variant="body2" fontWeight={600}>{t('createOrganisation')}</Typography>
-        </MenuItem>
+        <PermissionTooltip
+          restricted={!allowedToCreateOrganisation}
+          message={CREATE_ORGANISATION_TOOLTIP}
+          ariaLabel={t('createOrganisation')}
+        >
+          <MenuItem
+            onClick={() => {
+              setAnchorEl(null);
+              router.push(`/${locale}/organisation/create`);
+            }}
+            sx={{
+              mx: 1,
+              borderRadius: 1.5,
+              color: allowedToCreateOrganisation ? 'primary.main' : 'text.secondary',
+            }}
+          >
+            <AddIcon fontSize="small" sx={{ mr: 1 }} />
+            <Typography variant="body2" fontWeight={600}>{t('createOrganisation')}</Typography>
+          </MenuItem>
+        </PermissionTooltip>
       </Menu>
     </Box>
   );
