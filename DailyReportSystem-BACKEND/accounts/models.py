@@ -52,28 +52,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-
-
-class UserNotificationPreference(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="notification_preference")
-    email_notifications_enabled = models.BooleanField(default=True)
-    daily_summary_enabled = models.BooleanField(default=True)
-    marketing_emails_enabled = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.user.email} Preferences"
-
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-@receiver(post_save, sender=User)
-def create_user_notification_preference(sender, instance, created, **kwargs):
-    if created:
-        UserNotificationPreference.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_notification_preference(sender, instance, **kwargs):
-    if not hasattr(instance, 'notification_preference'):
-        UserNotificationPreference.objects.create(user=instance)
-    else:
-        instance.notification_preference.save()

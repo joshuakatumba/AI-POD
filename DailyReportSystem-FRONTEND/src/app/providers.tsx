@@ -1,23 +1,11 @@
 'use client';
 
-import { createContext, useEffect, useMemo, useState, useContext } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-export type ThemeMode = 'light' | 'dark' | 'system';
+type ThemeMode = 'light' | 'dark' | 'system';
 export const THEME_STORAGE_KEY = 'theme-mode';
-
-interface ThemeModeContextProps {
-  mode: ThemeMode;
-  setMode: (mode: ThemeMode) => void;
-}
-
-export const ThemeModeContext = createContext<ThemeModeContextProps>({
-  mode: 'system',
-  setMode: () => {},
-});
-
-export const useThemeMode = () => useContext(ThemeModeContext);
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>('system');
@@ -33,19 +21,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       setMode(stored ?? 'system');
       setSystemMode(isDark ? 'dark' : 'light');
     });
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      setSystemMode(e.matches ? 'dark' : 'light');
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-
-  const changeMode = (newMode: ThemeMode) => {
-    setMode(newMode);
-    localStorage.setItem(THEME_STORAGE_KEY, newMode);
-  };
 
   // Resolve actual mode (system -> dark/light)
   const resolvedMode = useMemo<'light' | 'dark'>(() => {
@@ -66,11 +42,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <ThemeModeContext.Provider value={{ mode, setMode: changeMode }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </ThemeModeContext.Provider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
   );
 }

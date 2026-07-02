@@ -11,7 +11,6 @@ from django.contrib.auth.tokens import default_token_generator
 
 from core.models.constants import LANGUAGE_CHOICES
 from organizations.models import Membership
-from .models import UserNotificationPreference
 
 User = get_user_model()
 
@@ -155,25 +154,3 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         user.save(update_fields=["password"])
 
         return user
-
-
-class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("email", "full_name", "preferred_language")
-
-class UserNotificationPreferenceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserNotificationPreference
-        fields = ("email_notifications_enabled", "daily_summary_enabled", "marketing_emails_enabled")
-
-
-class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(required=True)
-    new_password = serializers.CharField(required=True, min_length=8)
-    confirm_password = serializers.CharField(required=True, min_length=8)
-
-    def validate(self, attrs):
-        if attrs['new_password'] != attrs['confirm_password']:
-            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
-        return attrs
