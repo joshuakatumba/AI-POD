@@ -12,4 +12,5 @@ services:
       - /app/.pnpm-store
     environment:
       - NODE_ENV=development
+      - CI=true
     command: pnpm dev
