@@ -42,11 +42,11 @@ function CustomTabPanel(props: TabPanelProps) {
 }
 
 const tabConfig = [
-  { icon: <PersonOutlineIcon />, gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
-  { icon: <TuneIcon />, gradient: 'linear-gradient(135deg, #f59e0b, #f97316)' },
-  { icon: <NotificationsNoneIcon />, gradient: 'linear-gradient(135deg, #10b981, #06b6d4)' },
-  { icon: <GroupsOutlinedIcon />, gradient: 'linear-gradient(135deg, #ec4899, #f43f5e)' },
-  { icon: <AutoAwesomeIcon />, gradient: 'linear-gradient(135deg, #3b82f6, #6366f1)' },
+  { icon: <PersonOutlineIcon />, color: 'primary.main' },
+  { icon: <TuneIcon />, color: 'primary.main' },
+  { icon: <NotificationsNoneIcon />, color: 'primary.main' },
+  { icon: <GroupsOutlinedIcon />, color: 'primary.main' },
+  { icon: <AutoAwesomeIcon />, color: 'primary.main' },
 ];
 
 export default function SettingsPage() {
@@ -70,11 +70,7 @@ export default function SettingsPage() {
                 variant="h4" 
                 fontWeight={800} 
                 sx={{
-                  background: theme.palette.mode === 'dark' 
-                    ? 'linear-gradient(135deg, #a78bfa, #818cf8, #6366f1)' 
-                    : 'linear-gradient(135deg, #4f46e5, #6366f1, #8b5cf6)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  color: 'text.primary',
                   mb: 0.5,
                 }}
               >
@@ -105,14 +101,8 @@ export default function SettingsPage() {
                     gap: 0.75,
                     p: 1.5,
                     borderRadius: 3,
-                    bgcolor: theme.palette.mode === 'dark' 
-                      ? alpha(theme.palette.background.paper, 0.5) 
-                      : alpha(theme.palette.background.paper, 0.8),
-                    backdropFilter: 'blur(12px)',
-                    border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-                    boxShadow: theme.palette.mode === 'dark'
-                      ? '0 4px 30px rgba(0,0,0,0.3)'
-                      : '0 4px 30px rgba(0,0,0,0.06)',
+                    bgcolor: 'background.paper',
+border: `1px solid ${theme.palette.divider}`,
                   }}>
                     {tabs.map((tab, index) => (
                       <Box
@@ -148,8 +138,8 @@ export default function SettingsPage() {
                           sx={{
                             width: 36,
                             height: 36,
-                            background: value === index ? tabConfig[index].gradient : alpha(theme.palette.text.secondary, 0.1),
-                            transition: 'all 0.3s ease',
+                            bgcolor: value === index ? 'primary.main' : 'transparent',
+color: value === index ? '#fff' : 'text.secondary',
                             '& .MuiSvgIcon-root': {
                               fontSize: 18,
                               color: value === index ? '#fff' : theme.palette.text.secondary,

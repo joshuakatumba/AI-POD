@@ -154,13 +154,34 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             project=project,
         )
 
-        return Task.objects.create(
+        task = Task.objects.create(
             **validated_data,
             project=project,
             organisation=project.organization,
             created_by=request.user,
             reported_by=reported_by,
         )
+
+        assigned_to = task.assigned_to
+        if assigned_to and getattr(assigned_to, "membership", None) and getattr(assigned_to.membership, "user", None):
+            try:
+                from django.conf import settings
+                from notifications.tasks import send_email_task
+                frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3002")
+                task_link = f"{frontend_url}/projects/{project.id}/tasks?task={task.id}"
+                assigner_name = reported_by.membership.display_name or request.user.full_name or request.user.email
+                send_email_task.delay(
+                    "task_assigned",
+                    assigned_to.membership.user.id,
+                    task_name=task.name,
+                    task_link=task_link,
+                    assigner_name=assigner_name
+                )
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to queue task assignment email: {e}")
+
+        return task
 
 
 class TaskUpdateSerializer(serializers.ModelSerializer):
@@ -216,9 +237,33 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         
     @transaction.atomic
     def update(self, instance, validated_data):
+        old_assigned_to = instance.assigned_to_id
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+
+        new_assigned_to = instance.assigned_to
+        if new_assigned_to and new_assigned_to.id != old_assigned_to:
+            if getattr(new_assigned_to, "membership", None) and getattr(new_assigned_to.membership, "user", None):
+                try:
+                    from django.conf import settings
+                    from notifications.tasks import send_email_task
+                    request = self.context["request"]
+                    project = instance.project
+                    frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3002")
+                    task_link = f"{frontend_url}/projects/{project.id}/tasks?task={instance.id}"
+                    assigner_name = request.user.full_name or request.user.email
+                    send_email_task.delay(
+                        "task_assigned",
+                        new_assigned_to.membership.user.id,
+                        task_name=instance.name,
+                        task_link=task_link,
+                        assigner_name=assigner_name
+                    )
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(f"Failed to queue task assignment email: {e}")
+                
         return instance
 
 

@@ -39,4 +39,44 @@ EMAIL_CONTENT = {
             ),
         },
     },
+    "task_assigned": {
+        "en": {
+            "subject": "You have been assigned to a task: {task_name}",
+            "text_body_template": (
+                "Hi,\n\n"
+                "{assigner_name} has assigned you to the task '{task_name}'.\n\n"
+                "You can view the task here:\n"
+                "{task_link}\n"
+            ),
+        },
+        "ja": {
+            "subject": "タスクに割り当てられました: {task_name}",
+            "text_body_template": (
+                "こんにちは。\n\n"
+                "{assigner_name}さんがあなたをタスク「{task_name}」に割り当てました。\n\n"
+                "以下のリンクからタスクを確認できます:\n"
+                "{task_link}\n"
+            ),
+        },
+    },
+    "task_deadline_approaching": {
+        "en": {
+            "subject": "Reminder: Deadline approaching for task '{task_name}'",
+            "text_body_template": (
+                "Hi,\n\n"
+                "This is a reminder that the task '{task_name}' is due tomorrow ({due_date}).\n\n"
+                "You can view the task here:\n"
+                "{task_link}\n"
+            ),
+        },
+        "ja": {
+            "subject": "リマインダー: タスク「{task_name}」の期限が近づいています",
+            "text_body_template": (
+                "こんにちは。\n\n"
+                "タスク「{task_name}」の期限が明日（{due_date}）に迫っています。\n\n"
+                "以下のリンクからタスクを確認できます:\n"
+                "{task_link}\n"
+            ),
+        },
+    },
 }
