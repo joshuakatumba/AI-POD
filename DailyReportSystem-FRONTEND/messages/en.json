@@ -428,7 +428,7 @@
         "creator": "Creator",
         "team": "Team",
         "progress": "Progress",
-        "visibility": "Visibility", 
+        "visibility": "Visibility",
         "status": "Status",
         "actions": "Actions"
       },
@@ -1522,6 +1522,16 @@
   "chat": {
     "title": "Start a Report Session",
     "button": "Start Report",
+    "session": {
+      "project": "Project",
+      "status": {
+        "ingesting": "Ingesting",
+        "interviewing": "Interviewing",
+        "drafting": "Drafting",
+        "review": "Review",
+        "archived": "Archived"
+      }
+    },
     "chatBox": {
       "subtitle": "Your culturally-aware AI mediator.",
       "bannerOne": "Using **",
